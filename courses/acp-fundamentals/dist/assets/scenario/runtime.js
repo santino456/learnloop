@@ -10,35 +10,40 @@
   const list = document.getElementById("question-list");
   const count = document.getElementById("question-count");
 
-  // Show/hide answer and mark-done checkbox (memory only)
-  document.querySelectorAll(".exercise, .checkpoint").forEach((container) => {
-    const toggle = container.querySelector(".exercise-toggle, .checkpoint-toggle");
-    const answer = container.querySelector(".exercise-answer, .checkpoint-answer");
-    if (toggle && answer) {
-      toggle.addEventListener("click", () => {
-        const hidden = answer.hasAttribute("hidden");
-        if (hidden) {
-          answer.removeAttribute("hidden");
-          toggle.setAttribute("aria-expanded", "true");
-          toggle.textContent = container.classList.contains("exercise") ? "Hide answer" : "Hide answer";
-        } else {
-          answer.setAttribute("hidden", "");
-          toggle.setAttribute("aria-expanded", "false");
-          toggle.textContent = container.classList.contains("exercise") ? "Show answer" : "Show answer";
-        }
+  // Scenario exercises: turn the first list in each exercise into selectable options
+  document.querySelectorAll(".exercise").forEach((exercise) => {
+    const toggle = exercise.querySelector(".exercise-toggle");
+    if (toggle) {
+      toggle.textContent = "Reveal reasoning";
+    }
+    const task = exercise.querySelector(".exercise-task");
+    const options = task?.querySelector("ul, ol");
+    if (options) {
+      options.classList.add("exercise-options");
+      options.querySelectorAll("li").forEach((li) => {
+        li.addEventListener("click", () => {
+          options.querySelectorAll("li").forEach((item) => item.classList.remove("selected"));
+          li.classList.add("selected");
+        });
       });
     }
   });
 
-  document.querySelectorAll(".exercise-done input[type='checkbox']").forEach((checkbox) => {
-    checkbox.addEventListener("change", () => {
-      const label = checkbox.closest(".exercise-done");
-      if (checkbox.checked) {
-        label.classList.add("checked");
-        label.insertAdjacentHTML("beforeend", ' <span class="done-text">Done</span>');
+  // Toggle reasoning/answer
+  document.querySelectorAll(".exercise-toggle, .checkpoint-toggle").forEach((button) => {
+    button.addEventListener("click", () => {
+      const container = button.closest(".exercise, .checkpoint");
+      const answer = container.querySelector(".exercise-answer, .checkpoint-answer");
+      if (!answer) return;
+      const hidden = answer.hasAttribute("hidden");
+      if (hidden) {
+        answer.removeAttribute("hidden");
+        button.setAttribute("aria-expanded", "true");
+        button.textContent = container.classList.contains("exercise") ? "Hide reasoning" : "Hide answer";
       } else {
-        label.classList.remove("checked");
-        label.querySelector(".done-text")?.remove();
+        answer.setAttribute("hidden", "");
+        button.setAttribute("aria-expanded", "false");
+        button.textContent = container.classList.contains("exercise") ? "Reveal reasoning" : "Show answer";
       }
     });
   });
@@ -58,8 +63,8 @@
     document.querySelectorAll(".ask-form").forEach((node) => node.remove());
     const template = document.getElementById("ask-template");
     const form = template.content.firstElementChild.cloneNode(true);
-    const heading = button.closest("[data-section-id]");
-    heading.insertAdjacentElement("afterend", form);
+    const heading = button.closest("[data-section-id]") || button.closest(".card");
+    (heading || document.querySelector(".lesson")).insertAdjacentElement("afterend", form);
     form.querySelector("textarea").focus();
     form.querySelector("[data-cancel]").addEventListener("click", () => form.remove());
     form.addEventListener("submit", async (event) => {

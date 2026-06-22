@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,7 +31,17 @@ proc = subprocess.Popen(
     bufsize=1,
 )</code></pre>
 <p>这里用 <code>example-agent</code> 代替真实的私有配置。测试时请替换成你实际要测的 Agent。</p>
-<div class="checkpoint"><p><code>stderr=subprocess.PIPE</code> 和 <code>stdout=subprocess.PIPE</code> 为什么要分开捕获？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p><code>stderr=subprocess.PIPE</code> 和 <code>stdout=subprocess.PIPE</code> 为什么要分开捕获？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>stdout 必须保持纯 JSON 行以便解析；stderr 用于日志和错误输出，两者不能混合。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m6-send-receive" data-section-title="发送与接收 JSON 行">发送与接收 JSON 行 <button class="ask-btn" data-ask-section="m6-send-receive" data-ask-title="发送与接收 JSON 行">Ask here</button></h2>
 <pre><code class="language-python">def send(message):
     proc.stdin.write(json.dumps(message) + &quot;\n&quot;)
@@ -58,10 +68,46 @@ print(receive())</code></pre>
 <div class="callout">验证提示：这只是教学骨架。在把它当作可执行代码之前，先运行真实 Agent 的帮助命令或文档检查。</div></section>
 <section><h2 data-section-id="m6-buffering" data-section-title="缓冲规则">缓冲规则 <button class="ask-btn" data-ask-section="m6-buffering" data-ask-title="缓冲规则">Ask here</button></h2>
 <ul><li>如果协议发送的是文本 JSON，使用文本模式。</li><li>每行写一个完整 JSON 对象。</li><li>每次请求后显式刷新。</li><li>保持 stdout 干净，日志发到 stderr。</li></ul>
-<div class="checkpoint"><p>如果 <code>send</code> 里漏掉了 <code>flush()</code>，程序可能出现什么现象？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>如果 <code>send</code> 里漏掉了 <code>flush()</code>，程序可能出现什么现象？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>消息可能滞留在缓冲区，Agent 永远读不到完整 JSON 行，导致客户端挂起。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m6-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="模块小结">Ask here</button></h2>
 <ul><li>最小本地客户端依赖子进程管道。</li><li>行分隔 JSON 要求严格的换行和刷新行为。</li><li>可运行示例必须针对真实 Agent 版本验证。</li></ul>
-<div class="exercise"><p>补全下面这个最小客户端：启动进程后，先发送 initialize，收到响应后再发送 prompt，最后打印 Agent 的响应。用伪代码或 Python 都可以。</p></div></section>
+<div class="exercise" data-has-answer="true">
+<div class="exercise-task">
+<p>下面这段最小客户端代码有一处 bug，会导致 Agent 收不到请求。请找出并修复。</p>
+<pre><code class="language-python">proc = subprocess.Popen([&quot;agent&quot;], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+
+def send(message):
+    proc.stdin.write(json.dumps(message) + &quot;\n&quot;)
+
+def receive():
+    return json.loads(proc.stdout.readline())
+
+send({&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;initialize&quot;,&quot;params&quot;:{}})
+print(receive())</code></pre>
+</div>
+<div class="exercise-answer" hidden>
+<p><code>send</code> 缺少 <code>proc.stdin.flush()</code>。修复后：</p>
+<pre><code class="language-python">def send(message):
+    proc.stdin.write(json.dumps(message) + &quot;\n&quot;)
+    proc.stdin.flush()</code></pre>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <label class="exercise-done">
+    <input type="checkbox"> Mark as done
+  </label>
+</div>
+</div></section>
   <footer class="next-prev"><a href="m5.html">Previous</a><a href="m7.html">Next</a></footer>
 </article>
 <template id="ask-template">

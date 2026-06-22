@@ -49,3 +49,4 @@ class Block:
     items: list[str] | None = None
     language: str | None = None
     content: str | None = None
+    answer: str | None = None

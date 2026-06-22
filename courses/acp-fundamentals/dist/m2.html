@@ -1,37 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ACP 的通信模型 | LearnLoop</title>
-  <link rel="stylesheet" href="assets/editorial/style.css">
+  <link rel="stylesheet" href="assets/reference/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
+  <header class="reference-header">
+    <span class="reference-brand">📋 Reference</span>
+    <span class="reference-course">ACP 基础</span>
+  </header>
   <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m2</span></nav>
 <article class="lesson" data-course-id="acp-fundamentals" data-module-id="m2">
   <header class="lesson-header">
     <p class="eyebrow">ACP 基础</p>
     <h1>ACP 的通信模型</h1>
-    <p class="lede">ACP 消息是客户端与 Agent 之间结构化的请求与响应。</p>
+    <p class="lede">把 ACP 看作传输层上的 JSON-RPC，明确客户端与 Agent 的角色。</p>
   </header>
-  <section><h2 data-section-id="m2-roles" data-section-title="客户端与 Agent 的角色">客户端与 Agent 的角色 <button class="ask-btn" data-ask-section="m2-roles" data-ask-title="客户端与 Agent 的角色">Ask here</button></h2>
-<p>在 ACP 里，<strong>客户端</strong>负责用户能直接触摸到的界面：发送请求、提供上下文、并代表 Agent 执行工具调用。</p>
-<p><strong>Agent</strong>则负责推理和任务执行策略：接收提示、申请工具调用、返回结果。</p>
-<div class="checkpoint"><p>客户端和 Agent 各拥有哪一类职责？请各写一条。比如“客户端负责……，Agent 负责……”。</p></div></section>
-<section><h2 data-section-id="m2-jsonrpc" data-section-title="JSON-RPC 形态">JSON-RPC 形态 <button class="ask-btn" data-ask-section="m2-jsonrpc" data-ask-title="JSON-RPC 形态">Ask here</button></h2>
-<p>很多 ACP 示例采用类似 JSON-RPC 的消息：每条请求有 <code>id</code>、<code>method</code> 和可选的 <code>params</code>；每条响应通过相同的 <code>id</code> 与请求对应。</p>
+  <section class="card" data-section-id="m2-roles" data-section-title="客户端与 Agent 的角色">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false"><span aria-hidden="true">▶</span> <span class="card-title">客户端与 Agent 的角色</span></button>
+    <button class="ask-btn" data-ask-section="m2-roles" data-ask-title="客户端与 Agent 的角色">Ask here</button>
+  </div>
+  <div class="card-summary">| 角色 | 职责 | |------|------| | 客户端（Client） | 持有用户界面，发送请求，提供上下文，代表 Agent 执行工具调用 | | Agent | 接收提示，决定策略，申请工具调用，返回结果 |</div>
+  <div class="card-body">
+<p>| 角色 | 职责 | |------|------| | 客户端（Client） | 持有用户界面，发送请求，提供上下文，代表 Agent 执行工具调用 | | Agent | 接收提示，决定策略，申请工具调用，返回结果 |</p>
+<div class="callout">口诀：<strong>客户端离用户最近，Agent 离推理最近</strong>。</div>
+  </div>
+</section>
+<section class="card" data-section-id="m2-jsonrpc" data-section-title="JSON-RPC 形态">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false"><span aria-hidden="true">▶</span> <span class="card-title">JSON-RPC 形态</span></button>
+    <button class="ask-btn" data-ask-section="m2-jsonrpc" data-ask-title="JSON-RPC 形态">Ask here</button>
+  </div>
+  <div class="card-summary">请求与响应通过同一个 id 对应。</div>
+  <div class="card-body">
+<p>请求与响应通过同一个 <code>id</code> 对应。</p>
 <pre><code class="language-json">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;initialize&quot;,&quot;params&quot;:{&quot;capabilities&quot;:{}}}</code></pre>
-<p>在教学或实现时，一定要对照你实际运行的 Agent 版本确认字段名称。</p></section>
-<section><h2 data-section-id="m2-stdio" data-section-title="本地传输">本地传输 <button class="ask-btn" data-ask-section="m2-stdio" data-ask-title="本地传输">Ask here</button></h2>
-<p>本地模式通常是<strong>行分隔的 JSON</strong>，通过标准输入和标准输出传输。</p>
-<ul><li>客户端向 Agent 的 stdin 写入一条 JSON 并加上换行。</li><li>Agent 向 stdout 写入一条 JSON 并加上换行。</li><li>日志应该输出到 stderr，保证 stdout 始终可解析。</li></ul></section>
-<section><h2 data-section-id="m2-lifecycle" data-section-title="会话生命周期">会话生命周期 <button class="ask-btn" data-ask-section="m2-lifecycle" data-ask-title="会话生命周期">Ask here</button></h2>
-<p>一次最小会话通常遵循这样的心智模型：</p>
-<ol><li>启动 Agent 进程。</li><li>发送 initialize 请求。</li><li>发送 prompt 或任务请求。</li><li>处理响应消息以及可能的工具调用。</li><li>会话结束时关闭进程。</li></ol>
-<div class="checkpoint"><p>为什么 stdout 必须保持“干净”？如果日志混进 stdout 会发生什么？</p></div></section>
-<section><h2 data-section-id="m2-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="模块小结">Ask here</button></h2>
-<ul><li>ACP 把面向用户的客户端职责和 Agent 的推理职责分开。</li><li>本地 ACP 依赖干净的 stdout 和显式刷新缓冲区。</li><li>示例只是协议草图，必须针对具体 Agent 版本验证后再运行。</li></ul></section>
+<p>| 字段 | 含义 | |------|------| | <code>jsonrpc</code> | 协议版本标识 | | <code>id</code> | 请求与响应的对应键 | | <code>method</code> | 调用的方法名 | | <code>params</code> | 方法参数 |</p>
+<div class="callout">教学示例字段名可能变化，运行前务必对照真实 Agent 文档。</div>
+  </div>
+</section>
+<section class="card" data-section-id="m2-stdio" data-section-title="本地传输">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false"><span aria-hidden="true">▶</span> <span class="card-title">本地传输</span></button>
+    <button class="ask-btn" data-ask-section="m2-stdio" data-ask-title="本地传输">Ask here</button>
+  </div>
+  <div class="card-summary">本地模式使用行分隔的 JSON。</div>
+  <div class="card-body">
+<p>本地模式使用<strong>行分隔的 JSON</strong>。</p>
+<ul><li>客户端 → Agent <code>stdin</code>：一条 JSON + 换行。</li><li>Agent → 客户端 <code>stdout</code>：一条 JSON + 换行。</li><li>日志必须输出到 <code>stderr</code>，保证 <code>stdout</code> 始终可解析。</li></ul>
+  </div>
+</section>
+<section class="card" data-section-id="m2-lifecycle" data-section-title="会话生命周期">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false"><span aria-hidden="true">▶</span> <span class="card-title">会话生命周期</span></button>
+    <button class="ask-btn" data-ask-section="m2-lifecycle" data-ask-title="会话生命周期">Ask here</button>
+  </div>
+  
+  <div class="card-body">
+<ol><li>启动 Agent 子进程。</li><li>发送 <code>initialize</code> 请求。</li><li>发送 prompt 或任务请求。</li><li>处理响应与可能的工具调用。</li><li>关闭进程。</li></ol>
+<div class="callout">注意：stdout 一旦混进日志，客户端解析 JSON 行就会失败。日志必须走 stderr。</div>
+  </div>
+</section>
+<section class="card" data-section-id="m2-summary" data-section-title="模块小结">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false"><span aria-hidden="true">▶</span> <span class="card-title">模块小结</span></button>
+    <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="模块小结">Ask here</button>
+  </div>
+  
+  <div class="card-body">
+<ul><li>ACP 把面向用户的客户端职责和 Agent 的推理职责分开。</li><li>本地 ACP 依赖干净的 stdout 和显式刷新缓冲区。</li><li>示例只是协议草图，必须针对具体 Agent 版本验证后再运行。</li></ul>
+  </div>
+</section>
   <footer class="next-prev"><a href="m1.html">Previous</a><a href="m3.html">Next</a></footer>
 </article>
 <template id="ask-template">
@@ -51,6 +94,6 @@
   <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
 </aside></main>
   <script src="/config.js"></script>
-  <script src="assets/editorial/runtime.js"></script>
+  <script src="assets/reference/runtime.js"></script>
 </body>
 </html>

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>把 ACP 桥接到浏览器 | LearnLoop</title>
-  <link rel="stylesheet" href="assets/workshop/style.css">
+  <link rel="stylesheet" href="assets/scenario/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
@@ -18,7 +18,17 @@
   <section><h2 data-section-id="m7-why" data-section-title="浏览器为什么需要桥接">浏览器为什么需要桥接 <button class="ask-btn" data-ask-section="m7-why" data-ask-title="浏览器为什么需要桥接">Ask here</button></h2>
 <p>浏览器页面不能安全地启动本地 Agent 进程，也无法直接管理 stdin/stdout 管道。</p>
 <p>常见做法是引入一个<strong>本地 bridge</strong>：浏览器与 bridge 通过 HTTP 或 SSE 通信；bridge 再通过 stdio 与 ACP Agent 通信。</p>
-<div class="checkpoint"><p>为什么浏览器不能直接管理 stdio？这涉及浏览器的哪个核心安全限制？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么浏览器不能直接管理 stdio？这涉及浏览器的哪个核心安全限制？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>浏览器的沙箱不允许网页直接访问本地文件系统或启动子进程；这是同源策略与沙箱安全模型的基本约束。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m7-architecture" data-section-title="Bridge 架构">Bridge 架构 <button class="ask-btn" data-ask-section="m7-architecture" data-ask-title="Bridge 架构">Ask here</button></h2>
 <pre><code class="language-text">Browser UI
   | HTTP 或 SSE
@@ -32,10 +42,34 @@ ACP Agent</code></pre>
 <section><h2 data-section-id="m7-sse" data-section-title="HTTP、SSE 还是 WebSocket">HTTP、SSE 还是 WebSocket <button class="ask-btn" data-ask-section="m7-sse" data-ask-title="HTTP、SSE 还是 WebSocket">Ask here</button></h2>
 <ul><li><strong>HTTP</strong>：适合请求-响应式交互。</li><li><strong>SSE</strong>：适合把 Agent 的流式文本推送到浏览器。</li><li><strong>WebSocket</strong>：适合双方需要频繁双向通信的场景。</li></ul>
 <p>从最简单的传输开始，只要能保留学习闭环即可。</p>
-<div class="checkpoint"><p>如果只需要“用户发一条消息，Agent 流式返回一段文字”，应该优先选 HTTP、SSE 还是 WebSocket？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>如果只需要“用户发一条消息，Agent 流式返回一段文字”，应该优先选 HTTP、SSE 还是 WebSocket？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>SSE，因为浏览器只需要接收服务器推送的流式文本，不需要频繁双向通信。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m7-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m7-summary" data-ask-title="模块小结">Ask here</button></h2>
 <ul><li>浏览器需要 bridge 才能使用本地 ACP Agent。</li><li>bridge 负责进程和协议的整洁性。</li><li>SSE 通常足以支撑流式回答。</li><li>在本地闭环被证明有用之前，不要急着搭建完整平台。</li></ul>
-<div class="exercise"><p>列出本地 bridge 的五个最小职责；然后说明：如果其中任何一项被遗漏，可能会在浏览器端出现什么问题？</p></div></section>
+<div class="exercise" data-has-answer="true">
+<div class="exercise-task">
+<p>你正在设计一个浏览器内的 ACP 助手。团队提出了两种方案，请选择更合理的一种。</p>
+<ul><li>A. 浏览器页面直接通过 JavaScript 的 <code>child_process</code> 启动本地 Agent。</li><li>B. 浏览器通过 SSE 连接一个本地 bridge；bridge 启动并持有 stdio Agent 进程。</li><li>C. 浏览器通过普通 HTTP 轮询 Agent 进程的标准输出。</li><li>D. 浏览器直接使用 WebSocket 与 Agent 进程通信。</li></ul>
+</div>
+<div class="exercise-answer" hidden>
+<p><strong>B</strong> 最合理。浏览器无法直接启动子进程，bridge 提供了必要的进程隔离和协议转换；SSE 适合流式回答。A 违反浏览器安全模型；C 的轮询效率低；D 在没有双向高频通信需求时比 SSE 更复杂。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <label class="exercise-done">
+    <input type="checkbox"> Mark as done
+  </label>
+</div>
+</div></section>
   <footer class="next-prev"><a href="m6.html">Previous</a><a href="m8.html">Next</a></footer>
 </article>
 <template id="ask-template">
@@ -55,6 +89,6 @@ ACP Agent</code></pre>
   <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
 </aside></main>
   <script src="/config.js"></script>
-  <script src="assets/workshop/runtime.js"></script>
+  <script src="assets/scenario/runtime.js"></script>
 </body>
 </html>

@@ -106,6 +106,27 @@ def _never_stop(_line: str) -> bool:
     return False
 
 
+def split_on_answer(lines: list[str]) -> tuple[list[str], list[str]]:
+    """Split container content into task and answer at a '--- answer' marker.
+
+    The answer continues until a standalone '---' closing marker or the end of
+    the container.
+    """
+    start = -1
+    for idx, raw in enumerate(lines):
+        if raw.strip() == "--- answer":
+            start = idx
+            break
+    if start == -1:
+        return lines, []
+    end = len(lines)
+    for idx in range(start + 1, len(lines)):
+        if lines[idx].strip() == "---":
+            end = idx
+            break
+    return lines[:start], lines[start + 1 : end]
+
+
 def _parse_blocks(
     lines: list[str],
     start: int,
@@ -134,8 +155,20 @@ def _parse_blocks(
                 i += 1
             if i < n:
                 i += 1  # consume closing :::
-            inner_blocks = parse_markdown("\n".join(inner))
-            blocks.append(Block(type=marker, blocks=inner_blocks))
+            if marker in ("exercise", "checkpoint"):
+                task_lines, answer_lines = split_on_answer(inner)
+                task_blocks = parse_markdown("\n".join(task_lines))
+                answer_text = "\n".join(answer_lines).strip()
+                blocks.append(
+                    Block(
+                        type=marker,
+                        blocks=task_blocks,
+                        answer=answer_text or None,
+                    )
+                )
+            else:
+                inner_blocks = parse_markdown("\n".join(inner))
+                blocks.append(Block(type=marker, blocks=inner_blocks))
             continue
 
         # Fenced code blocks

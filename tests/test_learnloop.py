@@ -10,8 +10,9 @@ from pathlib import Path
 from urllib import request
 
 from learnloop.course import build_course, init_course, make_context, validate_course
+from learnloop.parser import parse_markdown
 from learnloop.server import find_available_port
-from learnloop.templates import validate_template_support
+from learnloop.templates import list_templates, validate_template_support
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -112,9 +113,9 @@ class LearnLoopTests(unittest.TestCase):
 
     def test_module_level_template_override_uses_workshop_assets(self) -> None:
         dist = build_course(SAMPLE)
-        m7 = (dist / "m7.html").read_text(encoding="utf-8")
-        self.assertIn("assets/workshop/style.css", m7)
-        self.assertIn("assets/workshop/runtime.js", m7)
+        m3 = (dist / "m3.html").read_text(encoding="utf-8")
+        self.assertIn("assets/workshop/style.css", m3)
+        self.assertIn("assets/workshop/runtime.js", m3)
 
     def test_missing_template_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -146,6 +147,13 @@ class LearnLoopTests(unittest.TestCase):
     def test_exercise_and_checkpoint_render_in_html(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "container-course")
+            course_yaml = created / "course.yaml"
+            course_yaml.write_text(
+                course_yaml.read_text(encoding="utf-8").replace(
+                    "template: editorial", "template: workshop"
+                ),
+                encoding="utf-8",
+            )
             module = created / "modules" / "01.md"
             module.write_text(
                 module.read_text(encoding="utf-8")
@@ -161,7 +169,7 @@ class LearnLoopTests(unittest.TestCase):
 
     def test_question_buttons_and_section_attributes_persist_across_templates(self) -> None:
         dist = build_course(SAMPLE)
-        for file in ("m1.html", "m7.html"):
+        for file in ("m1.html", "m5.html"):
             text = (dist / file).read_text(encoding="utf-8")
             self.assertIn("data-section-id", text)
             self.assertIn("data-section-title", text)
@@ -175,6 +183,69 @@ class LearnLoopTests(unittest.TestCase):
         errors = validate_template_support(template, {"paragraph", "unsupported-magic"})
         self.assertEqual(len(errors), 1)
         self.assertIn("unsupported-magic", errors[0])
+
+    def test_exercise_with_answer_parses_task_and_answer(self) -> None:
+        blocks = parse_markdown(
+            "::: exercise\nFill in the blank: ACP is about ____ and ____ communication.\n\n"
+            "--- answer\nclient; agent\n---\n:::\n"
+        )
+        self.assertEqual(len(blocks), 1)
+        block = blocks[0]
+        self.assertEqual(block.type, "exercise")
+        self.assertIn("Fill in the blank", block.blocks[0].text)
+        self.assertEqual(block.answer, "client; agent")
+
+    def test_checkpoint_with_answer_parses_task_and_answer(self) -> None:
+        blocks = parse_markdown(
+            "::: checkpoint\nWhat does stdout need to stay parseable?\n\n"
+            "--- answer\nIt must contain only line-delimited JSON; logs go to stderr.\n---\n:::\n"
+        )
+        self.assertEqual(len(blocks), 1)
+        block = blocks[0]
+        self.assertEqual(block.type, "checkpoint")
+        self.assertIn("stdout", block.blocks[0].text)
+        self.assertIn("logs go to stderr", block.answer)
+
+    def test_exercise_without_answer_has_no_answer(self) -> None:
+        blocks = parse_markdown("::: exercise\nWrite a short answer.\n:::\n")
+        self.assertEqual(len(blocks), 1)
+        block = blocks[0]
+        self.assertEqual(block.type, "exercise")
+        self.assertIsNone(block.answer)
+
+    def test_rendered_answer_is_hidden_by_default(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "answer-course")
+            course_yaml = created / "course.yaml"
+            course_yaml.write_text(
+                course_yaml.read_text(encoding="utf-8").replace(
+                    "template: editorial", "template: workshop"
+                ),
+                encoding="utf-8",
+            )
+            module = created / "modules" / "01.md"
+            module.write_text(
+                module.read_text(encoding="utf-8")
+                + "\n::: exercise\nTask text.\n\n--- answer\nModel answer.\n---\n:::\n",
+                encoding="utf-8",
+            )
+            dist = build_course(created)
+            html_text = (dist / "m1.html").read_text(encoding="utf-8")
+            self.assertIn("Task text.", html_text)
+            self.assertIn("Model answer.", html_text)
+            self.assertIn('class="exercise-answer" hidden', html_text)
+            self.assertIn('data-has-answer="true"', html_text)
+
+    def test_all_templates_render_without_error(self) -> None:
+        dist = build_course(SAMPLE)
+        for template in list_templates():
+            self.assertTrue((dist / f"assets/{template.name}/style.css").exists())
+            self.assertTrue((dist / f"assets/{template.name}/runtime.js").exists())
+        # Confirm each module was generated with the expected template assets.
+        self.assertIn("assets/editorial/style.css", (dist / "m1.html").read_text(encoding="utf-8"))
+        self.assertIn("assets/reference/style.css", (dist / "m2.html").read_text(encoding="utf-8"))
+        self.assertIn("assets/workshop/style.css", (dist / "m3.html").read_text(encoding="utf-8"))
+        self.assertIn("assets/scenario/style.css", (dist / "m5.html").read_text(encoding="utf-8"))
 
 
 def wait_for(url: str) -> None:

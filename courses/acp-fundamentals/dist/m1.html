@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,12 +21,33 @@
 <section><h2 data-section-id="m1-solution" data-section-title="ACP 的回答">ACP 的回答 <button class="ask-btn" data-ask-section="m1-solution" data-ask-title="ACP 的回答">Ask here</button></h2>
 <p>ACP 在客户端和 Agent 之间放了一份标准契约。客户端可以是编辑器、终端工具或本地应用；Agent 则是一个接收请求、申请工具调用、返回结果的进程。</p>
 <div class="callout">核心思路：只要实现一次 ACP 客户端，或实现一次兼容 ACP 的 Agent，就能在多个说同一种协议的工具之间复用这套集成。</div>
-<div class="checkpoint"><p>用自己的话解释：为什么“统一接口”比“让每个 Agent 更聪明”更能解决集成问题？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么“统一接口”比“让每个 Agent 更聪明”更能解决集成问题？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>因为集成痛苦主要来自 N×M 的适配器组合，而不是模型能力。统一接口把 N×M 变成 N+M。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m1-roles" data-section-title="谁受益">谁受益 <button class="ask-btn" data-ask-section="m1-roles" data-ask-title="谁受益">Ask here</button></h2>
 <ul><li><strong>编辑器和 IDE 开发者</strong>：只需要走一条客户端集成路径。</li><li><strong>Agent 开发者</strong>：只需要维护一份服务端协议接口。</li><li><strong>用户</strong>：客户端和 Agent 不再强耦合，选择变多了。</li></ul></section>
 <section><h2 data-section-id="m1-modes" data-section-title="本地与远程模式">本地与远程模式 <button class="ask-btn" data-ask-section="m1-modes" data-ask-title="本地与远程模式">Ask here</button></h2>
 <p>最具体的模式是<strong>本地 Agent 进程</strong>：客户端把 Agent 作为子进程启动，通过标准输入输出交换行分隔的 JSON 消息。</p>
-<p>远程模式则走网络传输。除非你能对照当前 ACP 文档确认细节，否则把远程实现当作“实现相关”来处理。</p></section>
+<p>远程模式则走网络传输。除非你能对照当前 ACP 文档确认细节，否则把远程实现当作“实现相关”来处理。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>本地 ACP 最常用的传输形态是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>行分隔的 JSON，通过 stdin/stdout 交换，日志走 stderr。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m1-not" data-section-title="ACP 不是什么">ACP 不是什么 <button class="ask-btn" data-ask-section="m1-not" data-ask-title="ACP 不是什么">Ask here</button></h2>
 <p>ACP 不是 MCP 的替代品。MCP 解决的是 Agent 能使用哪些工具和数据源；ACP 解决的是<strong>客户端如何驱动一次 Agent 会话</strong>。</p>
 <p>ACP 也不一定适合所有聊天机器人。如果你的应用只发一个 HTTP 请求、收一个回答，那普通 API 调用就够了。</p></section>

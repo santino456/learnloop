@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .model import Block, CourseDoc, LearnLoopError, ModuleDoc
-from .parser import collect_block_types, collect_sections, parse_module, read_course
+from .parser import collect_block_types, collect_sections, parse_markdown, parse_module, read_course
 from .templates import select_template, validate_template_support
 
 
@@ -29,27 +29,114 @@ def render_blocks(blocks: list[Block], template: Any | None = None) -> str:
         elif block.type == "heading":
             out.append(f"<h1>{html.escape(block.title or '')}</h1>")
         elif block.type == "section":
-            level = block.level or 2
-            section_id = html.escape(block.id or "")
-            title = html.escape(block.title or "")
-            inner = render_blocks(block.blocks or [], template)
-            heading = (
-                f'<h{level} data-section-id="{section_id}" data-section-title="{title}">'
-                f'{title} <button class="ask-btn" data-ask-section="{section_id}" '
-                f'data-ask-title="{title}">Ask here</button></h{level}>'
-            )
-            out.append(f"<section>{heading}\n{inner}</section>")
+            out.append(render_section(block, template))
         elif block.type == "exercise":
-            inner = render_blocks(block.blocks or [], template)
-            out.append(f'<div class="exercise">{inner}</div>')
+            out.append(render_exercise(block, template))
         elif block.type == "checkpoint":
-            inner = render_blocks(block.blocks or [], template)
-            out.append(f'<div class="checkpoint">{inner}</div>')
+            out.append(render_checkpoint(block, template))
         else:
             # Unknown blocks pass through as plain div with their type as class
             inner = render_blocks(block.blocks or [], template)
             out.append(f'<div class="block-{html.escape(block.type)}">{inner}</div>')
     return "\n".join(out)
+
+
+def render_section(block: Block, template: Any | None = None) -> str:
+    level = block.level or 2
+    section_id = html.escape(block.id or "")
+    title = html.escape(block.title or "")
+    inner = render_blocks(block.blocks or [], template)
+    ask_button = (
+        f'<button class="ask-btn" data-ask-section="{section_id}" '
+        f'data-ask-title="{title}">Ask here</button>'
+    )
+
+    if template and template.name == "reference":
+        summary = _first_text_summary(block.blocks or [])
+        summary_html = f'<div class="card-summary">{html.escape(summary)}</div>' if summary else ""
+        return (
+            f'<section class="card" data-section-id="{section_id}" data-section-title="{title}">\n'
+            f'  <div class="card-header">\n'
+            f'    <button class="card-toggle" type="button" aria-expanded="false">'
+            f'<span aria-hidden="true">▶</span> <span class="card-title">{title}</span></button>\n'
+            f'    {ask_button}\n'
+            f'  </div>\n'
+            f'  {summary_html}\n'
+            f'  <div class="card-body">\n{inner}\n  </div>\n'
+            f'</section>'
+        )
+
+    heading = (
+        f'<h{level} data-section-id="{section_id}" data-section-title="{title}">'
+        f'{title} {ask_button}</h{level}>'
+    )
+    return f"<section>{heading}\n{inner}</section>"
+
+
+def _first_text_summary(blocks: list[Block]) -> str:
+    for block in blocks:
+        if block.type == "paragraph" and block.text:
+            text = block.text.replace("<code>", "").replace("</code>", "").replace("<strong>", "").replace("</strong>", "")
+            text = text.strip()
+            if len(text) > 120:
+                text = text[:119] + "…"
+            return text
+        if block.blocks:
+            summary = _first_text_summary(block.blocks)
+            if summary:
+                return summary
+    return ""
+
+
+def render_exercise(block: Block, template: Any | None = None) -> str:
+    task = render_blocks(block.blocks or [], template)
+    answer_html = ""
+    if block.answer:
+        answer_body = render_blocks(parse_markdown(block.answer), template)
+        answer_html = (
+            f'<div class="exercise-answer" hidden>\n{answer_body}\n</div>'
+        )
+    has_answer = "true" if block.answer else "false"
+    controls = (
+        '<div class="exercise-controls">\n'
+        '  <button class="exercise-toggle" type="button" aria-expanded="false">'
+        'Show answer</button>\n'
+        '  <label class="exercise-done">\n'
+        '    <input type="checkbox"> Mark as done\n'
+        '  </label>\n'
+        '</div>'
+    )
+    return (
+        f'<div class="exercise" data-has-answer="{has_answer}">\n'
+        f'<div class="exercise-task">\n{task}\n</div>\n'
+        f'{answer_html}\n'
+        f'{controls}\n'
+        f'</div>'
+    )
+
+
+def render_checkpoint(block: Block, template: Any | None = None) -> str:
+    task = render_blocks(block.blocks or [], template)
+    answer_html = ""
+    if block.answer:
+        answer_body = render_blocks(parse_markdown(block.answer), template)
+        answer_html = (
+            f'<div class="checkpoint-answer" hidden>\n{answer_body}\n</div>'
+        )
+    has_answer = "true" if block.answer else "false"
+    controls = (
+        '<div class="checkpoint-controls">\n'
+        '  <button class="checkpoint-toggle" type="button" aria-expanded="false">'
+        'Show answer</button>\n'
+        '</div>'
+    )
+    return (
+        f'<div class="checkpoint" data-has-answer="{has_answer}">\n'
+        f'<div class="checkpoint-task">\n{task}\n</div>\n'
+        f'{answer_html}\n'
+        f'{controls}\n'
+        f'</div>'
+    )
 
 
 def render_module_page(

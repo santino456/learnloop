@@ -10,6 +10,39 @@
   const list = document.getElementById("question-list");
   const count = document.getElementById("question-count");
 
+  // Show/hide answer and mark-done checkbox (memory only)
+  document.querySelectorAll(".exercise, .checkpoint").forEach((container) => {
+    const toggle = container.querySelector(".exercise-toggle, .checkpoint-toggle");
+    const answer = container.querySelector(".exercise-answer, .checkpoint-answer");
+    if (toggle && answer) {
+      toggle.addEventListener("click", () => {
+        const hidden = answer.hasAttribute("hidden");
+        if (hidden) {
+          answer.removeAttribute("hidden");
+          toggle.setAttribute("aria-expanded", "true");
+          toggle.textContent = container.classList.contains("exercise") ? "Hide answer" : "Hide answer";
+        } else {
+          answer.setAttribute("hidden", "");
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.textContent = container.classList.contains("exercise") ? "Show answer" : "Show answer";
+        }
+      });
+    }
+  });
+
+  document.querySelectorAll(".exercise-done input[type='checkbox']").forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+      const label = checkbox.closest(".exercise-done");
+      if (checkbox.checked) {
+        label.classList.add("checked");
+        label.insertAdjacentHTML("beforeend", ' <span class="done-text">Done</span>');
+      } else {
+        label.classList.remove("checked");
+        label.querySelector(".done-text")?.remove();
+      }
+    });
+  });
+
   document.querySelectorAll("[data-ask-section]").forEach((button) => {
     button.addEventListener("click", () => openAsk(button));
   });

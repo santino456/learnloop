@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,16 +27,66 @@
   }
 }</code></pre>
 <div class="callout">验证提示：具体字段名和协议版本可能变化。在把示例写成可运行代码前，先对照你使用的 ACP 实现或 CLI 帮助文档确认。</div>
-<div class="checkpoint"><p>initialize 请求里，哪一部分用来告诉 Agent“我是谁”？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>initialize 请求里，哪一部分用来告诉 Agent“我是谁”？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>clientInfo</code> 对象，包含 <code>name</code> 和 <code>version</code>。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m3-capabilities" data-section-title="能力协商">能力协商 <button class="ask-btn" data-ask-section="m3-capabilities" data-ask-title="能力协商">Ask here</button></h2>
 <p>能力协商（capabilities）让双方不必互相猜测。客户端可以说自己支持哪些资源、工具或交互模式；Agent 也可以说它能处理什么。</p>
 <p>重要的不是背下某一张固定的能力矩阵，而是养成习惯：<strong>在使用可选功能之前，先检查双方都支持什么</strong>。</p></section>
 <section><h2 data-section-id="m3-failure" data-section-title="协商失败怎么办">协商失败怎么办 <button class="ask-btn" data-ask-section="m3-failure" data-ask-title="协商失败怎么办">Ask here</button></h2>
 <p>如果握手失败，就不要继续假装会话有效。应该抛出明确错误，说明是哪一项必需能力或协议版本没有匹配上。</p>
-<div class="checkpoint"><p>假设 Agent 要求 <code>streaming</code> 能力，但客户端没声明支持，接下来会发生什么？应该怎么处理？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>假设 Agent 要求 <code>streaming</code> 能力，但客户端没声明支持，接下来应该怎么处理？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>停止会话并报告：缺少必需的 <code>streaming</code> 能力。继续发送后续请求可能导致未定义行为。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m3-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="模块小结">Ask here</button></h2>
 <ul><li>initialize 在客户端和 Agent 之间建立了第一份可靠契约。</li><li>能力协商让可选功能变得可控。</li><li>具体协议字段必须针对当前实现版本验证。</li></ul>
-<div class="exercise"><p>写一段伪代码：客户端发送 initialize，收到响应后检查 Agent 是否声明了 <code>tools</code> 能力；如果没有，打印错误并结束进程。</p></div></section>
+<div class="exercise" data-has-answer="true">
+<div class="exercise-task">
+<p>补全下面的初始化请求：客户端名叫 <code>learnloop-cli</code>，版本 <code>1.0.0</code>，声明支持 <code>tools</code> 能力。</p>
+<pre><code class="language-json">{
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: 1,
+  &quot;method&quot;: &quot;initialize&quot;,
+  &quot;params&quot;: {
+    &quot;___________&quot;: {&quot;name&quot;: &quot;___________&quot;, &quot;version&quot;: &quot;___________&quot;},
+    &quot;___________&quot;: {&quot;tools&quot;: {}}
+  }
+}</code></pre>
+</div>
+<div class="exercise-answer" hidden>
+<pre><code class="language-json">{
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: 1,
+  &quot;method&quot;: &quot;initialize&quot;,
+  &quot;params&quot;: {
+    &quot;clientInfo&quot;: {&quot;name&quot;: &quot;learnloop-cli&quot;, &quot;version&quot;: &quot;1.0.0&quot;},
+    &quot;capabilities&quot;: {&quot;tools&quot;: {}}
+  }
+}</code></pre>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <label class="exercise-done">
+    <input type="checkbox"> Mark as done
+  </label>
+</div>
+</div></section>
   <footer class="next-prev"><a href="m2.html">Previous</a><a href="m4.html">Next</a></footer>
 </article>
 <template id="ask-template">

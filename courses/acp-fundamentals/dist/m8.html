@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>边界与判断 | LearnLoop</title>
-  <link rel="stylesheet" href="assets/editorial/style.css">
+  <link rel="stylesheet" href="assets/scenario/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
@@ -21,7 +21,17 @@
 <section><h2 data-section-id="m8-overkill" data-section-title="什么时候 ACP 是大材小用">什么时候 ACP 是大材小用 <button class="ask-btn" data-ask-section="m8-overkill" data-ask-title="什么时候 ACP 是大材小用">Ask here</button></h2>
 <p>如果你的应用只发一个 prompt、收一个回答，ACP 大概率是过度设计。</p>
 <p>对于一个无状态的网页表单来说，普通 HTTP API 更简单、也更容易运维。</p>
-<div class="checkpoint"><p>“单轮问答”和“多轮工具调用会话”之间，哪一个是 ACP 的甜点区？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>“单轮问答”和“多轮工具调用会话”之间，哪一个是 ACP 的甜点区？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>多轮工具调用会话。单轮问答通常不需要 ACP 的协议开销。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m8-framework" data-section-title="决策四问">决策四问 <button class="ask-btn" data-ask-section="m8-framework" data-ask-title="决策四问">Ask here</button></h2>
 <p>问自己四个问题：</p>
 <ol><li>Agent 是否需要本地文件或工具？</li><li>对话是否多步骤？</li><li>客户端是否需要中介工具调用？</li><li>多个客户端或 Agent 是否会从共享协议中受益？</li></ol>
@@ -30,12 +40,37 @@
 <p>假设一个团队在做 CampusGuide，一个虚构的校园问答助手。他们希望 Agent 能检查本地文档、运行验证脚本、并给出修改建议。</p>
 <p>这是一个合理的 ACP 场景：本地文件重要、工具调用重要、客户端应该控制 Agent 能访问什么。</p>
 <p>但如果这个团队只是想在网页里粘贴一段话让它改写，ACP 就没必要。</p>
-<div class="checkpoint"><p>用决策四问快速判断：一个“把网页表单里的文本发给大模型润色”的功能，是否值得用 ACP？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>用决策四问快速判断：一个“把网页表单里的文本发给大模型润色”的功能，是否值得用 ACP？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>不值得。它不需要本地文件/工具，不是多步骤会话，不需要客户端中介工具调用，也不会从共享客户端- Agent 协议中明显受益。普通 HTTP API 更简单。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m8-conclusion" data-section-title="结论">结论 <button class="ask-btn" data-ask-section="m8-conclusion" data-ask-title="结论">Ask here</button></h2>
 <p>ACP 是一种标准化工具。它只有在“统一的客户端- Agent 边界”能真正减轻集成痛苦时才有价值。</p>
 <p>选择它，是因为它简化了系统；跳过它，是因为它只增加协议仪式而没有改善学习或开发流程。</p></section>
 <section><h2 data-section-id="m8-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m8-summary" data-ask-title="模块小结">Ask here</button></h2>
-<ul><li>ACP 最强的地方在本地、多步骤、会用工具的 Agent 会话。</li><li>简单的单轮聊天通常不需要 ACP。</li><li>公开教学示例应该使用虚构、安全的项目。</li></ul></section>
+<ul><li>ACP 最强的地方在本地、多步骤、会用工具的 Agent 会话。</li><li>简单的单轮聊天通常不需要 ACP。</li><li>公开教学示例应该使用虚构、安全的项目。</li></ul>
+<div class="exercise" data-has-answer="true">
+<div class="exercise-task">
+<p>你接到了一个需求：为内部开发者做一个命令行工具，让它可以调用本地 Agent 来审查代码、运行测试并把结果写回文件。判断 ACP 是否合适。</p>
+<ul><li>A. 不合适，直接调用模型 API 就够了。</li><li>B. 合适，因为涉及本地文件、工具调用、多步骤会话和共享协议收益。</li><li>C. 应该用 A2A，因为需要“代码审查 Agent”和“测试 Agent”两个角色。</li><li>D. 应该用 MCP 替代 ACP，因为 MCP 也能调用测试命令。</li></ul>
+</div>
+<div class="exercise-answer" hidden>
+<p><strong>B</strong> 最合适。该场景符合决策四问：本地文件/工具、多步骤、客户端中介工具调用、共享协议收益。D 的 MCP 只解决 Agent-工具层，不解决客户端- Agent 驱动层；C 的 A2A 在没有两个独立 Agent 角色时是过度设计；A 忽略了工具调用和本地上下文需求。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <label class="exercise-done">
+    <input type="checkbox"> Mark as done
+  </label>
+</div>
+</div></section>
   <footer class="next-prev"><a href="m7.html">Previous</a><span></span></footer>
 </article>
 <template id="ask-template">
@@ -55,6 +90,6 @@
   <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
 </aside></main>
   <script src="/config.js"></script>
-  <script src="assets/editorial/runtime.js"></script>
+  <script src="assets/scenario/runtime.js"></script>
 </body>
 </html>

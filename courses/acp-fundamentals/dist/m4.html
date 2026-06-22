@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +23,17 @@
     {&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;给新成员总结一下这个项目。&quot;}
   ]
 }</code></pre>
-<div class="checkpoint"><p>消息里的 <code>content</code> 为什么是数组而不是单个字符串？这会带来什么好处？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>消息里的 <code>content</code> 为什么是数组而不是单个字符串？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>数组可以混合文本、资源引用、图片等多种内容块，而不需要把全部上下文塞进一个字符串。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m4-resources" data-section-title="资源引用">资源引用 <button class="ask-btn" data-ask-section="m4-resources" data-ask-title="资源引用">Ask here</button></h2>
 <p>资源的作用是让 Agent 找到上下文，而不是把所有内容都塞进一个 prompt。在教学示例里，可以用一个虚构的项目路径：</p>
 <pre><code class="language-json">{
@@ -39,13 +49,37 @@
   &quot;arguments&quot;: &quot;{\&quot;path\&quot;:\&quot;/workspace/campus-guide/README.md\&quot;}&quot;
 }</code></pre>
 <p>Agent 不应该默认工具调用一定成功；客户端也不应该在没有任何策略的情况下执行不安全的工具调用。</p>
-<div class="checkpoint"><p>在工具调用链路中，谁是“决策者”，谁是“执行者”？分别对应客户端还是 Agent？</p></div></section>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>在工具调用链路中，谁是“决策者”，谁是“执行者”？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>Agent 是决策者（决定调用哪个工具），客户端是执行者（实际运行并返回结果）。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+</div>
+</div></section>
 <section><h2 data-section-id="m4-example" data-section-title="完整教学示例">完整教学示例 <button class="ask-btn" data-ask-section="m4-example" data-ask-title="完整教学示例">Ask here</button></h2>
 <p>学习者问：“CampusGuide 是做什么的？”</p>
 <p>Agent 申请读取 <code>/workspace/campus-guide/README.md</code>。客户端返回一段简短文件摘要。Agent 回答：“CampusGuide 是本课程里用来解释资源和工具调用流程的虚构校园问答助手。”</p></section>
 <section><h2 data-section-id="m4-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m4-summary" data-ask-title="模块小结">Ask here</button></h2>
 <ul><li>提示词消息承载用户意图。</li><li>资源让上下文变得可寻址。</li><li>工具调用让 Agent 请求客户端在受控范围内执行操作。</li><li>公开教学示例应该使用虚构路径和项目。</li></ul>
-<div class="exercise"><p>画一张时序图或用文字列出 5 步：用户提问 → Agent 申请资源 → 客户端返回 → Agent 申请工具 → 客户端返回 → Agent 给出最终回答。</p></div></section>
+<div class="exercise" data-has-answer="true">
+<div class="exercise-task">
+<p>把下面的交互补全为正确的 ACP 消息顺序：</p>
+<ol><li>客户端发送 _______ 消息，携带用户问题。</li><li>Agent 返回一个 _______ 请求，想读取 <code>README.md</code>。</li><li>客户端执行后发送 _______ 消息。</li><li>Agent 返回最终 _______。</li></ol>
+</div>
+<div class="exercise-answer" hidden>
+<ol><li>prompt（或 messages）</li><li>tool_call（或 tool）</li><li>tool_result</li><li>response（或 completion）</li></ol>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <label class="exercise-done">
+    <input type="checkbox"> Mark as done
+  </label>
+</div>
+</div></section>
   <footer class="next-prev"><a href="m3.html">Previous</a><a href="m5.html">Next</a></footer>
 </article>
 <template id="ask-template">

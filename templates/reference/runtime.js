@@ -10,37 +10,38 @@
   const list = document.getElementById("question-list");
   const count = document.getElementById("question-count");
 
-  // Show/hide answer and mark-done checkbox (memory only)
-  document.querySelectorAll(".exercise, .checkpoint").forEach((container) => {
-    const toggle = container.querySelector(".exercise-toggle, .checkpoint-toggle");
-    const answer = container.querySelector(".exercise-answer, .checkpoint-answer");
-    if (toggle && answer) {
-      toggle.addEventListener("click", () => {
-        const hidden = answer.hasAttribute("hidden");
-        if (hidden) {
-          answer.removeAttribute("hidden");
-          toggle.setAttribute("aria-expanded", "true");
-          toggle.textContent = container.classList.contains("exercise") ? "Hide answer" : "Hide answer";
-        } else {
-          answer.setAttribute("hidden", "");
-          toggle.setAttribute("aria-expanded", "false");
-          toggle.textContent = container.classList.contains("exercise") ? "Show answer" : "Show answer";
-        }
-      });
-    }
+  // Collapsible reference cards
+  document.querySelectorAll(".card").forEach((card) => {
+    const toggle = card.querySelector(".card-toggle");
+    if (!toggle) return;
+    toggle.addEventListener("click", () => {
+      const expanded = card.classList.toggle("expanded");
+      toggle.setAttribute("aria-expanded", String(expanded));
+    });
   });
 
-  document.querySelectorAll(".exercise-done input[type='checkbox']").forEach((checkbox) => {
-    checkbox.addEventListener("change", () => {
-      const label = checkbox.closest(".exercise-done");
-      if (checkbox.checked) {
-        label.classList.add("checked");
-        label.insertAdjacentHTML("beforeend", ' <span class="done-text">Done</span>');
-      } else {
-        label.classList.remove("checked");
-        label.querySelector(".done-text")?.remove();
+  // Copy buttons for code blocks
+  document.querySelectorAll("pre").forEach((pre) => {
+    const code = pre.querySelector("code");
+    if (!code) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "copy-btn";
+    btn.textContent = "Copy";
+    btn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(code.textContent || "");
+        btn.textContent = "Copied";
+        btn.classList.add("copied");
+        setTimeout(() => {
+          btn.textContent = "Copy";
+          btn.classList.remove("copied");
+        }, 1500);
+      } catch (_e) {
+        btn.textContent = "Failed";
       }
     });
+    pre.appendChild(btn);
   });
 
   document.querySelectorAll("[data-ask-section]").forEach((button) => {
@@ -58,8 +59,8 @@
     document.querySelectorAll(".ask-form").forEach((node) => node.remove());
     const template = document.getElementById("ask-template");
     const form = template.content.firstElementChild.cloneNode(true);
-    const heading = button.closest("[data-section-id]");
-    heading.insertAdjacentElement("afterend", form);
+    const card = button.closest(".card") || button.closest("[data-section-id]");
+    (card || document.querySelector(".lesson")).insertAdjacentElement("afterend", form);
     form.querySelector("textarea").focus();
     form.querySelector("[data-cancel]").addEventListener("click", () => form.remove());
     form.addEventListener("submit", async (event) => {

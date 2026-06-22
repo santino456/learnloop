@@ -87,7 +87,7 @@ A mature implementation treats the bridge as the trust boundary, not decorative 
 
 ## Knowledge State
 
-When generating substantial content, keep orchestration files in `.learnloop/`:
+For small personal learning notes, stage-gate notes can stay in the conversation. When generating formal, technical, reusable, or high-risk content, keep orchestration files in `.learnloop/`:
 
 - `source_inventory.yaml`
 - `course_architecture.md`

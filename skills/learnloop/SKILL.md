@@ -5,27 +5,27 @@ description: Work with LearnLoop local-first adaptive learning courses and epist
 
 # LearnLoop
 
-Use this skill to help a learner turn raw material into a trustworthy local course. The main agent owns the course knowledge state: what is known, what is sourced, what is inferred, what conflicts, and what needs human judgment.
+Use this skill to help a learner turn raw material into a trustworthy local course. The main agent owns the learning design and truth status: what the learner needs, what sources support it, which content forms are justified, and what must remain uncertain.
 
-Never start by writing a long lesson. First decide what the learner actually needs, what sources support it, and which content forms are justified.
+Never start by writing a long lesson. First run the stage gates below. For lightweight private notes, the gates can be short notes in your response. For formal or technical courses, persist the gates in `.learnloop/`.
 
-## Core Workflow
+## Stage Gates
 
-1. Inspect `course.yaml`, `modules/*.md`, `questions.jsonl`, and `.learnloop/` if present.
-2. If generating substantial content, create or update `.learnloop/source_inventory.yaml`, `.learnloop/course_architecture.md`, chapter briefs, evidence packs, claims, and conflicts before editing modules.
-3. Decide content forms from the learner goal and evidence shape. Do not mirror sample course structure.
-4. Write course source only from verified evidence, marked uncertainty, or explicit human judgment.
-5. Use subagents only as optional parallel workers for bounded research, draft, or review tasks. The main agent remains responsible for final content and merges.
-6. Run `python3 -m learnloop audit <course-dir>` for generated courses, then `python3 -m learnloop validate <course-dir>` and `python3 -m learnloop build <course-dir>`.
+1. **Intent**: state the learner goal, background, desired outcome, and exclusions.
+2. **Research**: list sources used or needed. Prefer official docs, papers, source code, and runnable checks for technical claims.
+3. **Evidence**: extract only the facts and examples needed for the course. Mark weak, missing, or conflicting evidence.
+4. **Design**: decide modules and content forms. Do not mirror sample course structure.
+5. **Draft**: write only content justified by the design and evidence.
+6. **Review**: check accuracy, learning value, content-form fit, and unsupported claims. Then run validate/build.
 
 ## Hard Gates
 
-- Do not create or rewrite `modules/*.md` until source inventory, course architecture, and at least one evidence pack exist.
-- Do not create a Reference module unless the material contains dense reusable lookup facts such as APIs, fields, formulas, commands, edge cases, or comparison tables.
-- Do not create Practice unless the learner needs to perform a skill or make a checkable decision.
-- Do not create Perspective unless there is a meaningful higher-level judgment, taste, tradeoff, or AI-use lesson to extract.
+- Do not draft `modules/*.md` until you have at least a short Intent, Research, Evidence, and Design note.
+- Do not create a Reference module unless the material contains dense reusable lookup facts such as APIs, fields, formulas, commands, edge cases, source locations, or comparison tables.
+- Do not create Practice unless the learner needs to perform a skill, calculate something, debug something, or make a checkable decision.
+- Do not create Perspective unless there is a meaningful higher-level judgment, taste, tradeoff, failure smell, or AI-use lesson to extract.
+- If a content form is not justified, omit it.
 - Do not mark generated inference as `verified`.
-- If a course has `.learnloop/`, `python3 -m learnloop audit <course-dir>` should pass before presenting it as ready.
 
 ## Learner Questions
 
@@ -37,16 +37,22 @@ Never start by writing a long lesson. First decide what the learner actually nee
 ## References
 
 - Read `references/course-format.md` before creating or restructuring course files.
-- Read `references/orchestration.md` before generating or substantially rewriting course content.
+- Read `references/orchestration.md` before generating or substantially rewriting course content. It contains the content-form rubric and subagent prompts.
 - Read `references/answering-loop.md` before answering learner questions.
 - Read `references/content-verification.md` before adding technical claims, commands, APIs, or protocol fields.
+
+## Persistence Policy
+
+- For small personal learning notes, keep stage-gate notes in the conversation and write only the final course files.
+- For formal, technical, or reusable courses, persist stage gates in `.learnloop/source_inventory.yaml`, `.learnloop/course_architecture.md`, evidence packs, and claims.
+- Use `python3 -m learnloop audit <course-dir>` when `.learnloop/` is present or when the course is meant to be reused.
 
 ## Guardrails
 
 - Keep source edits in Markdown/YAML. Treat `dist/` as generated output.
 - Preserve stable section ids. Learner questions depend on them.
 - Do not treat fluent generated text as verified knowledge.
-- Do not let subagents directly modify final course source; have them return evidence, drafts, or review reports.
+- Use subagents only as optional parallel workers for bounded research, architecture, draft review, or verification. The main agent owns final content.
 - Prefer small, clear course updates over broad rewrites.
 - Use fictitious public examples unless the user explicitly asks to use private project context.
 - Mark unverifiable technical details instead of presenting them as confirmed.

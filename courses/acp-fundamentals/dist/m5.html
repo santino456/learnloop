@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACP, MCP, and A2A | LearnLoop</title>
+  <link rel="stylesheet" href="assets/learnloop.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
+  <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m5</span></nav>
+<article class="lesson" data-course-id="acp-fundamentals" data-module-id="m5">
+  <header class="lesson-header">
+    <p class="eyebrow">ACP Fundamentals</p>
+    <h1>ACP, MCP, and A2A</h1>
+    <p class="lede">The acronyms are easier to reason about when you separate the direction of communication.</p>
+  </header>
+  <h2 data-section-id="m5-three-lines" data-section-title="Three protocol lines">Three protocol lines <button class="ask-btn" data-ask-section="m5-three-lines" data-ask-title="Three protocol lines">Ask here</button></h2>
+<p>ACP, MCP, and A2A describe different relationships.</p>
+<ul>
+<li>ACP: a client drives an agent.</li>
+<li>MCP: an agent accesses tools or data sources.</li>
+<li>A2A: one agent coordinates with another agent.</li>
+</ul>
+<h2 data-section-id="m5-acp" data-section-title="ACP: client to agent">ACP: client to agent <button class="ask-btn" data-ask-section="m5-acp" data-ask-title="ACP: client to agent">Ask here</button></h2>
+<p>ACP answers: how does the user-facing client talk to the agent that will do the work?</p>
+<p>It is most relevant when the session is interactive, local context matters, and the agent may need tools.</p>
+<h2 data-section-id="m5-mcp" data-section-title="MCP: agent to tools">MCP: agent to tools <button class="ask-btn" data-ask-section="m5-mcp" data-ask-title="MCP: agent to tools">Ask here</button></h2>
+<p>MCP answers: how does the agent safely and consistently access external tools, files, APIs, or data?</p>
+<p>An ACP client does not need to expose every MCP detail to the user. It may simply route tool calls and return results.</p>
+<h2 data-section-id="m5-a2a" data-section-title="A2A: agent to agent">A2A: agent to agent <button class="ask-btn" data-ask-section="m5-a2a" data-ask-title="A2A: agent to agent">Ask here</button></h2>
+<p>A2A answers: how do multiple agents discover, delegate, and exchange results?</p>
+<p>Use it when the system genuinely has multiple agent roles. Do not add it just because a single agent has multiple steps.</p>
+<h2 data-section-id="m5-choose" data-section-title="Choosing the layer">Choosing the layer <button class="ask-btn" data-ask-section="m5-choose" data-ask-title="Choosing the layer">Ask here</button></h2>
+<p>Ask which boundary is painful:</p>
+<ul>
+<li>Client integration painful: consider ACP.</li>
+<li>Tool and data integration painful: consider MCP.</li>
+<li>Multi-agent handoff painful: consider A2A.</li>
+</ul>
+<h2 data-section-id="m5-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m5-summary" data-ask-title="Module recap">Ask here</button></h2>
+<ul>
+<li>ACP connects clients and agents.</li>
+<li>MCP connects agents and tools.</li>
+<li>A2A connects agents with other agents.</li>
+<li>Good architecture starts by naming the boundary, then choosing the protocol.</li>
+</ul>
+  <footer class="next-prev"><a href="m4.html">Previous</a><a href="m6.html">Next</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="What is unclear here?"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>Cancel</button>
+      <button type="submit">Save question</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>Questions <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>Questions</h2><button data-close-drawer>Close</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
+</aside></main>
+  <script src="/config.js"></script>
+  <script src="assets/learnloop.js"></script>
+</body>
+</html>

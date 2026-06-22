@@ -1,0 +1,13 @@
+[project]
+name = "learnloop"
+version = "0.1.0"
+description = "Local-first adaptive learning loops for technical courses."
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+learnloop = "learnloop.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt, resources, and tool calls | LearnLoop</title>
+  <link rel="stylesheet" href="assets/learnloop.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
+  <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m4</span></nav>
+<article class="lesson" data-course-id="acp-fundamentals" data-module-id="m4">
+  <header class="lesson-header">
+    <p class="eyebrow">ACP Fundamentals</p>
+    <h1>Prompt, resources, and tool calls</h1>
+    <p class="lede">Prompts carry user intent, resources carry context, and tool calls let the agent ask the client to do work.</p>
+  </header>
+  <h2 data-section-id="m4-prompt" data-section-title="Prompt content">Prompt content <button class="ask-btn" data-ask-section="m4-prompt" data-ask-title="Prompt content">Ask here</button></h2>
+<p>A prompt is not just a string. In protocol-oriented systems it often becomes a structured message with a role and one or more content blocks.</p>
+<pre><code class="language-json">{
+  &quot;role&quot;: &quot;user&quot;,
+  &quot;content&quot;: [
+    {&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;Summarize this project for a new contributor.&quot;}
+  ]
+}</code></pre>
+<h2 data-section-id="m4-resources" data-section-title="Resource references">Resource references <button class="ask-btn" data-ask-section="m4-resources" data-ask-title="Resource references">Ask here</button></h2>
+<p>Resources point the agent at context without pasting everything into a single prompt. For a public teaching example, use a fictitious project path:</p>
+<pre><code class="language-json">{
+  &quot;type&quot;: &quot;resource_link&quot;,
+  &quot;uri&quot;: &quot;file:///workspace/campus-guide/README.md&quot;,
+  &quot;description&quot;: &quot;CampusGuide project README&quot;
+}</code></pre>
+<p>CampusGuide is a fictional campus Q&amp;A assistant. It is useful as an example because it has documents, user questions, and local files without exposing any private project.</p>
+<h2 data-section-id="m4-tool-flow" data-section-title="Tool call flow">Tool call flow <button class="ask-btn" data-ask-section="m4-tool-flow" data-ask-title="Tool call flow">Ask here</button></h2>
+<p>An agent may decide it needs a tool result before answering. The client decides whether the tool call is allowed, executes it, and returns the result.</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;read_file&quot;,
+  &quot;arguments&quot;: &quot;{\&quot;path\&quot;:\&quot;/workspace/campus-guide/README.md\&quot;}&quot;
+}</code></pre>
+<p>The agent should not silently assume tool results. The client should not execute unsafe tool calls without a policy.</p>
+<h2 data-section-id="m4-example" data-section-title="Complete teaching example">Complete teaching example <button class="ask-btn" data-ask-section="m4-example" data-ask-title="Complete teaching example">Ask here</button></h2>
+<p>A learner asks: &quot;What does CampusGuide do?&quot;</p>
+<p>The agent asks to read <code>/workspace/campus-guide/README.md</code>. The client returns a short file excerpt. The agent answers: &quot;CampusGuide is a fictional campus Q&amp;A assistant used in this lesson to explain resource and tool-call flow.&quot;</p>
+<h2 data-section-id="m4-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m4-summary" data-ask-title="Module recap">Ask here</button></h2>
+<ul>
+<li>Prompt messages carry user intent.</li>
+<li>Resources make context addressable.</li>
+<li>Tool calls let the agent ask the client to perform controlled work.</li>
+<li>Public examples should use fictitious paths and projects.</li>
+</ul>
+  <footer class="next-prev"><a href="m3.html">Previous</a><a href="m5.html">Next</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="What is unclear here?"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>Cancel</button>
+      <button type="submit">Save question</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>Questions <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>Questions</h2><button data-close-drawer>Close</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
+</aside></main>
+  <script src="/config.js"></script>
+  <script src="assets/learnloop.js"></script>
+</body>
+</html>

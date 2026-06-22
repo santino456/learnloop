@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boundaries and judgment | LearnLoop</title>
+  <link rel="stylesheet" href="assets/learnloop.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
+  <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m8</span></nav>
+<article class="lesson" data-course-id="acp-fundamentals" data-module-id="m8">
+  <header class="lesson-header">
+    <p class="eyebrow">ACP Fundamentals</p>
+    <h1>Boundaries and judgment</h1>
+    <p class="lede">ACP is powerful when local, tool-using agent sessions are the real problem.</p>
+  </header>
+  <h2 data-section-id="m8-fit" data-section-title="When ACP fits">When ACP fits <button class="ask-btn" data-ask-section="m8-fit" data-ask-title="When ACP fits">Ask here</button></h2>
+<p>ACP fits when the client needs to drive a long-lived or local agent, and that agent may inspect files, request tools, or maintain session context.</p>
+<p>Good examples include editor integrations, local development assistants, and controlled desktop tools.</p>
+<h2 data-section-id="m8-overkill" data-section-title="When ACP is overkill">When ACP is overkill <button class="ask-btn" data-ask-section="m8-overkill" data-ask-title="When ACP is overkill">Ask here</button></h2>
+<p>ACP is probably overkill when the application only sends one prompt and receives one answer.</p>
+<p>If the task is a stateless web form, an ordinary HTTP API is simpler and easier to operate.</p>
+<h2 data-section-id="m8-framework" data-section-title="Decision framework">Decision framework <button class="ask-btn" data-ask-section="m8-framework" data-ask-title="Decision framework">Ask here</button></h2>
+<p>Ask four questions:</p>
+<ol>
+<li>Does the agent need local files or tools?</li>
+<li>Is the conversation multi-step?</li>
+<li>Does a client need to mediate tool calls?</li>
+<li>Will multiple clients or agents benefit from a shared protocol?</li>
+</ol>
+<p>If most answers are yes, ACP is worth serious consideration.</p>
+<h2 data-section-id="m8-scenario" data-section-title="Public example: CampusGuide review">Public example: CampusGuide review <button class="ask-btn" data-ask-section="m8-scenario" data-ask-title="Public example: CampusGuide review">Ask here</button></h2>
+<p>Suppose a team is building CampusGuide, a fictional campus Q&amp;A assistant. They want an agent to inspect local docs, run validation scripts, and suggest edits.</p>
+<p>That is a plausible ACP scenario: local files matter, tool calls matter, and the client should control what the agent can access.</p>
+<p>If the same team only wants to paste one paragraph into a web page and ask for a rewrite, ACP is not necessary.</p>
+<h2 data-section-id="m8-conclusion" data-section-title="Conclusion">Conclusion <button class="ask-btn" data-ask-section="m8-conclusion" data-ask-title="Conclusion">Ask here</button></h2>
+<p>ACP is a standardization tool. It is valuable when a standard client-agent boundary reduces real integration pain.</p>
+<p>Choose it when it simplifies the system. Skip it when it adds protocol ceremony without improving the learning or development workflow.</p>
+<h2 data-section-id="m8-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m8-summary" data-ask-title="Module recap">Ask here</button></h2>
+<ul>
+<li>ACP is strongest for local, multi-step, tool-using agent sessions.</li>
+<li>Simple one-shot chats usually do not need ACP.</li>
+<li>Public teaching examples should be fictitious and safe to publish.</li>
+</ul>
+  <footer class="next-prev"><a href="m7.html">Previous</a><span></span></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="What is unclear here?"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>Cancel</button>
+      <button type="submit">Save question</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>Questions <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>Questions</h2><button data-close-drawer>Close</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
+</aside></main>
+  <script src="/config.js"></script>
+  <script src="assets/learnloop.js"></script>
+</body>
+</html>

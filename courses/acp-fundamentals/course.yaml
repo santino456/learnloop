@@ -1,0 +1,38 @@
+id: acp-fundamentals
+title: "ACP Fundamentals"
+subtitle: "Learn Agent Client Protocol through small concepts, local questions, and agent-ready learning context."
+audience: "Developers evaluating agent protocols for local tools and editors."
+default_port: 8787
+modules:
+  - id: m1
+    title: "What ACP is and why it exists"
+    file: "modules/01.md"
+    summary: "Understand the client-agent integration problem ACP tries to solve."
+  - id: m2
+    title: "Communication model"
+    file: "modules/02.md"
+    summary: "Read ACP as JSON-RPC over a transport, with clear client and agent roles."
+  - id: m3
+    title: "Initialize and capabilities"
+    file: "modules/03.md"
+    summary: "Learn the handshake and why capability negotiation matters."
+  - id: m4
+    title: "Prompt, resources, and tool calls"
+    file: "modules/04.md"
+    summary: "See how prompts carry content, references, and tool requests."
+  - id: m5
+    title: "ACP, MCP, and A2A"
+    file: "modules/05.md"
+    summary: "Separate the protocol layers so you choose the right one."
+  - id: m6
+    title: "Build a minimal ACP client"
+    file: "modules/06.md"
+    summary: "Sketch the smallest local client and the buffering rules that matter."
+  - id: m7
+    title: "Bridge ACP to the browser"
+    file: "modules/07.md"
+    summary: "Use a local bridge when a web UI needs to talk to a stdio agent."
+  - id: m8
+    title: "Boundaries and judgment"
+    file: "modules/08.md"
+    summary: "Decide when ACP is worth the extra moving parts."

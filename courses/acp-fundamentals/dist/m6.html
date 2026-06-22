@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Build a minimal ACP client | LearnLoop</title>
+  <link rel="stylesheet" href="assets/learnloop.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
+  <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m6</span></nav>
+<article class="lesson" data-course-id="acp-fundamentals" data-module-id="m6">
+  <header class="lesson-header">
+    <p class="eyebrow">ACP Fundamentals</p>
+    <h1>Build a minimal ACP client</h1>
+    <p class="lede">A minimal local client is mostly subprocess management plus disciplined JSON lines.</p>
+  </header>
+  <h2 data-section-id="m6-goal" data-section-title="Goal and setup">Goal and setup <button class="ask-btn" data-ask-section="m6-goal" data-ask-title="Goal and setup">Ask here</button></h2>
+<p>The smallest local client starts an agent process, sends an initialize request, sends a prompt, and reads responses.</p>
+<p>This module uses pseudocode-style examples. Verify exact method names, fields, and protocol versions against your current agent implementation before running them.</p>
+<h2 data-section-id="m6-process" data-section-title="Start the subprocess">Start the subprocess <button class="ask-btn" data-ask-section="m6-process" data-ask-title="Start the subprocess">Ask here</button></h2>
+<pre><code class="language-python">import json
+import subprocess
+
+proc = subprocess.Popen(
+    [&quot;example-agent&quot;, &quot;acp&quot;],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    text=True,
+    bufsize=1,
+)</code></pre>
+<p>The command uses <code>example-agent</code> instead of a real private setup. Replace it with the agent you are testing.</p>
+<h2 data-section-id="m6-send-receive" data-section-title="Send and receive JSON lines">Send and receive JSON lines <button class="ask-btn" data-ask-section="m6-send-receive" data-ask-title="Send and receive JSON lines">Ask here</button></h2>
+<pre><code class="language-python">def send(message):
+    proc.stdin.write(json.dumps(message) + &quot;\n&quot;)
+    proc.stdin.flush()
+
+def receive():
+    line = proc.stdout.readline()
+    if not line:
+        raise RuntimeError(&quot;agent closed stdout&quot;)
+    return json.loads(line)</code></pre>
+<p>The newline and flush are not cosmetic. Without them the agent may wait forever.</p>
+<h2 data-section-id="m6-prompt" data-section-title="Send a prompt">Send a prompt <button class="ask-btn" data-ask-section="m6-prompt" data-ask-title="Send a prompt">Ask here</button></h2>
+<pre><code class="language-python">send({
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;id&quot;: 2,
+    &quot;method&quot;: &quot;prompt&quot;,
+    &quot;params&quot;: {
+        &quot;messages&quot;: [
+            {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: [{&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;Explain ACP in one sentence.&quot;}]}
+        ]
+    }
+})
+print(receive())</code></pre>
+<div class="callout">Verification note: this is a teaching skeleton. Run the real agent&#x27;s help command or documentation check before treating it as executable code.</div>
+<h2 data-section-id="m6-buffering" data-section-title="Buffering rules">Buffering rules <button class="ask-btn" data-ask-section="m6-buffering" data-ask-title="Buffering rules">Ask here</button></h2>
+<ul>
+<li>Use text mode if the protocol sends text JSON.</li>
+<li>Write one complete JSON object per line.</li>
+<li>Flush after each request.</li>
+<li>Keep stdout clean and send logs to stderr.</li>
+</ul>
+<h2 data-section-id="m6-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="Module recap">Ask here</button></h2>
+<ul>
+<li>A minimal local client uses subprocess pipes.</li>
+<li>Line-delimited JSON requires strict newline and flush behavior.</li>
+<li>Runnable examples must be verified against a real agent version.</li>
+</ul>
+  <footer class="next-prev"><a href="m5.html">Previous</a><a href="m7.html">Next</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="What is unclear here?"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>Cancel</button>
+      <button type="submit">Save question</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>Questions <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>Questions</h2><button data-close-drawer>Close</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
+</aside></main>
+  <script src="/config.js"></script>
+  <script src="assets/learnloop.js"></script>
+</body>
+</html>

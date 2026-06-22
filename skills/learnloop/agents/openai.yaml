@@ -1,0 +1,4 @@
+interface:
+  display_name: "LearnLoop"
+  short_description: "Maintain adaptive local learning courses"
+  default_prompt: "Use $learnloop to answer saved learner questions and improve the course source."

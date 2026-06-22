@@ -2,7 +2,7 @@
 
 ## Current status
 
-UI refinements are being driven by screenshot feedback. The course homepage and module pages now share a single, consistent type scale and spacing system across all four templates (`tutorial`, `reference`, `practice`, `case`).
+UI refinements are being driven by screenshot feedback. The course homepage and module pages now share a single, consistent type scale and spacing system across all four templates (`tutorial`, `reference`, `practice`, `perspective`).
 
 ## Completed work
 
@@ -11,8 +11,8 @@ UI refinements are being driven by screenshot feedback. The course homepage and 
   - Removed Google Fonts; switched to system fonts optimized for Chinese (`PingFang SC`, `Microsoft YaHei`, `Noto Serif SC` fallback for headings).
   - All 4 templates now load `assets/base.css` plus a small template-specific override.
 
-- **Template / scenario labels**
-  - Each page shows a consistent English label in the top nav: `TUTORIAL` / `REFERENCE` / `PRACTICE` / `CASE`.
+- **Template / learning-mode labels**
+  - Each page shows a consistent English label in the top nav: `TUTORIAL` / `REFERENCE` / `PRACTICE` / `PERSPECTIVE`.
   - The module roadmap on the index page also shows the same scenario label per card.
   - Removed the reference-only sticky header; all templates use the same label component.
 
@@ -36,9 +36,13 @@ UI refinements are being driven by screenshot feedback. The course homepage and 
   - No content truncation.
   - Content remains deep and detailed (m2).
 
-- **Practice / Case polish**
+- **Practice / Perspective polish**
   - Choice, fill-in, spot-the-bug exercises share the warm-paper theme.
-  - Case judgment card uses consistent colors and notebook-style textarea.
+  - Perspective judgment card uses consistent colors and notebook-style textarea.
+
+- **Epistemic orchestration**
+  - Added `.learnloop/` knowledge-state files for sources, chapter briefs, evidence packs, claims, and conflicts.
+  - Updated the LearnLoop skill so a main agent can generate courses with optional subagents while retaining final epistemic responsibility.
 
 - **Runtime refactor**
   - Created `templates/runtime-base.js` for shared question/ask/copy logic.

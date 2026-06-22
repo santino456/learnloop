@@ -144,6 +144,45 @@ class LearnLoopTests(unittest.TestCase):
                 any("does not support block type: unsupported" in error for error in errors)
             )
 
+    def test_verified_claim_without_source_fails_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "claim-course")
+            claims = created / ".learnloop" / "claims.jsonl"
+            claims.write_text(
+                json.dumps(
+                    {
+                        "id": "claim-1",
+                        "claim": "This is claimed as verified.",
+                        "module_id": "m1",
+                        "section_id": "m1-purpose",
+                        "status": "verified",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            errors = validate_course(created)
+            self.assertTrue(any("verified claim requires source" in error for error in errors))
+
+    def test_perspective_without_basis_fails_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "perspective-basis-course")
+            course_yaml = created / "course.yaml"
+            course_yaml.write_text(
+                course_yaml.read_text(encoding="utf-8").replace(
+                    "template: tutorial", "template: perspective"
+                ),
+                encoding="utf-8",
+            )
+            module = created / "modules" / "01.md"
+            module.write_text(
+                module.read_text(encoding="utf-8")
+                + "\n::: exercise\nJudge this design.\n\n--- perspective\nThis is a mature view.\n---\n:::\n",
+                encoding="utf-8",
+            )
+            errors = validate_course(created)
+            self.assertTrue(any("perspective exercise must include basis" in error for error in errors))
+
     def test_exercise_and_checkpoint_render_in_html(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "container-course")
@@ -248,7 +287,7 @@ class LearnLoopTests(unittest.TestCase):
         self.assertEqual(block.answers, ["stdin", "stdout", "stderr"])
         self.assertEqual(block.explanation, "stdin 进，stdout 出。")
 
-    def test_case_exercise_renders_judgment_card_html(self) -> None:
+    def test_perspective_exercise_renders_judgment_card_html(self) -> None:
         from learnloop.renderer import render_blocks
         from learnloop.templates import load_template
 
@@ -257,6 +296,7 @@ class LearnLoopTests(unittest.TestCase):
             "你团队想给 IDE 加一个助手。\n\n"
             "你会怎么选？\n\n"
             "--- perspective\n"
+            "依据：基于本章对协议边界的比较。\n\n"
             "真正的边界是 IDE 如何驱动本地 Agent。\n\n"
             "--- tradeoffs\n"
             "- ACP：适合。\n"
@@ -266,9 +306,9 @@ class LearnLoopTests(unittest.TestCase):
             "---\n:::\n"
         )
         blocks = parse_markdown(md)
-        template = load_template("case")
+        template = load_template("perspective")
         html = render_blocks(blocks, template)
-        self.assertIn('data-kind="case"', html)
+        self.assertIn('data-kind="perspective"', html)
         self.assertIn('class="judgment-reasoning"', html)
         self.assertIn("对比作者视角", html)
         self.assertIn("作者视角", html)
@@ -334,7 +374,7 @@ class LearnLoopTests(unittest.TestCase):
         self.assertIn("assets/tutorial/style.css", (dist / "m1.html").read_text(encoding="utf-8"))
         self.assertIn("assets/reference/style.css", (dist / "m2.html").read_text(encoding="utf-8"))
         self.assertIn("assets/practice/style.css", (dist / "m3.html").read_text(encoding="utf-8"))
-        self.assertIn("assets/case/style.css", (dist / "m5.html").read_text(encoding="utf-8"))
+        self.assertIn("assets/perspective/style.css", (dist / "m5.html").read_text(encoding="utf-8"))
 
     def test_all_templates_produce_non_empty_html(self) -> None:
         dist = build_course(SAMPLE)

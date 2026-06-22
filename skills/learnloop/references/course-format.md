@@ -8,6 +8,7 @@ Use this reference when creating, migrating, or repairing a LearnLoop course.
 - `modules/*.md`: editable course source.
 - `questions.jsonl`: learner question log.
 - `answers/`: agent answer artifacts and follow-up material.
+- `.learnloop/`: optional orchestration workspace for sources, claims, conflicts, chapter briefs, and evidence packs.
 - `dist/`: generated HTML output.
 
 ## course.yaml
@@ -20,7 +21,7 @@ title: "ACP Fundamentals"
 subtitle: "Short course promise."
 audience: "Target learner."
 default_port: 8787
-template: editorial
+template: tutorial
 modules:
   - id: m1
     title: "What ACP is"
@@ -40,7 +41,7 @@ Each module starts with frontmatter:
 id: m1
 title: "What ACP is"
 summary: "One-sentence summary."
-template: workshop
+template: practice
 ---
 ```
 
@@ -70,6 +71,38 @@ Explain why a browser cannot spawn a local subprocess.
 :::
 ```
 
+Perspective exercises use an exercise container with a `--- perspective` section. Include an explicit basis:
+
+```markdown
+::: exercise
+Judge whether this integration needs a local bridge.
+
+--- perspective
+依据：基于本章关于 browser sandbox 和 local bridge 的 verified claims。
+
+A mature implementation treats the bridge as the trust boundary, not decorative middleware.
+---
+:::
+```
+
+## Knowledge State
+
+When generating substantial content, keep orchestration files in `.learnloop/`:
+
+- `source_inventory.yaml`
+- `chapter_briefs/*.md`
+- `evidence_packs/*.md`
+- `claims.jsonl`
+- `conflicts.jsonl`
+
+`claims.jsonl` records key facts:
+
+```json
+{"id":"claim-001","claim":"LearnLoop preserves section ids in generated HTML.","module_id":"m1","section_id":"m1-purpose","status":"verified","source_id":"local-source","checked_at":"2026-06-22"}
+```
+
+`verified` claims must include `source_id` or `source`.
+
 ## Templates
 
 Templates live in `templates/<name>/` and contain:
@@ -82,7 +115,7 @@ Templates live in `templates/<name>/` and contain:
 Example `manifest.yaml`:
 
 ```yaml
-name: editorial
+name: tutorial
 version: 1
 renderer: semantic-html-v1
 supports:
@@ -101,6 +134,8 @@ assets:
   css: style.css
   js: runtime.js
 ```
+
+Built-in templates are `tutorial`, `reference`, `practice`, and `perspective`.
 
 ## Generated Output
 

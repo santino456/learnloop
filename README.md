@@ -43,10 +43,16 @@ courses/acp-fundamentals/
 │   └── ...
 ├── answers/
 ├── questions.jsonl
+├── .learnloop/
+│   ├── source_inventory.yaml
+│   ├── claims.jsonl
+│   ├── conflicts.jsonl
+│   ├── chapter_briefs/
+│   └── evidence_packs/
 └── dist/
 ```
 
-`dist/` is generated output. Edit `course.yaml` and `modules/*.md`.
+`dist/` is generated output. Edit `course.yaml` and `modules/*.md`; use `.learnloop/` to track sources, claims, conflicts, and chapter-level evidence when generating substantial content with an agent.
 
 ## Templates
 
@@ -54,20 +60,22 @@ LearnLoop renders the same course source through different templates. Set the de
 
 ```yaml
 # course.yaml
-template: editorial
+template: tutorial
 ```
 
 ```markdown
 ---
 # modules/07.md
-template: workshop
+template: perspective
 ---
 ```
 
 Built-in templates live in `templates/`:
 
-- `editorial` — quiet, paper-like reading style.
-- `workshop` — exercise and checkpoint emphasized layout.
+- `tutorial` — quiet, paper-like reading style.
+- `reference` — dense lookup and comparison layout.
+- `practice` — exercise and checkpoint emphasized layout.
+- `perspective` — judgment, taste, tradeoff, and higher-level experience layer.
 
 List templates and see which template each module uses:
 
@@ -91,6 +99,33 @@ Confirm you can explain why a browser cannot spawn a local process.
 
 Both containers can contain any LearnLoop Markdown (paragraphs, lists, code blocks, etc.).
 
+Perspective exercises add higher-level experience and judgment. They must state their basis or mark that human review is needed:
+
+```markdown
+::: exercise
+Judge whether this integration needs a local bridge.
+
+--- perspective
+依据：基于本章已验证的 browser sandbox 约束。
+
+A mature implementation treats the bridge as the trust boundary.
+---
+:::
+```
+
+## Epistemic Workflow
+
+LearnLoop is not a hosted course platform. It is a local protocol for helping a learner's own agent generate better learning material. For serious generation tasks, the main agent should:
+
+1. Inventory sources in `.learnloop/source_inventory.yaml`.
+2. Split work by chapter with `.learnloop/chapter_briefs/`.
+3. Gather evidence before drafting in `.learnloop/evidence_packs/`.
+4. Track important facts in `.learnloop/claims.jsonl`.
+5. Record unresolved conflicts in `.learnloop/conflicts.jsonl`.
+6. Validate and build before showing the course.
+
+Subagents are optional parallel workers for research, drafting, or review; the main agent remains responsible for final merges and truth status.
+
 ## CLI
 
 ```bash
@@ -106,8 +141,10 @@ python3 -m learnloop templates courses/acp-fundamentals
 
 - ACP sample course migrated to Markdown/YAML source.
 - Template-capable rendering pipeline with course- and module-level template selection.
+- Perspective template for judgment, taste, and higher-level learning experience.
+- Lightweight knowledge-state validation for verified claims and Perspective basis.
 - Local server writes structured learner questions.
 - Generated pages read `/config.js`, so non-default ports work.
-- LearnLoop skill is normalized for agent-guided question answering.
+- LearnLoop skill is normalized for agent-guided course generation and question answering.
 
 Not included in the first version: accounts, cloud sync, multi-user spaces, hosted marketplaces, or a long-running cloud agent service.

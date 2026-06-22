@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>边界与判断 | LearnLoop</title>
   <link rel="stylesheet" href="assets/base.css">
-  <link rel="stylesheet" href="assets/case/style.css">
+  <link rel="stylesheet" href="assets/perspective/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
   <main class="page">
-    <nav class="top-nav"><a href="index.html">学习路径</a><span>m8</span><span class="top-nav-template">case</span></nav>
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m8</span><span class="top-nav-template">perspective</span></nav>
 <article class="lesson" data-course-id="acp-fundamentals" data-module-id="m8">
   <header class="lesson-header">
     <p class="eyebrow">ACP 基础</p>
@@ -58,7 +58,7 @@
 <p>选择它，是因为它简化了系统；跳过它，是因为它只增加协议仪式而没有改善学习或开发流程。</p></section>
 <section><h2 data-section-id="m8-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m8-summary" data-ask-title="模块小结">提问</button></h2>
 <ul><li>ACP 最强的地方在本地、多步骤、会用工具的 Agent 会话。</li><li>简单的单轮聊天通常不需要 ACP。</li><li>公开教学示例应该使用虚构、安全的项目。</li></ul>
-<div class="exercise" data-kind="case">
+<div class="exercise" data-kind="perspective">
 <div class="exercise-task judgment-task">
 <p>你接到了一个需求：为内部开发者做一个命令行工具，让它可以调用本地 Agent 来审查代码、运行测试并把结果写回文件。团队里有人觉得直接用模型 HTTP API 就够了，有人坚持要上 ACP。</p>
 <p>你会怎么判断？先写下你的主要顾虑。</p>
@@ -66,6 +66,7 @@
 <textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>
 <div class="judgment-reveal" hidden>
 <section class="judgment-section perspective" hidden><h4>作者视角</h4>
+<p>依据：基于本章对本地文件访问、多步骤会话、工具调用边界和协议复用价值的总结；实际项目仍需人工确认安全约束。</p>
 <p>这个需求同时命中了 ACP 的几个核心信号：本地文件访问、多步骤会话、客户端中介工具调用、以及多个内部工具可能从共享协议受益。因此 ACP 值得认真考虑，而不是简单用一次 HTTP 调用替代。</p>
 </section>
 <section class="judgment-section tradeoffs" hidden><h4>取舍与 trade-offs</h4>
@@ -103,6 +104,6 @@
   </main>
   <script src="/config.js"></script>
   <script src="assets/runtime-base.js"></script>
-  <script src="assets/case/runtime.js"></script>
+  <script src="assets/perspective/runtime.js"></script>
 </body>
 </html>

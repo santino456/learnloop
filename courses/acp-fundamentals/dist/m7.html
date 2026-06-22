@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>把 ACP 桥接到浏览器 | LearnLoop</title>
   <link rel="stylesheet" href="assets/base.css">
-  <link rel="stylesheet" href="assets/case/style.css">
+  <link rel="stylesheet" href="assets/perspective/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
   <main class="page">
-    <nav class="top-nav"><a href="index.html">学习路径</a><span>m7</span><span class="top-nav-template">case</span></nav>
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m7</span><span class="top-nav-template">perspective</span></nav>
 <article class="lesson" data-course-id="acp-fundamentals" data-module-id="m7">
   <header class="lesson-header">
     <p class="eyebrow">ACP 基础</p>
@@ -57,7 +57,7 @@ ACP Agent</code></pre>
 </div></section>
 <section><h2 data-section-id="m7-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m7-summary" data-ask-title="模块小结">提问</button></h2>
 <ul><li>浏览器需要 bridge 才能使用本地 ACP Agent。</li><li>bridge 负责进程和协议的整洁性。</li><li>SSE 通常足以支撑流式回答。</li><li>在本地闭环被证明有用之前，不要急着搭建完整平台。</li></ul>
-<div class="exercise" data-kind="case">
+<div class="exercise" data-kind="perspective">
 <div class="exercise-task judgment-task">
 <p>你正在设计一个浏览器内的 ACP 助手。团队提出了两种方案：</p>
 <p>方案 A：浏览器页面直接通过 JavaScript 启动本地 Agent 进程。 方案 B：浏览器通过 SSE 连接一个本地 bridge；bridge 启动并持有 stdio Agent 进程。</p>
@@ -66,6 +66,7 @@ ACP Agent</code></pre>
 <textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>
 <div class="judgment-reveal" hidden>
 <section class="judgment-section perspective" hidden><h4>作者视角</h4>
+<p>依据：基于本章对浏览器沙箱、本地 bridge 和 stdio 进程边界的总结；具体实现仍需按目标运行环境验证。</p>
 <p>浏览器的核心约束是沙箱：网页不能直接启动子进程，也不能直接读写本地 stdin/stdout。因此 bridge 不仅是“可选中间层”，而是让浏览器能够与本地 Agent 交互的最小可信边界。</p>
 </section>
 <section class="judgment-section tradeoffs" hidden><h4>取舍与 trade-offs</h4>
@@ -103,6 +104,6 @@ ACP Agent</code></pre>
   </main>
   <script src="/config.js"></script>
   <script src="assets/runtime-base.js"></script>
-  <script src="assets/case/runtime.js"></script>
+  <script src="assets/perspective/runtime.js"></script>
 </body>
 </html>

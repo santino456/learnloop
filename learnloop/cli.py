@@ -12,7 +12,8 @@ from .course import (
     serve_course,
     validate_course,
 )
-from .parser import read_course
+from .model import ModuleDoc
+from .parser import parse_module, read_course
 from .templates import list_templates, select_template
 
 
@@ -84,5 +85,16 @@ def list_templates_command(course_dir: Path) -> None:
     print(f"\nCourse default: {course.template or '(none)'}")
     print("Module templates:")
     for module in course.modules:
-        template = select_template(course_dir, course, module)
+        try:
+            frontmatter, _ = parse_module(course.root / module.file)
+        except Exception:
+            frontmatter = {}
+        effective_module = ModuleDoc(
+            id=module.id,
+            title=module.title,
+            file=module.file,
+            summary=frontmatter.get("summary", module.summary),
+            template=frontmatter.get("template") or module.template,
+        )
+        template = select_template(course_dir, course, effective_module)
         print(f"  {module.id} ({module.file}): {template.name}")

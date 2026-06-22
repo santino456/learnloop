@@ -1,4 +1,4 @@
-/* Case — judgment notebook */
+/* Perspective — judgment notebook */
 
 /* Scenario narrative */
 .judgment-task {
@@ -10,7 +10,7 @@
   margin-bottom: 16px;
 }
 .judgment-task::before {
-  content: "📖 场景";
+  content: "视角";
   display: block;
   font-family: var(--font-mono);
   font-size: 11px;
@@ -20,10 +20,10 @@
   margin-bottom: 8px;
 }
 
-.exercise[data-kind="case"] {
+.exercise[data-kind="perspective"] {
   border-left-color: var(--accent);
 }
-.exercise[data-kind="case"]::before { content: "思辨"; }
+.exercise[data-kind="perspective"]::before { content: "Perspective"; }
 
 /* Notebook reasoning textarea */
 .judgment-reasoning {

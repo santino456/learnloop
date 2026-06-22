@@ -1,9 +1,9 @@
-/* Case runtime */
+/* Perspective runtime */
 document.addEventListener("DOMContentLoaded", () => {
   window.LearnLoopRuntime.init();
 
-  // Judgment reveal
-  document.querySelectorAll(".exercise[data-kind='case']").forEach((exercise) => {
+  // Perspective reveal
+  document.querySelectorAll(".exercise[data-kind='perspective']").forEach((exercise) => {
     const compareBtn = exercise.querySelector(".exercise-compare");
     const reveal = exercise.querySelector(".judgment-reveal");
     const sections = exercise.querySelectorAll(".judgment-section");

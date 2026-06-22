@@ -41,3 +41,5 @@ section_id: "<section id>"
 ## Judgment
 
 Answer the learner first. Only update the course source when the answer reveals a durable explanation, missing prerequisite, misleading wording, or useful example.
+
+If an answer adds a new technical fact, add or update `.learnloop/claims.jsonl`, or mark the fact as unverified in the course text.

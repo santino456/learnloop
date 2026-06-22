@@ -1,0 +1,13 @@
+sources:
+  - id: acp-course-source
+    type: user-provided
+    title: "ACP Fundamentals course source"
+    location: "modules/*.md"
+    trust: needs-review
+    read_status: partial
+  - id: local-learnloop-implementation
+    type: primary
+    title: "LearnLoop parser, renderer, and server implementation"
+    location: "../../learnloop/"
+    trust: primary-source
+    read_status: partial

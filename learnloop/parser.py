@@ -170,7 +170,7 @@ def classify_exercise(
 
     Returns (kind, choices, answers, buggy_lines). Unknown values are None.
     """
-    # Case / judgment exercises are identified by their marker sections.
+    # Perspective exercises are identified by their marker sections.
     # We do not inspect answer_text here; the caller already has perspective etc.
 
     # Multiple choice: task contains a list whose items look like A. B. C. D.
@@ -262,7 +262,7 @@ def _parse_blocks(
                     task_blocks, answer_text
                 )
                 if perspective_text or tradeoffs_text or pitfalls_text:
-                    kind = "case"
+                    kind = "perspective"
 
                 blocks.append(
                     Block(

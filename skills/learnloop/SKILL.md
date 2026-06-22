@@ -1,22 +1,32 @@
 ---
 name: learnloop
-description: Work with LearnLoop local-first adaptive learning courses. Use when creating or updating LearnLoop course source, building course HTML, validating course structure, answering saved learner questions from questions.jsonl, generating answer artifacts, or improving modules based on learner confusion.
+description: Work with LearnLoop local-first adaptive learning courses and epistemic course-generation workflows. Use when creating or updating LearnLoop course source, orchestrating research/drafting/review for learning materials, validating claims and sources, answering saved learner questions from questions.jsonl, generating answer artifacts, or improving modules based on learner confusion.
 ---
 
 # LearnLoop
 
-Use this skill to maintain a LearnLoop course as a feedback loop:
+Use this skill to help a learner turn raw material into a trustworthy local course. The main agent owns the course knowledge state: what is known, what is sourced, what is inferred, what conflicts, and what needs human judgment.
 
-1. Inspect `course.yaml`, `modules/*.md`, and `questions.jsonl`.
-2. Run `python3 -m learnloop validate <course-dir>` before and after changes.
-3. Use `python3 -m learnloop context <course-dir> --question-id <id>` for question-specific context.
-4. Write answers to `answers/` and link them to the original question id.
-5. Update `modules/*.md` only when the answer reveals reusable course improvement.
-6. Rebuild with `python3 -m learnloop build <course-dir>`.
+## Core Workflow
+
+1. Inspect `course.yaml`, `modules/*.md`, `questions.jsonl`, and `.learnloop/` if present.
+2. Build or update the knowledge state before writing: source inventory, chapter briefs, evidence packs, claims, and conflicts.
+3. Write course source only from verified evidence, marked uncertainty, or explicit human judgment.
+4. Use subagents only as optional parallel workers for bounded research, draft, or review tasks. The main agent remains responsible for final content and merges.
+5. Run `python3 -m learnloop validate <course-dir>` before and after source changes.
+6. Run `python3 -m learnloop build <course-dir>` after validated source changes.
+
+## Learner Questions
+
+1. Inspect `questions.jsonl` for `status=open`.
+2. Run `python3 -m learnloop context <course-dir> --question-id <id>`.
+3. Write answers to `answers/` and link them to the original question id.
+4. Update `modules/*.md` only when the answer reveals reusable course improvement.
 
 ## References
 
 - Read `references/course-format.md` before creating or restructuring course files.
+- Read `references/orchestration.md` before generating or substantially rewriting course content.
 - Read `references/answering-loop.md` before answering learner questions.
 - Read `references/content-verification.md` before adding technical claims, commands, APIs, or protocol fields.
 
@@ -24,6 +34,9 @@ Use this skill to maintain a LearnLoop course as a feedback loop:
 
 - Keep source edits in Markdown/YAML. Treat `dist/` as generated output.
 - Preserve stable section ids. Learner questions depend on them.
+- Do not treat fluent generated text as verified knowledge.
+- Do not let subagents directly modify final course source; have them return evidence, drafts, or review reports.
 - Prefer small, clear course updates over broad rewrites.
 - Use fictitious public examples unless the user explicitly asks to use private project context.
 - Mark unverifiable technical details instead of presenting them as confirmed.
+- Perspective content should raise judgment and taste, but must state its basis or mark `needs-human-review`.

@@ -1,0 +1,2 @@
+{"id":"claim-m1-learnloop-section-anchors","claim":"LearnLoop renders section ids as question anchors in generated module HTML.","module_id":"m1","section_id":"m1-purpose","status":"verified","source_id":"local-learnloop-implementation","checked_at":"2026-06-22"}
+{"id":"claim-m1-acp-protocol-framing","claim":"ACP is framed in this course as a client-to-agent boundary for local learning purposes.","module_id":"m1","section_id":"m1-purpose","status":"needs-human-review","source_id":"acp-course-source","checked_at":"2026-06-22"}

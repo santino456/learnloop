@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .model import Block, CourseDoc, LearnLoopError, ModuleDoc
+from .knowledge import validate_knowledge_state, validate_perspective_basis
 from .parser import collect_block_types, collect_sections, inline, parse_markdown, parse_module, read_course
 from .templates import select_template, template_root, validate_template_support
 
@@ -101,8 +102,8 @@ def render_exercise(block: Block, template: Any | None = None) -> str:
     template_name = template.name if template else ""
     kind = block.kind or "open"
 
-    if template_name == "case" and kind == "case":
-        return render_case_exercise(block, template)
+    if template_name == "perspective" and kind == "perspective":
+        return render_perspective_exercise(block, template)
 
     if template_name == "practice":
         if kind == "choice":
@@ -279,7 +280,7 @@ def _decorate_buggy_lines(task_html: str, buggy_lines: list[int]) -> str:
     return pre_re.sub(repl_pre, task_html)
 
 
-def render_case_exercise(block: Block, template: Any | None) -> str:
+def render_perspective_exercise(block: Block, template: Any | None) -> str:
     task = render_blocks(block.blocks or [], template)
     perspective = render_blocks(parse_markdown(block.perspective or ""), template) if block.perspective else ""
     tradeoffs = render_blocks(parse_markdown(block.tradeoffs or ""), template) if block.tradeoffs else ""
@@ -296,7 +297,7 @@ def render_case_exercise(block: Block, template: Any | None) -> str:
         joined_parts = "\n".join(parts)
         hidden_sections = f'<div class="judgment-reveal" hidden>\n{joined_parts}\n</div>'
     return (
-        f'<div class="exercise" data-kind="case">\n'
+        f'<div class="exercise" data-kind="perspective">\n'
         f'<div class="exercise-task judgment-task">\n{task}\n</div>\n'
         f'<textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>\n'
         f'{hidden_sections}\n'
@@ -520,6 +521,7 @@ def validate_course(course_dir: Path) -> list[str]:
         errors.extend(
             f"{module.file}: {error}" for error in validate_template_support(template, block_types)
         )
+        errors.extend(validate_perspective_basis(blocks, module.file))
 
         sections = collect_sections(blocks)
         if not sections:
@@ -553,6 +555,7 @@ def validate_course(course_dir: Path) -> list[str]:
                 if field not in item:
                     errors.append(f"questions.jsonl:{idx}: missing {field}")
 
+    errors.extend(validate_knowledge_state(course.root))
     return errors
 
 

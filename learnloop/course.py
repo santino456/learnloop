@@ -63,7 +63,14 @@ def init_course(target: Path, slug: str) -> Path:
         raise LearnLoopError(f"Course already exists: {course_dir}")
     (course_dir / "modules").mkdir(parents=True)
     (course_dir / "answers").mkdir()
+    (course_dir / ".learnloop" / "chapter_briefs").mkdir(parents=True)
+    (course_dir / ".learnloop" / "evidence_packs").mkdir()
     (course_dir / "questions.jsonl").write_text("", encoding="utf-8")
+    (course_dir / ".learnloop" / "claims.jsonl").write_text("", encoding="utf-8")
+    (course_dir / ".learnloop" / "conflicts.jsonl").write_text("", encoding="utf-8")
+    (course_dir / ".learnloop" / "source_inventory.yaml").write_text(
+        "sources: []\n", encoding="utf-8"
+    )
     (course_dir / "course.yaml").write_text(
         f"""id: {slug}
 title: "New LearnLoop Course"

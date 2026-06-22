@@ -64,8 +64,9 @@ def render_section(block: Block, template: Any | None = None) -> str:
         return (
             f'<section class="card" data-section-id="{section_id}" data-section-title="{title}">\n'
             f'  <div class="card-header">\n'
-            f'    <button class="card-toggle" type="button" aria-expanded="false">'
-            f'<span aria-hidden="true">▶</span> <span class="card-title">{title}</span></button>\n'
+            f'    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠">'
+            f'<span aria-hidden="true">▶</span></button>\n'
+            f'    <span class="card-title">{title}</span>\n'
             f'    {ask_button}\n'
             f'  </div>\n'
             f'  {summary_html}\n'

@@ -12,11 +12,13 @@
 
   // Collapsible reference cards
   document.querySelectorAll(".card").forEach((card) => {
+    const header = card.querySelector(".card-header");
     const toggle = card.querySelector(".card-toggle");
-    if (!toggle) return;
-    toggle.addEventListener("click", () => {
+    if (!header) return;
+    header.addEventListener("click", (event) => {
+      if (event.target.closest(".ask-btn")) return;
       const expanded = card.classList.toggle("expanded");
-      toggle.setAttribute("aria-expanded", String(expanded));
+      toggle?.setAttribute("aria-expanded", String(expanded));
     });
   });
 

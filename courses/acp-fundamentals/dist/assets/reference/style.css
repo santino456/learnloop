@@ -83,10 +83,22 @@ section > section { margin: 12px 0 12px 12px; }
   font: inherit;
 }
 .card-header:hover { background: #f6f8fa; }
-.card-toggle { flex: none; width: 22px; height: 22px; display: grid; place-items: center; color: var(--muted); transition: transform .15s ease; }
+.card-toggle {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  transition: transform .15s ease, background .15s ease;
+}
+.card-toggle:hover { background: #eef1f4; }
 .card.expanded .card-toggle { transform: rotate(90deg); }
-.card-title { flex: 1 1 auto; }
-.card-summary { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.card-title { flex: 1 1 auto; font-weight: 600; font-size: 16px; }
+.card-summary { color: var(--muted); font-size: 14px; padding: 0 20px 12px 56px; }
 .card-body { padding: 0 20px 18px 52px; display: none; }
 .card.expanded .card-body { display: block; }
 

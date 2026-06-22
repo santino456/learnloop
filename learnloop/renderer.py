@@ -341,12 +341,7 @@ def render_module_page(
     template: Any,
 ) -> str:
     content = render_blocks(sections, template)
-    template_label = {
-        "tutorial": "教程",
-        "reference": "参考",
-        "practice": "练习",
-        "case": "案例",
-    }.get(template.name, template.name)
+    template_label = template.name
     content = f"""<nav class="top-nav"><a href="index.html">学习路径</a><span>{html.escape(module.id)}</span><span class="top-nav-template">{html.escape(template_label)}</span></nav>
 <article class="lesson" data-course-id="{html.escape(course.id)}" data-module-id="{html.escape(module.id)}">
   <header class="lesson-header">

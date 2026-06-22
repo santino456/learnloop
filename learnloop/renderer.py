@@ -9,7 +9,7 @@ from typing import Any
 
 from .model import Block, CourseDoc, LearnLoopError, ModuleDoc
 from .parser import collect_block_types, collect_sections, inline, parse_markdown, parse_module, read_course
-from .templates import select_template, validate_template_support
+from .templates import select_template, template_root, validate_template_support
 
 
 def render_blocks(blocks: list[Block], template: Any | None = None) -> str:
@@ -71,7 +71,7 @@ def render_section(block: Block, template: Any | None = None) -> str:
             f'    {ask_button}\n'
             f'  </div>\n'
             f'  {summary_html}\n'
-            f'  <div class="card-body">\n{inner}\n  </div>\n'
+            f'  <div class="card-body"><div class="card-inner">\n{inner}\n  </div></div>\n'
             f'</section>'
         )
 
@@ -413,6 +413,9 @@ def build_course(course_dir: Path) -> Path:
     if dist.exists():
         shutil.rmtree(dist)
     (dist / "assets").mkdir(parents=True)
+    base_css = template_root() / "base.css"
+    if base_css.exists():
+        shutil.copy(base_css, dist / "assets" / "base.css")
 
     index_template = select_template(course_dir, course)
     (dist / "index.html").write_text(

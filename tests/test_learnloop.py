@@ -325,14 +325,24 @@ class LearnLoopTests(unittest.TestCase):
 
     def test_all_templates_render_without_error(self) -> None:
         dist = build_course(SAMPLE)
+        self.assertTrue((dist / "assets" / "base.css").exists())
         for template in list_templates():
             self.assertTrue((dist / f"assets/{template.name}/style.css").exists())
             self.assertTrue((dist / f"assets/{template.name}/runtime.js").exists())
         # Confirm each module was generated with the expected template assets.
+        self.assertIn("assets/base.css", (dist / "m1.html").read_text(encoding="utf-8"))
         self.assertIn("assets/tutorial/style.css", (dist / "m1.html").read_text(encoding="utf-8"))
         self.assertIn("assets/reference/style.css", (dist / "m2.html").read_text(encoding="utf-8"))
         self.assertIn("assets/practice/style.css", (dist / "m3.html").read_text(encoding="utf-8"))
         self.assertIn("assets/case/style.css", (dist / "m5.html").read_text(encoding="utf-8"))
+
+    def test_all_templates_produce_non_empty_html(self) -> None:
+        dist = build_course(SAMPLE)
+        for path in (dist / "index.html", dist / "m1.html", dist / "m2.html", dist / "m3.html", dist / "m5.html"):
+            text = path.read_text(encoding="utf-8")
+            self.assertTrue(len(text) > 0)
+            self.assertIn('<main class="page">', text)
+            self.assertIn("</main>", text)
 
 
 def wait_for(url: str) -> None:

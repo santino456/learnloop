@@ -4,12 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ACP 的通信模型 | LearnLoop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Serif+SC:wght@500;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/base.css">
   <link rel="stylesheet" href="assets/reference/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
   <header class="reference-header">
-    <span class="reference-brand">📋 Reference</span>
+    <span class="reference-brand">Reference</span>
     <span class="reference-course">ACP 基础</span>
   </header>
   <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m2</span></nav>
@@ -25,11 +29,15 @@
     <span class="card-title">客户端与 Agent 的角色</span>
     <button class="ask-btn" data-ask-section="m2-roles" data-ask-title="客户端与 Agent 的角色">Ask here</button>
   </div>
-  
-  <div class="card-body">
-<table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>客户端（Client）</td><td>持有用户界面，发送请求，提供上下文，代表 Agent 执行工具调用</td></tr><tr><td>Agent</td><td>接收提示，决定策略，申请工具调用，返回结果</td></tr></tbody></table>
-<div class="callout">口诀：<strong>客户端离用户最近，Agent 离推理最近</strong>。</div>
-  </div>
+  <div class="card-summary">ACP 的通信发生在两个核心角色之间：客户端（Client）与 Agent。</div>
+  <div class="card-body"><div class="card-inner">
+<p>ACP 的通信发生在两个核心角色之间：客户端（Client）与 Agent。</p>
+<table><thead><tr><th>角色</th><th>主要职责</th><th>典型实例</th><th>不做什么</th></tr></thead><tbody><tr><td>客户端（Client）</td><td>持有用户界面；组装上下文；发送请求；执行 Agent 申请的工具调用；管理会话生命周期</td><td>编辑器插件、CLI、本地 Bridge</td><td>不替 Agent 做推理决策</td></tr><tr><td>Agent</td><td>接收提示；决定策略；申请工具调用；返回结果；维护内部状态</td><td>代码补全 Agent、审查 Agent、问答 Agent</td><td>不直接操作用户文件系统或 UI</td></tr></tbody></table>
+<p>责任矩阵：</p>
+<table><thead><tr><th>任务</th><th>客户端</th><th>Agent</th></tr></thead><tbody><tr><td>启动 / 终止进程</td><td>✅</td><td>❌</td></tr><tr><td>解析用户意图</td><td>组装输入</td><td>推理输出</td></tr><tr><td>决定调用哪个工具</td><td>❌</td><td>✅</td></tr><tr><td>执行工具调用</td><td>✅</td><td>❌</td></tr><tr><td>保证 stdout 干净</td><td>读取并解析</td><td>不写入日志</td></tr><tr><td>错误归因</td><td>捕获并展示</td><td>返回错误对象</td></tr></tbody></table>
+<div class="callout"><strong>口诀</strong>：客户端离用户最近，Agent 离推理最近。</div>
+<div class="callout"><strong>注意</strong>：不要把 Agent 直接暴露给用户文件系统。客户端作为受信边界，负责执行权限策略。</div>
+  </div></div>
 </section>
 <section class="card" data-section-id="m2-jsonrpc" data-section-title="JSON-RPC 形态">
   <div class="card-header">
@@ -37,13 +45,42 @@
     <span class="card-title">JSON-RPC 形态</span>
     <button class="ask-btn" data-ask-section="m2-jsonrpc" data-ask-title="JSON-RPC 形态">Ask here</button>
   </div>
-  <div class="card-summary">请求与响应通过同一个 id 对应。</div>
-  <div class="card-body">
-<p>请求与响应通过同一个 <code>id</code> 对应。</p>
-<pre><code class="language-json">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;initialize&quot;,&quot;params&quot;:{&quot;capabilities&quot;:{}}}</code></pre>
-<table><thead><tr><th>字段</th><th>含义</th></tr></thead><tbody><tr><td><code>jsonrpc</code></td><td>协议版本标识</td></tr><tr><td><code>id</code></td><td>请求与响应的对应键</td></tr><tr><td><code>method</code></td><td>调用的方法名</td></tr><tr><td><code>params</code></td><td>方法参数</td></tr></tbody></table>
-<div class="callout">教学示例字段名可能变化，运行前务必对照真实 Agent 文档。</div>
-  </div>
+  <div class="card-summary">ACP 的消息通常以 JSON-RPC 2.0 帧形式传输。一条最小请求包含四个字段：</div>
+  <div class="card-body"><div class="card-inner">
+<p>ACP 的消息通常以 JSON-RPC 2.0 帧形式传输。一条最小请求包含四个字段：</p>
+<table><thead><tr><th>字段</th><th>类型</th><th>必填</th><th>含义</th></tr></thead><tbody><tr><td><code>jsonrpc</code></td><td>string</td><td>是</td><td>固定为 <code>&quot;2.0&quot;</code></td></tr><tr><td><code>id</code></td><td>string / number / null</td><td>是</td><td>请求与响应的对应键</td></tr><tr><td><code>method</code></td><td>string</td><td>是</td><td>调用的方法名</td></tr><tr><td><code>params</code></td><td>object / array</td><td>否</td><td>方法参数</td></tr></tbody></table>
+<p>示例请求：</p>
+<pre><code class="language-json">{
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: 1,
+  &quot;method&quot;: &quot;initialize&quot;,
+  &quot;params&quot;: {
+    &quot;capabilities&quot;: {},
+    &quot;clientInfo&quot;: { &quot;name&quot;: &quot;minimal-client&quot;, &quot;version&quot;: &quot;0.1.0&quot; }
+  }
+}</code></pre>
+<p>示例响应：</p>
+<pre><code class="language-json">{
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: 1,
+  &quot;result&quot;: {
+    &quot;protocolVersion&quot;: &quot;2025-03-26&quot;,
+    &quot;capabilities&quot;: {}
+  }
+}</code></pre>
+<p>错误响应：</p>
+<pre><code class="language-json">{
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: 1,
+  &quot;error&quot;: {
+    &quot;code&quot;: -32601,
+    &quot;message&quot;: &quot;Method not found&quot;
+  }
+}</code></pre>
+<p><code>id</code> 生成规则：</p>
+<ol><li>在同一会话内唯一。</li><li>请求与响应的 <code>id</code> 必须完全一致。</li><li>推荐使用自增整数或 UUID 字符串。</li><li><code>id</code> 为 <code>null</code> 时表示通知，不需要响应。</li></ol>
+<div class="callout"><strong>注意</strong>：教学示例字段名可能变化，运行前务必对照真实 Agent 文档。</div>
+  </div></div>
 </section>
 <section class="card" data-section-id="m2-stdio" data-section-title="本地传输">
   <div class="card-header">
@@ -51,11 +88,40 @@
     <span class="card-title">本地传输</span>
     <button class="ask-btn" data-ask-section="m2-stdio" data-ask-title="本地传输">Ask here</button>
   </div>
-  <div class="card-summary">本地模式使用行分隔的 JSON。</div>
-  <div class="card-body">
-<p>本地模式使用<strong>行分隔的 JSON</strong>。</p>
-<ul><li>客户端 → Agent <code>stdin</code>：一条 JSON + 换行。</li><li>Agent → 客户端 <code>stdout</code>：一条 JSON + 换行。</li><li>日志必须输出到 <code>stderr</code>，保证 <code>stdout</code> 始终可解析。</li></ul>
-  </div>
+  <div class="card-summary">本地模式下，ACP 使用行分隔的 JSON 通过标准流交换消息。</div>
+  <div class="card-body"><div class="card-inner">
+<p>本地模式下，ACP 使用<strong>行分隔的 JSON</strong> 通过标准流交换消息。</p>
+<table><thead><tr><th>流</th><th>方向</th><th>内容</th><th>注意事项</th></tr></thead><tbody><tr><td>stdin</td><td>客户端 → Agent</td><td>JSON-RPC 请求</td><td>每条以 <code>\n</code> 结尾</td></tr><tr><td>stdout</td><td>Agent → 客户端</td><td>JSON-RPC 响应</td><td>必须只含可解析 JSON</td></tr><tr><td>stderr</td><td>Agent → 客户端</td><td>日志、诊断、错误</td><td>客户端不应把它当协议响应</td></tr></tbody></table>
+<p>Python 最小示例：</p>
+<pre><code class="language-python">import json
+import subprocess
+
+proc = subprocess.Popen(
+    [&quot;example-agent&quot;, &quot;acp&quot;],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE,
+    text=True,
+    bufsize=1,
+)
+
+
+def send(msg):
+    proc.stdin.write(json.dumps(msg) + &quot;\n&quot;)
+    proc.stdin.flush()
+
+
+def receive():
+    line = proc.stdout.readline()
+    if not line:
+        raise RuntimeError(&quot;agent closed stdout&quot;)
+    return json.loads(line)</code></pre>
+<p>缓冲细节：</p>
+<ul><li><code>text=True</code> 让 Python 以文本模式读写，方便处理 JSON 字符串。</li><li><code>bufsize=1</code> 开启行缓冲，配合显式 <code>flush()</code> 使用。</li><li>每次 <code>send</code> 后必须 <code>flush()</code>，否则消息可能滞留在缓冲区。</li><li>读取端使用 <code>readline()</code> 阻塞等待下一行；若需并发处理，应在独立线程 / 协程中读取。</li></ul>
+<p>常见错误：</p>
+<table><thead><tr><th>错误</th><th>后果</th><th>修复</th></tr></thead><tbody><tr><td>日志写入 stdout</td><td>JSON 解析失败</td><td>所有日志改走 stderr</td></tr><tr><td>忘记 flush</td><td>Agent 永远等不到输入</td><td>每次 write 后 flush</td></tr><tr><td>使用二进制模式不拆行</td><td>帧边界丢失</td><td>text=True 并自行加 <code>\n</code></td></tr><tr><td>stderr 与 stdout 合并</td><td>日志混入响应</td><td>分别捕获两条流</td></tr></tbody></table>
+<div class="callout"><strong>注意</strong>：stdout 一旦混进日志，客户端解析 JSON 行就会失败。日志必须走 stderr。</div>
+  </div></div>
 </section>
 <section class="card" data-section-id="m2-lifecycle" data-section-title="会话生命周期">
   <div class="card-header">
@@ -63,11 +129,38 @@
     <span class="card-title">会话生命周期</span>
     <button class="ask-btn" data-ask-section="m2-lifecycle" data-ask-title="会话生命周期">Ask here</button>
   </div>
-  
-  <div class="card-body">
-<ol><li>启动 Agent 子进程。</li><li>发送 <code>initialize</code> 请求。</li><li>发送 prompt 或任务请求。</li><li>处理响应与可能的工具调用。</li><li>关闭进程。</li></ol>
-<div class="callout">注意：stdout 一旦混进日志，客户端解析 JSON 行就会失败。日志必须走 stderr。</div>
-  </div>
+  <div class="card-summary">一个完整会话可以拆成以下步骤：</div>
+  <div class="card-body"><div class="card-inner">
+<p>一个完整会话可以拆成以下步骤：</p>
+<ol><li><strong>启动 Agent 子进程</strong></li></ol>
+<p>- 客户端根据配置或用户命令启动进程。 - 确认进程已准备好读取 stdin。</p>
+<ol><li><strong>初始化握手</strong></li></ol>
+<p>- 发送 <code>initialize</code> 请求。 - 等待 <code>initialize</code> 响应，确认协议版本与能力。 - 若握手失败，立即终止会话并报告错误。</p>
+<ol><li><strong>发送任务请求</strong></li></ol>
+<p>- 将用户输入组装成 prompt 或任务消息。 - 附加必要的资源引用与上下文。</p>
+<ol><li><strong>处理响应</strong></li></ol>
+<p>- 若响应包含最终答案，直接展示。 - 若响应包含工具调用申请，客户端执行并返回 <code>tool_result</code>。 - 重复直到 Agent 返回最终答案或错误。</p>
+<ol><li><strong>错误处理</strong></li></ol>
+<p>- JSON-RPC 错误：按 <code>code</code> 分类（解析错误、方法不存在、应用错误）。 - 传输错误：进程崩溃、stdout 关闭、超时。 - 能力不匹配：握手阶段即应失败。</p>
+<ol><li><strong>关闭进程</strong></li></ol>
+<p>- 发送退出信号或关闭 stdin。 - 等待进程退出，收集 stderr 日志用于排错。</p>
+<pre><code class="language-text">Client          Agent
+  | initialize  |
+  |-----------&gt; |
+  |  result     |
+  | &lt;-----------|
+  | prompt/task |
+  |-----------&gt; |
+  | tool_call   |
+  | &lt;-----------|
+  | tool_result |
+  |-----------&gt; |
+  | response    |
+  | &lt;-----------|
+  | shutdown    |
+  |-----------&gt; |</code></pre>
+<div class="callout"><strong>注意</strong>：错误处理越早越好。不要在握手失败后继续发送业务请求。</div>
+  </div></div>
 </section>
 <section class="card" data-section-id="m2-summary" data-section-title="模块小结">
   <div class="card-header">
@@ -75,10 +168,12 @@
     <span class="card-title">模块小结</span>
     <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="模块小结">Ask here</button>
   </div>
-  
-  <div class="card-body">
-<ul><li>ACP 把面向用户的客户端职责和 Agent 的推理职责分开。</li><li>本地 ACP 依赖干净的 stdout 和显式刷新缓冲区。</li><li>示例只是协议草图，必须针对具体 Agent 版本验证后再运行。</li></ul>
-  </div>
+  <div class="card-summary">快速参考卡：</div>
+  <div class="card-body"><div class="card-inner">
+<ul><li>ACP 把面向用户的客户端职责和 Agent 的推理职责分开。</li><li>本地 ACP 依赖干净的 stdout 和显式刷新缓冲区。</li><li>JSON-RPC <code>id</code> 是请求 / 响应匹配的关键。</li><li>示例只是协议草图，必须针对具体 Agent 版本验证后再运行。</li></ul>
+<p>快速参考卡：</p>
+<ul><li><strong>客户端</strong>：组装上下文 + 执行工具 + 管理会话。</li><li><strong>Agent</strong>：接收提示 + 推理 + 申请工具。</li><li><strong>stdin / stdout</strong>：一次一行 JSON；stderr 只放日志。</li><li><strong>生命周期</strong>：启动 → 握手 → 任务 → 响应 / 工具循环 → 关闭。</li></ul>
+  </div></div>
 </section>
   <footer class="next-prev"><a href="m1.html">Previous</a><a href="m3.html">Next</a></footer>
 </article>

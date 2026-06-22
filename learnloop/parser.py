@@ -11,6 +11,7 @@ from .model import Block, CourseDoc, LearnLoopError, ModuleDoc
 SECTION_RE = re.compile(r"^(#{2,3})\s+\[([a-zA-Z0-9_-]+)\]\s+(.+?)\s*$")
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.S)
 ORDERED_RE = re.compile(r"^\d+\.\s+(.+)$")
+TABLE_RE = re.compile(r"^\|(.+)\|\s*$")
 
 
 def read_course(course_dir: Path) -> CourseDoc:
@@ -246,6 +247,13 @@ def _parse_blocks(
             blocks.append(Block(type="list", ordered=True, items=items))
             continue
 
+        # Tables
+        table = _parse_table(lines, i)
+        if table:
+            blocks.append(table[0])
+            i = table[1]
+            continue
+
         # Paragraph
         para_lines: list[str] = []
         while i < n and lines[i].strip():
@@ -257,6 +265,7 @@ def _parse_blocks(
                 or lines[i].startswith("> ")
                 or lines[i].startswith("- ")
                 or ORDERED_RE.match(lines[i])
+                or TABLE_RE.match(lines[i])
             ):
                 break
             para_lines.append(lines[i].strip())
@@ -271,6 +280,49 @@ def _is_section_at_or_above(line: str, level: int) -> bool:
     if not match:
         return False
     return len(match.group(1)) <= level
+
+
+def _parse_table(lines: list[str], start: int) -> tuple[Block, int] | None:
+    """Parse a Markdown table starting at `start`.
+
+    Returns a table Block and the index of the first line after the table,
+    or None if no valid table is found.
+    """
+    n = len(lines)
+    if start >= n or not TABLE_RE.match(lines[start]):
+        return None
+
+    def parse_row(line: str) -> list[str]:
+        # Strip leading/trailing pipes, then split by pipe
+        content = line.strip()
+        if content.startswith("|"):
+            content = content[1:]
+        if content.endswith("|"):
+            content = content[:-1]
+        return [cell.strip() for cell in content.split("|")]
+
+    header = parse_row(lines[start])
+    if not header or start + 1 >= n:
+        return None
+
+    separator = parse_row(lines[start + 1])
+    # Separator row should contain only dashes (with optional alignment colons)
+    if not all(re.match(r"^:?-+:?$", cell.strip()) for cell in separator):
+        return None
+
+    rows: list[list[str]] = []
+    i = start + 2
+    while i < n:
+        match = TABLE_RE.match(lines[i])
+        if not match:
+            break
+        rows.append(parse_row(lines[i]))
+        i += 1
+
+    if not rows:
+        return None
+
+    return Block(type="table", headers=header, rows=rows), i
 
 
 def inline(text: str) -> str:

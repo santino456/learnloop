@@ -213,6 +213,21 @@ class LearnLoopTests(unittest.TestCase):
         self.assertEqual(block.type, "exercise")
         self.assertIsNone(block.answer)
 
+    def test_table_parses_and_renders(self) -> None:
+        from learnloop.renderer import render_blocks
+
+        md = "| Role | Duty |\n|------|------|\n| Client | Drive session |\n| Agent | Reason and act |\n"
+        blocks = parse_markdown(md)
+        self.assertEqual(len(blocks), 1)
+        block = blocks[0]
+        self.assertEqual(block.type, "table")
+        self.assertEqual(block.headers, ["Role", "Duty"])
+        self.assertEqual(block.rows, [["Client", "Drive session"], ["Agent", "Reason and act"]])
+        html = render_blocks(blocks)
+        self.assertIn("<table>", html)
+        self.assertIn("<th>Role</th>", html)
+        self.assertIn("<td>Agent</td>", html)
+
     def test_rendered_answer_is_hidden_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "answer-course")

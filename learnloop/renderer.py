@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from .model import Block, CourseDoc, LearnLoopError, ModuleDoc
-from .parser import collect_block_types, collect_sections, parse_markdown, parse_module, read_course
+from .parser import collect_block_types, collect_sections, inline, parse_markdown, parse_module, read_course
 from .templates import select_template, validate_template_support
 
 
@@ -26,6 +26,13 @@ def render_blocks(blocks: list[Block], template: Any | None = None) -> str:
             out.append(f'<pre><code class="language-{lang}">{code}</code></pre>')
         elif block.type == "callout":
             out.append(f'<div class="callout">{block.text}</div>')
+        elif block.type == "table":
+            headers = "".join(f"<th>{inline(cell)}</th>" for cell in (block.headers or []))
+            rows = ""
+            for row in (block.rows or []):
+                cells = "".join(f"<td>{inline(cell)}</td>" for cell in row)
+                rows += f"<tr>{cells}</tr>"
+            out.append(f"<table><thead><tr>{headers}</tr></thead><tbody>{rows}</tbody></table>")
         elif block.type == "heading":
             out.append(f"<h1>{html.escape(block.title or '')}</h1>")
         elif block.type == "section":

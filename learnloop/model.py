@@ -50,3 +50,5 @@ class Block:
     language: str | None = None
     content: str | None = None
     answer: str | None = None
+    headers: list[str] | None = None
+    rows: list[list[str]] | None = None

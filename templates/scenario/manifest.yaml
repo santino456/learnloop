@@ -2,7 +2,7 @@ name: scenario
 version: 1
 renderer: semantic-html-v1
 supports:
-  blocks: [paragraph, list, code, callout, heading, section, exercise, checkpoint]
+  blocks: [paragraph, list, code, callout, heading, section, exercise, checkpoint, table]
 requires:
   section_ids: true
   question_buttons: true

@@ -90,6 +90,29 @@ section > section { margin: 12px 0 12px 12px; }
 .card-body { padding: 0 20px 18px 52px; display: none; }
 .card.expanded .card-body { display: block; }
 
+/* Tables in reference cards */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 14px 0;
+  font-size: 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+th, td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+th {
+  background: #f6f8fa;
+  font-weight: 600;
+  color: var(--ink);
+}
+tr:last-child td { border-bottom: 0; }
+
 /* Code copy button */
 .copy-btn {
   position: absolute;

@@ -24,9 +24,9 @@
     <button class="card-toggle" type="button" aria-expanded="false"><span aria-hidden="true">▶</span> <span class="card-title">客户端与 Agent 的角色</span></button>
     <button class="ask-btn" data-ask-section="m2-roles" data-ask-title="客户端与 Agent 的角色">Ask here</button>
   </div>
-  <div class="card-summary">| 角色 | 职责 | |------|------| | 客户端（Client） | 持有用户界面，发送请求，提供上下文，代表 Agent 执行工具调用 | | Agent | 接收提示，决定策略，申请工具调用，返回结果 |</div>
+  
   <div class="card-body">
-<p>| 角色 | 职责 | |------|------| | 客户端（Client） | 持有用户界面，发送请求，提供上下文，代表 Agent 执行工具调用 | | Agent | 接收提示，决定策略，申请工具调用，返回结果 |</p>
+<table><thead><tr><th>角色</th><th>职责</th></tr></thead><tbody><tr><td>客户端（Client）</td><td>持有用户界面，发送请求，提供上下文，代表 Agent 执行工具调用</td></tr><tr><td>Agent</td><td>接收提示，决定策略，申请工具调用，返回结果</td></tr></tbody></table>
 <div class="callout">口诀：<strong>客户端离用户最近，Agent 离推理最近</strong>。</div>
   </div>
 </section>
@@ -39,7 +39,7 @@
   <div class="card-body">
 <p>请求与响应通过同一个 <code>id</code> 对应。</p>
 <pre><code class="language-json">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;initialize&quot;,&quot;params&quot;:{&quot;capabilities&quot;:{}}}</code></pre>
-<p>| 字段 | 含义 | |------|------| | <code>jsonrpc</code> | 协议版本标识 | | <code>id</code> | 请求与响应的对应键 | | <code>method</code> | 调用的方法名 | | <code>params</code> | 方法参数 |</p>
+<table><thead><tr><th>字段</th><th>含义</th></tr></thead><tbody><tr><td><code>jsonrpc</code></td><td>协议版本标识</td></tr><tr><td><code>id</code></td><td>请求与响应的对应键</td></tr><tr><td><code>method</code></td><td>调用的方法名</td></tr><tr><td><code>params</code></td><td>方法参数</td></tr></tbody></table>
 <div class="callout">教学示例字段名可能变化，运行前务必对照真实 Agent 文档。</div>
   </div>
 </section>

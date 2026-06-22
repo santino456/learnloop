@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>What ACP is and why it exists | LearnLoop</title>
-  <link rel="stylesheet" href="assets/learnloop.css">
+  <link rel="stylesheet" href="assets/editorial/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
@@ -15,31 +15,22 @@
     <h1>What ACP is and why it exists</h1>
     <p class="lede">ACP gives clients and coding agents a shared protocol so every tool does not need a custom adapter for every agent.</p>
   </header>
-  <h2 data-section-id="m1-problem" data-section-title="The integration problem">The integration problem <button class="ask-btn" data-ask-section="m1-problem" data-ask-title="The integration problem">Ask here</button></h2>
+  <section><h2 data-section-id="m1-problem" data-section-title="The integration problem">The integration problem <button class="ask-btn" data-ask-section="m1-problem" data-ask-title="The integration problem">Ask here</button></h2>
 <p>Imagine three editors and three coding agents. Without a shared protocol, every editor needs a custom adapter for every agent, and every agent vendor has to understand every editor&#x27;s private integration surface.</p>
-<p>That does not scale. The problem is not model intelligence. The problem is the interface between a client and an agent.</p>
-<h2 data-section-id="m1-solution" data-section-title="ACP&#x27;s answer">ACP&#x27;s answer <button class="ask-btn" data-ask-section="m1-solution" data-ask-title="ACP&#x27;s answer">Ask here</button></h2>
+<p>That does not scale. The problem is not model intelligence. The problem is the interface between a client and an agent.</p></section>
+<section><h2 data-section-id="m1-solution" data-section-title="ACP&#x27;s answer">ACP&#x27;s answer <button class="ask-btn" data-ask-section="m1-solution" data-ask-title="ACP&#x27;s answer">Ask here</button></h2>
 <p>ACP puts a standard contract between the client and the agent. The client can be an editor, terminal tool, or local app. The agent can be a process that receives requests, asks for tools, and returns results.</p>
-<div class="callout">Core idea: implement one ACP client or one ACP-compatible agent, then reuse that integration across tools that speak the same protocol.</div>
-<h2 data-section-id="m1-roles" data-section-title="Who benefits">Who benefits <button class="ask-btn" data-ask-section="m1-roles" data-ask-title="Who benefits">Ask here</button></h2>
-<ul>
-<li>Editor and IDE developers get one client-side integration path.</li>
-<li>Agent developers get one server-side protocol surface.</li>
-<li>Users get more choice because agents and clients are less tightly coupled.</li>
-</ul>
-<h2 data-section-id="m1-modes" data-section-title="Local and remote modes">Local and remote modes <button class="ask-btn" data-ask-section="m1-modes" data-ask-title="Local and remote modes">Ask here</button></h2>
+<div class="callout">Core idea: implement one ACP client or one ACP-compatible agent, then reuse that integration across tools that speak the same protocol.</div></section>
+<section><h2 data-section-id="m1-roles" data-section-title="Who benefits">Who benefits <button class="ask-btn" data-ask-section="m1-roles" data-ask-title="Who benefits">Ask here</button></h2>
+<ul><li>Editor and IDE developers get one client-side integration path.</li><li>Agent developers get one server-side protocol surface.</li><li>Users get more choice because agents and clients are less tightly coupled.</li></ul></section>
+<section><h2 data-section-id="m1-modes" data-section-title="Local and remote modes">Local and remote modes <button class="ask-btn" data-ask-section="m1-modes" data-ask-title="Local and remote modes">Ask here</button></h2>
 <p>The most concrete mode is a local agent process. A client starts the agent as a subprocess and exchanges line-delimited JSON messages over standard input and output.</p>
-<p>Remote modes use network transports. Treat details here as implementation-dependent unless verified against the current ACP documentation.</p>
-<h2 data-section-id="m1-not" data-section-title="What ACP is not">What ACP is not <button class="ask-btn" data-ask-section="m1-not" data-ask-title="What ACP is not">Ask here</button></h2>
+<p>Remote modes use network transports. Treat details here as implementation-dependent unless verified against the current ACP documentation.</p></section>
+<section><h2 data-section-id="m1-not" data-section-title="What ACP is not">What ACP is not <button class="ask-btn" data-ask-section="m1-not" data-ask-title="What ACP is not">Ask here</button></h2>
 <p>ACP is not a replacement for MCP. MCP is about tools and data sources available to an agent. ACP is about how a client drives an agent session.</p>
-<p>ACP is also not automatically the best choice for every chatbot. If your app sends one HTTP request and receives one answer, a normal API call may be enough.</p>
-<h2 data-section-id="m1-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m1-summary" data-ask-title="Module recap">Ask here</button></h2>
-<ul>
-<li>ACP standardizes client-to-agent communication.</li>
-<li>It reduces custom adapter work between clients and agents.</li>
-<li>It is strongest when the agent is local, tool-using, and session-oriented.</li>
-<li>It should be chosen because it simplifies integration, not because protocols are fashionable.</li>
-</ul>
+<p>ACP is also not automatically the best choice for every chatbot. If your app sends one HTTP request and receives one answer, a normal API call may be enough.</p></section>
+<section><h2 data-section-id="m1-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m1-summary" data-ask-title="Module recap">Ask here</button></h2>
+<ul><li>ACP standardizes client-to-agent communication.</li><li>It reduces custom adapter work between clients and agents.</li><li>It is strongest when the agent is local, tool-using, and session-oriented.</li><li>It should be chosen because it simplifies integration, not because protocols are fashionable.</li></ul></section>
   <footer class="next-prev"><span></span><a href="m2.html">Next</a></footer>
 </article>
 <template id="ask-template">
@@ -59,6 +50,6 @@
   <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
 </aside></main>
   <script src="/config.js"></script>
-  <script src="assets/learnloop.js"></script>
+  <script src="assets/editorial/runtime.js"></script>
 </body>
 </html>

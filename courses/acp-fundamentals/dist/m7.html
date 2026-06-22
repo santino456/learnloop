@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bridge ACP to the browser | LearnLoop</title>
-  <link rel="stylesheet" href="assets/learnloop.css">
+  <link rel="stylesheet" href="assets/workshop/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
@@ -15,35 +15,24 @@
     <h1>Bridge ACP to the browser</h1>
     <p class="lede">Browsers cannot start local subprocesses, so a local bridge owns the ACP process.</p>
   </header>
-  <h2 data-section-id="m7-why" data-section-title="Why a browser needs a bridge">Why a browser needs a bridge <button class="ask-btn" data-ask-section="m7-why" data-ask-title="Why a browser needs a bridge">Ask here</button></h2>
+  <section><h2 data-section-id="m7-why" data-section-title="Why a browser needs a bridge">Why a browser needs a bridge <button class="ask-btn" data-ask-section="m7-why" data-ask-title="Why a browser needs a bridge">Ask here</button></h2>
 <p>A browser page cannot safely spawn a local agent process. It also cannot directly manage stdin and stdout pipes.</p>
-<p>The usual shape is a local bridge: browser talks to bridge over HTTP or SSE; bridge talks to the ACP agent over stdio.</p>
-<h2 data-section-id="m7-architecture" data-section-title="Bridge architecture">Bridge architecture <button class="ask-btn" data-ask-section="m7-architecture" data-ask-title="Bridge architecture">Ask here</button></h2>
+<p>The usual shape is a local bridge: browser talks to bridge over HTTP or SSE; bridge talks to the ACP agent over stdio.</p></section>
+<section><h2 data-section-id="m7-architecture" data-section-title="Bridge architecture">Bridge architecture <button class="ask-btn" data-ask-section="m7-architecture" data-ask-title="Bridge architecture">Ask here</button></h2>
 <pre><code class="language-text">Browser UI
   | HTTP or SSE
 Local Bridge
   | JSON lines over stdio
 ACP Agent</code></pre>
-<p>The bridge owns process lifetime, request ids, tool policy, and stream conversion.</p>
-<h2 data-section-id="m7-http" data-section-title="Minimal HTTP responsibilities">Minimal HTTP responsibilities <button class="ask-btn" data-ask-section="m7-http" data-ask-title="Minimal HTTP responsibilities">Ask here</button></h2>
+<p>The bridge owns process lifetime, request ids, tool policy, and stream conversion.</p></section>
+<section><h2 data-section-id="m7-http" data-section-title="Minimal HTTP responsibilities">Minimal HTTP responsibilities <button class="ask-btn" data-ask-section="m7-http" data-ask-title="Minimal HTTP responsibilities">Ask here</button></h2>
 <p>A small bridge needs only a few responsibilities at first:</p>
-<ul>
-<li>Accept a user message from the browser.</li>
-<li>Convert it into an ACP request.</li>
-<li>Read agent responses.</li>
-<li>Stream or return the answer.</li>
-<li>Store logs and errors in a debuggable place.</li>
-</ul>
-<h2 data-section-id="m7-sse" data-section-title="HTTP, SSE, or WebSocket">HTTP, SSE, or WebSocket <button class="ask-btn" data-ask-section="m7-sse" data-ask-title="HTTP, SSE, or WebSocket">Ask here</button></h2>
+<ul><li>Accept a user message from the browser.</li><li>Convert it into an ACP request.</li><li>Read agent responses.</li><li>Stream or return the answer.</li><li>Store logs and errors in a debuggable place.</li></ul></section>
+<section><h2 data-section-id="m7-sse" data-section-title="HTTP, SSE, or WebSocket">HTTP, SSE, or WebSocket <button class="ask-btn" data-ask-section="m7-sse" data-ask-title="HTTP, SSE, or WebSocket">Ask here</button></h2>
 <p>Use plain HTTP for request-response interactions. Use SSE when the main need is streaming text from the agent to the browser. Use WebSocket when both sides need frequent bidirectional messages.</p>
-<p>Start with the simplest transport that preserves the learning loop.</p>
-<h2 data-section-id="m7-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m7-summary" data-ask-title="Module recap">Ask here</button></h2>
-<ul>
-<li>Browsers need a bridge for local ACP agents.</li>
-<li>The bridge is responsible for process and protocol hygiene.</li>
-<li>SSE is often enough for streaming answers.</li>
-<li>Do not build a full platform before the local loop proves useful.</li>
-</ul>
+<p>Start with the simplest transport that preserves the learning loop.</p></section>
+<section><h2 data-section-id="m7-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m7-summary" data-ask-title="Module recap">Ask here</button></h2>
+<ul><li>Browsers need a bridge for local ACP agents.</li><li>The bridge is responsible for process and protocol hygiene.</li><li>SSE is often enough for streaming answers.</li><li>Do not build a full platform before the local loop proves useful.</li></ul></section>
   <footer class="next-prev"><a href="m6.html">Previous</a><a href="m8.html">Next</a></footer>
 </article>
 <template id="ask-template">
@@ -63,6 +52,6 @@ ACP Agent</code></pre>
   <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
 </aside></main>
   <script src="/config.js"></script>
-  <script src="assets/learnloop.js"></script>
+  <script src="assets/workshop/runtime.js"></script>
 </body>
 </html>

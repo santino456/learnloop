@@ -1,0 +1,51 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+
+class LearnLoopError(Exception):
+    pass
+
+
+@dataclass
+class CourseDoc:
+    root: Path
+    id: str
+    title: str
+    subtitle: str
+    audience: str
+    default_port: int
+    template: str | None
+    modules: list[ModuleDoc]
+
+
+@dataclass
+class ModuleDoc:
+    id: str
+    title: str
+    file: str
+    summary: str = ""
+    template: str | None = None
+
+
+@dataclass
+class Section:
+    id: str
+    title: str
+    blocks: list[Block]
+
+
+@dataclass
+class Block:
+    type: str
+    level: int | None = None
+    id: str | None = None
+    title: str | None = None
+    blocks: list[Block] | None = None
+    text: str | None = None
+    ordered: bool | None = None
+    items: list[str] | None = None
+    language: str | None = None
+    content: str | None = None

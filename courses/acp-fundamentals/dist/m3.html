@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Initialize and capabilities | LearnLoop</title>
-  <link rel="stylesheet" href="assets/learnloop.css">
+  <link rel="stylesheet" href="assets/editorial/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
@@ -15,7 +15,7 @@
     <h1>Initialize and capabilities</h1>
     <p class="lede">The first exchange establishes what both sides can do.</p>
   </header>
-  <h2 data-section-id="m3-handshake" data-section-title="Initialize handshake">Initialize handshake <button class="ask-btn" data-ask-section="m3-handshake" data-ask-title="Initialize handshake">Ask here</button></h2>
+  <section><h2 data-section-id="m3-handshake" data-section-title="Initialize handshake">Initialize handshake <button class="ask-btn" data-ask-section="m3-handshake" data-ask-title="Initialize handshake">Ask here</button></h2>
 <p>The initialize request is the first structured conversation between client and agent. Its job is to establish protocol compatibility and advertise capabilities.</p>
 <pre><code class="language-json">{
   &quot;jsonrpc&quot;: &quot;2.0&quot;,
@@ -26,18 +26,14 @@
     &quot;clientInfo&quot;: {&quot;name&quot;: &quot;minimal-client&quot;, &quot;version&quot;: &quot;0.1.0&quot;}
   }
 }</code></pre>
-<div class="callout">Verification note: concrete field names and protocol versions can change. Check the current ACP implementation or CLI help before publishing runnable examples.</div>
-<h2 data-section-id="m3-capabilities" data-section-title="Capability negotiation">Capability negotiation <button class="ask-btn" data-ask-section="m3-capabilities" data-ask-title="Capability negotiation">Ask here</button></h2>
+<div class="callout">Verification note: concrete field names and protocol versions can change. Check the current ACP implementation or CLI help before publishing runnable examples.</div></section>
+<section><h2 data-section-id="m3-capabilities" data-section-title="Capability negotiation">Capability negotiation <button class="ask-btn" data-ask-section="m3-capabilities" data-ask-title="Capability negotiation">Ask here</button></h2>
 <p>Capabilities prevent the client and agent from guessing. A client can say what resources, tools, or interaction modes it supports. An agent can say what it can handle.</p>
-<p>The important habit is not memorizing a specific capability matrix. The important habit is checking both sides before using an optional feature.</p>
-<h2 data-section-id="m3-failure" data-section-title="Failed negotiation">Failed negotiation <button class="ask-btn" data-ask-section="m3-failure" data-ask-title="Failed negotiation">Ask here</button></h2>
-<p>If the handshake fails, do not continue as if the session is valid. Surface a clear error that says which required capability or protocol version did not match.</p>
-<h2 data-section-id="m3-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="Module recap">Ask here</button></h2>
-<ul>
-<li>Initialize creates the first reliable contract between client and agent.</li>
-<li>Capability checks keep optional features honest.</li>
-<li>Exact protocol fields must be verified against the implementation in use.</li>
-</ul>
+<p>The important habit is not memorizing a specific capability matrix. The important habit is checking both sides before using an optional feature.</p></section>
+<section><h2 data-section-id="m3-failure" data-section-title="Failed negotiation">Failed negotiation <button class="ask-btn" data-ask-section="m3-failure" data-ask-title="Failed negotiation">Ask here</button></h2>
+<p>If the handshake fails, do not continue as if the session is valid. Surface a clear error that says which required capability or protocol version did not match.</p></section>
+<section><h2 data-section-id="m3-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="Module recap">Ask here</button></h2>
+<ul><li>Initialize creates the first reliable contract between client and agent.</li><li>Capability checks keep optional features honest.</li><li>Exact protocol fields must be verified against the implementation in use.</li></ul></section>
   <footer class="next-prev"><a href="m2.html">Previous</a><a href="m4.html">Next</a></footer>
 </article>
 <template id="ask-template">
@@ -57,6 +53,6 @@
   <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
 </aside></main>
   <script src="/config.js"></script>
-  <script src="assets/learnloop.js"></script>
+  <script src="assets/editorial/runtime.js"></script>
 </body>
 </html>

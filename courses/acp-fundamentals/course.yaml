@@ -3,6 +3,7 @@ title: "ACP Fundamentals"
 subtitle: "Learn Agent Client Protocol through small concepts, local questions, and agent-ready learning context."
 audience: "Developers evaluating agent protocols for local tools and editors."
 default_port: 8787
+template: editorial
 modules:
   - id: m1
     title: "What ACP is and why it exists"

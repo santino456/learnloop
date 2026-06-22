@@ -20,6 +20,7 @@ title: "ACP Fundamentals"
 subtitle: "Short course promise."
 audience: "Target learner."
 default_port: 8787
+template: editorial
 modules:
   - id: m1
     title: "What ACP is"
@@ -27,7 +28,8 @@ modules:
     summary: "One-sentence module summary."
 ```
 
-Keep module ids short and stable. The current convention is `m1`, `m2`, etc.
+- `template` sets the default rendering template for the course. It can be overridden per module in module frontmatter.
+- Keep module ids short and stable. The current convention is `m1`, `m2`, etc.
 
 ## Module Markdown
 
@@ -38,8 +40,11 @@ Each module starts with frontmatter:
 id: m1
 title: "What ACP is"
 summary: "One-sentence summary."
+template: workshop
 ---
 ```
+
+- `template` in module frontmatter overrides the course-level template for that module only.
 
 Questionable sections use this heading syntax:
 
@@ -48,6 +53,54 @@ Questionable sections use this heading syntax:
 ```
 
 Section ids must be unique across the course. Do not rename them after learners have submitted questions unless you also migrate `questions.jsonl`.
+
+### Container Syntax
+
+Use `::: exercise` and `::: checkpoint` containers for practice and self-check blocks. Containers can contain paragraphs, lists, code blocks, and callouts:
+
+```markdown
+::: exercise
+Write a minimal bridge responsibility list.
+
+- List item inside the exercise.
+:::
+
+::: checkpoint
+Explain why a browser cannot spawn a local subprocess.
+:::
+```
+
+## Templates
+
+Templates live in `templates/<name>/` and contain:
+
+- `manifest.yaml`: template metadata and supported block types.
+- `template.html`: page shell with placeholders `{{ page_title }}`, `{{ course_title }}`, `{{ content }}`, `{{ css_href }}`, `{{ js_src }}`.
+- `style.css`: template styles.
+- `runtime.js`: question button and drawer logic.
+
+Example `manifest.yaml`:
+
+```yaml
+name: editorial
+version: 1
+renderer: semantic-html-v1
+supports:
+  blocks:
+    - paragraph
+    - list
+    - code
+    - callout
+    - section
+    - exercise
+    - checkpoint
+requires:
+  section_ids: true
+  question_buttons: true
+assets:
+  css: style.css
+  js: runtime.js
+```
 
 ## Generated Output
 

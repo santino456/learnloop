@@ -40,6 +40,10 @@ a { color: var(--accent-strong); }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #e8dfcf; padding: 2px 5px; border-radius: 3px; }
 pre { background: var(--code); color: #f7f1e8; padding: 20px; overflow-x: auto; border-radius: 4px; }
 pre code { background: transparent; padding: 0; }
+section { margin: 28px 0; }
+.exercise, .checkpoint { background: var(--panel); border: 1px solid var(--line); padding: 22px 26px; margin: 28px 0; border-radius: 4px; }
+.exercise { border-left: 5px solid var(--accent-strong); }
+.checkpoint { border-left: 5px solid var(--accent); }
 .ask-btn { border: 1px solid #b6d2c9; background: transparent; color: var(--accent); border-radius: 4px; padding: 4px 9px; font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; cursor: pointer; }
 .ask-btn:hover { background: var(--accent); color: white; }
 .ask-form { background: var(--panel); border: 1px solid var(--line); padding: 16px; margin: 12px 0 24px; }

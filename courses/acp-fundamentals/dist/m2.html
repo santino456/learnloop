@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Communication model | LearnLoop</title>
-  <link rel="stylesheet" href="assets/learnloop.css">
+  <link rel="stylesheet" href="assets/editorial/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
@@ -15,35 +15,21 @@
     <h1>Communication model</h1>
     <p class="lede">ACP messages are structured requests and responses between a client and an agent.</p>
   </header>
-  <h2 data-section-id="m2-roles" data-section-title="Client and agent roles">Client and agent roles <button class="ask-btn" data-ask-section="m2-roles" data-ask-title="Client and agent roles">Ask here</button></h2>
+  <section><h2 data-section-id="m2-roles" data-section-title="Client and agent roles">Client and agent roles <button class="ask-btn" data-ask-section="m2-roles" data-ask-title="Client and agent roles">Ask here</button></h2>
 <p>In ACP, the client owns the user-facing surface. It sends requests, provides context, and may execute tools on behalf of the agent.</p>
-<p>The agent owns reasoning and task execution strategy. It receives prompts, may ask for tool calls, and returns responses.</p>
-<h2 data-section-id="m2-jsonrpc" data-section-title="JSON-RPC shape">JSON-RPC shape <button class="ask-btn" data-ask-section="m2-jsonrpc" data-ask-title="JSON-RPC shape">Ask here</button></h2>
+<p>The agent owns reasoning and task execution strategy. It receives prompts, may ask for tool calls, and returns responses.</p></section>
+<section><h2 data-section-id="m2-jsonrpc" data-section-title="JSON-RPC shape">JSON-RPC shape <button class="ask-btn" data-ask-section="m2-jsonrpc" data-ask-title="JSON-RPC shape">Ask here</button></h2>
 <p>Many ACP examples use JSON-RPC-like messages: each request has an <code>id</code>, a <code>method</code>, and optional <code>params</code>; each response links back to the request id.</p>
 <pre><code class="language-json">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;initialize&quot;,&quot;params&quot;:{&quot;capabilities&quot;:{}}}</code></pre>
-<p>When teaching or implementing from an example, verify the exact fields against the agent you are running.</p>
-<h2 data-section-id="m2-stdio" data-section-title="Local transport">Local transport <button class="ask-btn" data-ask-section="m2-stdio" data-ask-title="Local transport">Ask here</button></h2>
+<p>When teaching or implementing from an example, verify the exact fields against the agent you are running.</p></section>
+<section><h2 data-section-id="m2-stdio" data-section-title="Local transport">Local transport <button class="ask-btn" data-ask-section="m2-stdio" data-ask-title="Local transport">Ask here</button></h2>
 <p>The local pattern is line-delimited JSON over standard input and output.</p>
-<ul>
-<li>The client writes one JSON object plus a newline to the agent&#x27;s stdin.</li>
-<li>The agent writes one JSON object plus a newline to stdout.</li>
-<li>Logs should go to stderr so stdout stays parseable.</li>
-</ul>
-<h2 data-section-id="m2-lifecycle" data-section-title="Conversation lifecycle">Conversation lifecycle <button class="ask-btn" data-ask-section="m2-lifecycle" data-ask-title="Conversation lifecycle">Ask here</button></h2>
+<ul><li>The client writes one JSON object plus a newline to the agent&#x27;s stdin.</li><li>The agent writes one JSON object plus a newline to stdout.</li><li>Logs should go to stderr so stdout stays parseable.</li></ul></section>
+<section><h2 data-section-id="m2-lifecycle" data-section-title="Conversation lifecycle">Conversation lifecycle <button class="ask-btn" data-ask-section="m2-lifecycle" data-ask-title="Conversation lifecycle">Ask here</button></h2>
 <p>A minimal session usually follows this mental model:</p>
-<ol>
-<li>Start the agent process.</li>
-<li>Send an initialize request.</li>
-<li>Send a prompt or task request.</li>
-<li>Handle response messages and possible tool calls.</li>
-<li>Close the process when the session is done.</li>
-</ol>
-<h2 data-section-id="m2-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="Module recap">Ask here</button></h2>
-<ul>
-<li>ACP separates user-facing client responsibilities from agent responsibilities.</li>
-<li>Local ACP depends on clean stdout and explicit flushing.</li>
-<li>Treat examples as protocol sketches until they are tested against the exact agent version.</li>
-</ul>
+<ol><li>Start the agent process.</li><li>Send an initialize request.</li><li>Send a prompt or task request.</li><li>Handle response messages and possible tool calls.</li><li>Close the process when the session is done.</li></ol></section>
+<section><h2 data-section-id="m2-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="Module recap">Ask here</button></h2>
+<ul><li>ACP separates user-facing client responsibilities from agent responsibilities.</li><li>Local ACP depends on clean stdout and explicit flushing.</li><li>Treat examples as protocol sketches until they are tested against the exact agent version.</li></ul></section>
   <footer class="next-prev"><a href="m1.html">Previous</a><a href="m3.html">Next</a></footer>
 </article>
 <template id="ask-template">
@@ -63,6 +49,6 @@
   <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
 </aside></main>
   <script src="/config.js"></script>
-  <script src="assets/learnloop.js"></script>
+  <script src="assets/editorial/runtime.js"></script>
 </body>
 </html>

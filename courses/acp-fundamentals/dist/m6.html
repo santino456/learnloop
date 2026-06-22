@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Build a minimal ACP client | LearnLoop</title>
-  <link rel="stylesheet" href="assets/learnloop.css">
+  <link rel="stylesheet" href="assets/editorial/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
@@ -15,10 +15,10 @@
     <h1>Build a minimal ACP client</h1>
     <p class="lede">A minimal local client is mostly subprocess management plus disciplined JSON lines.</p>
   </header>
-  <h2 data-section-id="m6-goal" data-section-title="Goal and setup">Goal and setup <button class="ask-btn" data-ask-section="m6-goal" data-ask-title="Goal and setup">Ask here</button></h2>
+  <section><h2 data-section-id="m6-goal" data-section-title="Goal and setup">Goal and setup <button class="ask-btn" data-ask-section="m6-goal" data-ask-title="Goal and setup">Ask here</button></h2>
 <p>The smallest local client starts an agent process, sends an initialize request, sends a prompt, and reads responses.</p>
-<p>This module uses pseudocode-style examples. Verify exact method names, fields, and protocol versions against your current agent implementation before running them.</p>
-<h2 data-section-id="m6-process" data-section-title="Start the subprocess">Start the subprocess <button class="ask-btn" data-ask-section="m6-process" data-ask-title="Start the subprocess">Ask here</button></h2>
+<p>This module uses pseudocode-style examples. Verify exact method names, fields, and protocol versions against your current agent implementation before running them.</p></section>
+<section><h2 data-section-id="m6-process" data-section-title="Start the subprocess">Start the subprocess <button class="ask-btn" data-ask-section="m6-process" data-ask-title="Start the subprocess">Ask here</button></h2>
 <pre><code class="language-python">import json
 import subprocess
 
@@ -30,8 +30,8 @@ proc = subprocess.Popen(
     text=True,
     bufsize=1,
 )</code></pre>
-<p>The command uses <code>example-agent</code> instead of a real private setup. Replace it with the agent you are testing.</p>
-<h2 data-section-id="m6-send-receive" data-section-title="Send and receive JSON lines">Send and receive JSON lines <button class="ask-btn" data-ask-section="m6-send-receive" data-ask-title="Send and receive JSON lines">Ask here</button></h2>
+<p>The command uses <code>example-agent</code> instead of a real private setup. Replace it with the agent you are testing.</p></section>
+<section><h2 data-section-id="m6-send-receive" data-section-title="Send and receive JSON lines">Send and receive JSON lines <button class="ask-btn" data-ask-section="m6-send-receive" data-ask-title="Send and receive JSON lines">Ask here</button></h2>
 <pre><code class="language-python">def send(message):
     proc.stdin.write(json.dumps(message) + &quot;\n&quot;)
     proc.stdin.flush()
@@ -41,8 +41,8 @@ def receive():
     if not line:
         raise RuntimeError(&quot;agent closed stdout&quot;)
     return json.loads(line)</code></pre>
-<p>The newline and flush are not cosmetic. Without them the agent may wait forever.</p>
-<h2 data-section-id="m6-prompt" data-section-title="Send a prompt">Send a prompt <button class="ask-btn" data-ask-section="m6-prompt" data-ask-title="Send a prompt">Ask here</button></h2>
+<p>The newline and flush are not cosmetic. Without them the agent may wait forever.</p></section>
+<section><h2 data-section-id="m6-prompt" data-section-title="Send a prompt">Send a prompt <button class="ask-btn" data-ask-section="m6-prompt" data-ask-title="Send a prompt">Ask here</button></h2>
 <pre><code class="language-python">send({
     &quot;jsonrpc&quot;: &quot;2.0&quot;,
     &quot;id&quot;: 2,
@@ -54,20 +54,11 @@ def receive():
     }
 })
 print(receive())</code></pre>
-<div class="callout">Verification note: this is a teaching skeleton. Run the real agent&#x27;s help command or documentation check before treating it as executable code.</div>
-<h2 data-section-id="m6-buffering" data-section-title="Buffering rules">Buffering rules <button class="ask-btn" data-ask-section="m6-buffering" data-ask-title="Buffering rules">Ask here</button></h2>
-<ul>
-<li>Use text mode if the protocol sends text JSON.</li>
-<li>Write one complete JSON object per line.</li>
-<li>Flush after each request.</li>
-<li>Keep stdout clean and send logs to stderr.</li>
-</ul>
-<h2 data-section-id="m6-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="Module recap">Ask here</button></h2>
-<ul>
-<li>A minimal local client uses subprocess pipes.</li>
-<li>Line-delimited JSON requires strict newline and flush behavior.</li>
-<li>Runnable examples must be verified against a real agent version.</li>
-</ul>
+<div class="callout">Verification note: this is a teaching skeleton. Run the real agent&#x27;s help command or documentation check before treating it as executable code.</div></section>
+<section><h2 data-section-id="m6-buffering" data-section-title="Buffering rules">Buffering rules <button class="ask-btn" data-ask-section="m6-buffering" data-ask-title="Buffering rules">Ask here</button></h2>
+<ul><li>Use text mode if the protocol sends text JSON.</li><li>Write one complete JSON object per line.</li><li>Flush after each request.</li><li>Keep stdout clean and send logs to stderr.</li></ul></section>
+<section><h2 data-section-id="m6-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="Module recap">Ask here</button></h2>
+<ul><li>A minimal local client uses subprocess pipes.</li><li>Line-delimited JSON requires strict newline and flush behavior.</li><li>Runnable examples must be verified against a real agent version.</li></ul></section>
   <footer class="next-prev"><a href="m5.html">Previous</a><a href="m7.html">Next</a></footer>
 </article>
 <template id="ask-template">
@@ -87,6 +78,6 @@ print(receive())</code></pre>
   <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
 </aside></main>
   <script src="/config.js"></script>
-  <script src="assets/learnloop.js"></script>
+  <script src="assets/editorial/runtime.js"></script>
 </body>
 </html>

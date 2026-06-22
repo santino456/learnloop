@@ -10,7 +10,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -546,7 +546,7 @@ def serve_course(course_dir: Path, port: int | None = None) -> None:
         def log_message(self, fmt: str, *args: Any) -> None:
             print(f"[{time.strftime('%H:%M:%S')}] {fmt % args}")
 
-    server = HTTPServer(("localhost", selected_port), Handler)
+    server = ThreadingHTTPServer(("localhost", selected_port), Handler)
     print(f"LearnLoop serving {course.title}")
     print(f"URL: http://localhost:{selected_port}/")
     print(f"Questions: {questions_file}")

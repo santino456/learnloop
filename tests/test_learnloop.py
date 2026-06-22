@@ -102,20 +102,20 @@ class LearnLoopTests(unittest.TestCase):
                 except subprocess.TimeoutExpired:
                     proc.kill()
 
-    def test_course_level_template_selection_uses_editorial_assets(self) -> None:
+    def test_course_level_template_selection_uses_tutorial_assets(self) -> None:
         dist = build_course(SAMPLE)
         index = (dist / "index.html").read_text(encoding="utf-8")
         m1 = (dist / "m1.html").read_text(encoding="utf-8")
-        self.assertIn("assets/editorial/style.css", index)
-        self.assertIn("assets/editorial/runtime.js", index)
-        self.assertIn("assets/editorial/style.css", m1)
-        self.assertIn("assets/editorial/runtime.js", m1)
+        self.assertIn("assets/tutorial/style.css", index)
+        self.assertIn("assets/tutorial/runtime.js", index)
+        self.assertIn("assets/tutorial/style.css", m1)
+        self.assertIn("assets/tutorial/runtime.js", m1)
 
-    def test_module_level_template_override_uses_workshop_assets(self) -> None:
+    def test_module_level_template_override_uses_practice_assets(self) -> None:
         dist = build_course(SAMPLE)
         m3 = (dist / "m3.html").read_text(encoding="utf-8")
-        self.assertIn("assets/workshop/style.css", m3)
-        self.assertIn("assets/workshop/runtime.js", m3)
+        self.assertIn("assets/practice/style.css", m3)
+        self.assertIn("assets/practice/runtime.js", m3)
 
     def test_missing_template_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -123,7 +123,7 @@ class LearnLoopTests(unittest.TestCase):
             course_yaml = created / "course.yaml"
             course_yaml.write_text(
                 course_yaml.read_text(encoding="utf-8").replace(
-                    "template: editorial", "template: does-not-exist"
+                    "template: tutorial", "template: does-not-exist"
                 ),
                 encoding="utf-8",
             )
@@ -150,7 +150,7 @@ class LearnLoopTests(unittest.TestCase):
             course_yaml = created / "course.yaml"
             course_yaml.write_text(
                 course_yaml.read_text(encoding="utf-8").replace(
-                    "template: editorial", "template: workshop"
+                    "template: tutorial", "template: practice"
                 ),
                 encoding="utf-8",
             )
@@ -179,7 +179,7 @@ class LearnLoopTests(unittest.TestCase):
     def test_validate_template_support_reports_unsupported_blocks(self) -> None:
         from learnloop.templates import load_template
 
-        template = load_template("editorial")
+        template = load_template("tutorial")
         errors = validate_template_support(template, {"paragraph", "unsupported-magic"})
         self.assertEqual(len(errors), 1)
         self.assertIn("unsupported-magic", errors[0])
@@ -234,7 +234,7 @@ class LearnLoopTests(unittest.TestCase):
             course_yaml = created / "course.yaml"
             course_yaml.write_text(
                 course_yaml.read_text(encoding="utf-8").replace(
-                    "template: editorial", "template: workshop"
+                    "template: tutorial", "template: practice"
                 ),
                 encoding="utf-8",
             )
@@ -257,10 +257,10 @@ class LearnLoopTests(unittest.TestCase):
             self.assertTrue((dist / f"assets/{template.name}/style.css").exists())
             self.assertTrue((dist / f"assets/{template.name}/runtime.js").exists())
         # Confirm each module was generated with the expected template assets.
-        self.assertIn("assets/editorial/style.css", (dist / "m1.html").read_text(encoding="utf-8"))
+        self.assertIn("assets/tutorial/style.css", (dist / "m1.html").read_text(encoding="utf-8"))
         self.assertIn("assets/reference/style.css", (dist / "m2.html").read_text(encoding="utf-8"))
-        self.assertIn("assets/workshop/style.css", (dist / "m3.html").read_text(encoding="utf-8"))
-        self.assertIn("assets/scenario/style.css", (dist / "m5.html").read_text(encoding="utf-8"))
+        self.assertIn("assets/practice/style.css", (dist / "m3.html").read_text(encoding="utf-8"))
+        self.assertIn("assets/case/style.css", (dist / "m5.html").read_text(encoding="utf-8"))
 
 
 def wait_for(url: str) -> None:

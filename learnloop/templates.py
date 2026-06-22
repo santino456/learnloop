@@ -70,9 +70,9 @@ def select_template(
         name = course.template
 
     if not name:
-        # Default to editorial if available, otherwise the first installed template.
-        if (root / "editorial").exists():
-            name = "editorial"
+        # Default to tutorial if available, otherwise the first installed template.
+        if (root / "tutorial").exists():
+            name = "tutorial"
         elif root.exists():
             dirs = [p for p in root.iterdir() if p.is_dir()]
             if dirs:

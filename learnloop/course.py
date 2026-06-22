@@ -70,7 +70,7 @@ title: "New LearnLoop Course"
 subtitle: "A local-first adaptive learning course."
 audience: "Learners who want structured feedback."
 default_port: 8787
-template: editorial
+template: tutorial
 modules:
   - id: m1
     title: "Start Here"

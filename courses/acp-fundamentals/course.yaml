@@ -3,7 +3,7 @@ title: "ACP 基础"
 subtitle: "通过小概念、本地提问和 Agent 就绪的学习上下文，理解 Agent Client Protocol。"
 audience: "正在为本地工具或编辑器评估 Agent 协议的开发者。"
 default_port: 8787
-template: editorial
+template: tutorial
 modules:
   - id: m1
     title: "ACP 是什么，为什么需要它"

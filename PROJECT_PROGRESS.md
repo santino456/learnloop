@@ -2,7 +2,7 @@
 
 ## Current status
 
-Frontend redesign and stabilization completed after user feedback. All four templates (`tutorial`, `reference`, `practice`, `case`) now share a unified warm-paper theme, use clean system fonts for Chinese, and have consistent template labels. Question drawer groups questions by section and filters to the current module.
+UI refinements are being driven by screenshot feedback. The course homepage and module pages now share a single, consistent type scale and spacing system across all four templates (`tutorial`, `reference`, `practice`, `case`).
 
 ## Completed work
 
@@ -11,9 +11,19 @@ Frontend redesign and stabilization completed after user feedback. All four temp
   - Removed Google Fonts; switched to system fonts optimized for Chinese (`PingFang SC`, `Microsoft YaHei`, `Noto Serif SC` fallback for headings).
   - All 4 templates now load `assets/base.css` plus a small template-specific override.
 
-- **Template labels**
-  - Each page shows a consistent label: 教程 Tutorial / 参考 Reference / 练习 Practice / 案例 Case.
+- **Template / scenario labels**
+  - Each page shows a consistent English label in the top nav: `TUTORIAL` / `REFERENCE` / `PRACTICE` / `CASE`.
+  - The module roadmap on the index page also shows the same scenario label per card.
   - Removed the reference-only sticky header; all templates use the same label component.
+
+- **Compact homepage**
+  - Removed the large usage-instruction callout from the index page.
+  - Tightened hero spacing and reduced the title and subtitle sizes.
+  - Module cards are smaller and denser.
+
+- **Unified typography across templates**
+  - Removed per-template overrides for `h1`, headings, `.lede`, body text, page width, and header spacing.
+  - Rebalanced the shared type scale: body 17px/1.7, `h1` max 42px, `h2` max 26px, `.lede` 17px.
 
 - **Question drawer rewrite**
   - Drawer now shows only questions from the current module.
@@ -37,7 +47,7 @@ Frontend redesign and stabilization completed after user feedback. All four temp
 
 - **Content**
   - `modules/02.md` remains the dense reference module.
-  - Index intro and all hardcoded UI strings translated to Chinese.
+  - Index and all hardcoded UI strings translated to Chinese.
 
 ## Verification
 
@@ -51,6 +61,6 @@ python3 /Users/hqyone/.codex/skills/.system/skill-creator/scripts/quick_validate
 
 ## Known issues / next steps
 
-- Visual review by user is needed; screenshot feedback welcome.
+- Visual review by user is ongoing; screenshot feedback welcome.
 - Consider adding a dark-mode theme later.
 - Sidebar file-management / multi-course switch is a future feature, not implemented.

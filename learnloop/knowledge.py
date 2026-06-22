@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any
 
 from .model import Block
+from .parser import parse_module, read_course
+from .templates import select_template
 
 
 CLAIM_STATUSES = {
@@ -27,6 +29,53 @@ def validate_knowledge_state(course_dir: Path) -> list[str]:
     return errors
 
 
+def audit_generation_readiness(course_dir: Path) -> list[str]:
+    """Check whether an agent-generated course has enough process evidence.
+
+    This is intentionally lightweight. It catches the common failure mode where
+    an agent jumps straight to a long module draft without source inventory,
+    architecture decisions, or evidence packs.
+    """
+    course_dir = course_dir.resolve()
+    workspace = course_dir / ".learnloop"
+    errors: list[str] = []
+
+    if not workspace.exists():
+        return ["missing .learnloop workspace for generated course"]
+
+    source_inventory = workspace / "source_inventory.yaml"
+    if not source_inventory.exists():
+        errors.append("missing .learnloop/source_inventory.yaml")
+    elif "- id:" not in source_inventory.read_text(encoding="utf-8"):
+        errors.append("source_inventory.yaml must list at least one source with an id")
+
+    architecture = workspace / "course_architecture.md"
+    if not architecture.exists():
+        errors.append("missing .learnloop/course_architecture.md")
+    else:
+        text = architecture.read_text(encoding="utf-8").lower()
+        for phrase in ("learner goal", "content form decisions", "module plan"):
+            if phrase not in text:
+                errors.append(f"course_architecture.md missing section: {phrase}")
+
+    chapter_briefs = workspace / "chapter_briefs"
+    if not any(chapter_briefs.glob("*.md")):
+        errors.append("missing chapter brief in .learnloop/chapter_briefs/")
+
+    evidence_packs = workspace / "evidence_packs"
+    packs = list(evidence_packs.glob("*.md"))
+    if not packs:
+        errors.append("missing evidence pack in .learnloop/evidence_packs/")
+    for pack in packs:
+        text = pack.read_text(encoding="utf-8").lower()
+        if "## sources" not in text or "## evidence" not in text:
+            errors.append(f"{pack.relative_to(course_dir)} must include Sources and Evidence sections")
+
+    errors.extend(validate_knowledge_state(course_dir))
+    errors.extend(_audit_reference_modules(course_dir))
+    return errors
+
+
 def validate_perspective_basis(blocks: list[Block], module_file: str) -> list[str]:
     errors: list[str] = []
     for block in _walk_blocks(blocks):
@@ -40,6 +89,33 @@ def validate_perspective_basis(blocks: list[Block], module_file: str) -> list[st
                 errors.append(
                     f"{module_file}: perspective exercise must include basis or needs-human-review"
                 )
+    return errors
+
+
+def _audit_reference_modules(course_dir: Path) -> list[str]:
+    try:
+        course = read_course(course_dir)
+    except Exception:
+        return []
+
+    errors: list[str] = []
+    for module in course.modules:
+        path = course.root / module.file
+        if not path.exists():
+            continue
+        try:
+            frontmatter, _ = parse_module(path)
+            module.template = frontmatter.get("template") or module.template
+            template = select_template(course_dir, course, module)
+        except Exception:
+            continue
+        if template.name != "reference":
+            continue
+        text = path.read_text(encoding="utf-8")
+        if "|" not in text:
+            errors.append(f"{module.file}: reference module should use tables or dense lookup structure")
+        if len(text.splitlines()) < 60:
+            errors.append(f"{module.file}: reference module is too short to justify the reference template")
     return errors
 
 

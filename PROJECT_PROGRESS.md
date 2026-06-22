@@ -43,6 +43,7 @@ UI refinements are being driven by screenshot feedback. The course homepage and 
 - **Epistemic orchestration**
   - Added `.learnloop/` knowledge-state files for sources, chapter briefs, evidence packs, claims, and conflicts.
   - Updated the LearnLoop skill so a main agent can generate courses with optional subagents while retaining final epistemic responsibility.
+  - Added `learnloop audit` as a lightweight gate for source inventory, course architecture, evidence packs, and justified reference usage.
 
 - **Runtime refactor**
   - Created `templates/runtime-base.js` for shared question/ask/copy logic.

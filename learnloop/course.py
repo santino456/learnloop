@@ -71,6 +71,28 @@ def init_course(target: Path, slug: str) -> Path:
     (course_dir / ".learnloop" / "source_inventory.yaml").write_text(
         "sources: []\n", encoding="utf-8"
     )
+    (course_dir / ".learnloop" / "course_architecture.md").write_text(
+        """# Course Architecture
+
+## Learner Goal
+
+Describe what the learner wants to understand or do.
+
+## Module Plan
+
+| Module | Learning job | Content forms | Why |
+|--------|--------------|---------------|-----|
+| m1 | Define the first learning goal | tutorial | A short explanation is enough to start. |
+
+## Content Form Decisions
+
+- Use Tutorial for explanations and mental models.
+- Use Reference only when stable lookup facts are dense enough to justify it.
+- Use Practice only when the learner needs to perform a skill.
+- Use Perspective only when the chapter can extract judgment, taste, or higher-level experience.
+""",
+        encoding="utf-8",
+    )
     (course_dir / "course.yaml").write_text(
         f"""id: {slug}
 title: "New LearnLoop Course"

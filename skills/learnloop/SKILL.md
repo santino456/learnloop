@@ -7,14 +7,25 @@ description: Work with LearnLoop local-first adaptive learning courses and epist
 
 Use this skill to help a learner turn raw material into a trustworthy local course. The main agent owns the course knowledge state: what is known, what is sourced, what is inferred, what conflicts, and what needs human judgment.
 
+Never start by writing a long lesson. First decide what the learner actually needs, what sources support it, and which content forms are justified.
+
 ## Core Workflow
 
 1. Inspect `course.yaml`, `modules/*.md`, `questions.jsonl`, and `.learnloop/` if present.
-2. Build or update the knowledge state before writing: source inventory, chapter briefs, evidence packs, claims, and conflicts.
-3. Write course source only from verified evidence, marked uncertainty, or explicit human judgment.
-4. Use subagents only as optional parallel workers for bounded research, draft, or review tasks. The main agent remains responsible for final content and merges.
-5. Run `python3 -m learnloop validate <course-dir>` before and after source changes.
-6. Run `python3 -m learnloop build <course-dir>` after validated source changes.
+2. If generating substantial content, create or update `.learnloop/source_inventory.yaml`, `.learnloop/course_architecture.md`, chapter briefs, evidence packs, claims, and conflicts before editing modules.
+3. Decide content forms from the learner goal and evidence shape. Do not mirror sample course structure.
+4. Write course source only from verified evidence, marked uncertainty, or explicit human judgment.
+5. Use subagents only as optional parallel workers for bounded research, draft, or review tasks. The main agent remains responsible for final content and merges.
+6. Run `python3 -m learnloop audit <course-dir>` for generated courses, then `python3 -m learnloop validate <course-dir>` and `python3 -m learnloop build <course-dir>`.
+
+## Hard Gates
+
+- Do not create or rewrite `modules/*.md` until source inventory, course architecture, and at least one evidence pack exist.
+- Do not create a Reference module unless the material contains dense reusable lookup facts such as APIs, fields, formulas, commands, edge cases, or comparison tables.
+- Do not create Practice unless the learner needs to perform a skill or make a checkable decision.
+- Do not create Perspective unless there is a meaningful higher-level judgment, taste, tradeoff, or AI-use lesson to extract.
+- Do not mark generated inference as `verified`.
+- If a course has `.learnloop/`, `python3 -m learnloop audit <course-dir>` should pass before presenting it as ready.
 
 ## Learner Questions
 

@@ -1,4 +1,4 @@
 interface:
   display_name: "LearnLoop"
   short_description: "Generate and maintain verified local learning courses"
-  default_prompt: "Use $learnloop to generate or improve a course with source inventory, claims, validation, and build output."
+  default_prompt: "Use $learnloop to build a course: first create source inventory, evidence packs, and course architecture; then draft only justified Tutorial/Reference/Practice/Perspective content; finally run audit, validate, and build."

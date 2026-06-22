@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib import request
 
 from learnloop.course import build_course, init_course, make_context, validate_course
+from learnloop.knowledge import audit_generation_readiness
 from learnloop.parser import parse_markdown
 from learnloop.server import find_available_port
 from learnloop.templates import list_templates, validate_template_support
@@ -32,6 +33,16 @@ class LearnLoopTests(unittest.TestCase):
             created = init_course(Path(tmp), "demo-course")
             self.assertEqual(validate_course(created), [])
             self.assertTrue((created / "modules" / "01.md").exists())
+
+    def test_sample_course_passes_generation_audit(self) -> None:
+        self.assertEqual(audit_generation_readiness(SAMPLE), [])
+
+    def test_generation_audit_requires_process_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "audit-course")
+            errors = audit_generation_readiness(created)
+            self.assertTrue(any("source_inventory.yaml" in error for error in errors))
+            self.assertTrue(any("missing evidence pack" in error for error in errors))
 
     def test_duplicate_section_id_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

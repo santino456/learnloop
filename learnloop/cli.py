@@ -12,6 +12,7 @@ from .course import (
     serve_course,
     validate_course,
 )
+from .knowledge import audit_generation_readiness
 from .model import ModuleDoc
 from .parser import parse_module, read_course
 from .templates import list_templates, select_template
@@ -39,6 +40,11 @@ def main(argv: list[str] | None = None) -> int:
     validate_p = sub.add_parser("validate", help="Validate course source and question logs.")
     validate_p.add_argument("course_dir", nargs="?", default=".")
 
+    audit_p = sub.add_parser(
+        "audit", help="Audit generated course process evidence and content-form choices."
+    )
+    audit_p.add_argument("course_dir", nargs="?", default=".")
+
     context_p = sub.add_parser("context", help="Print agent context for one question.")
     context_p.add_argument("course_dir", nargs="?", default=".")
     context_p.add_argument("--question-id", required=True)
@@ -65,6 +71,13 @@ def main(argv: list[str] | None = None) -> int:
                     print(f"ERROR: {error}", file=sys.stderr)
                 return 1
             print("Course is valid")
+        elif args.command == "audit":
+            errors = audit_generation_readiness(Path(args.course_dir))
+            if errors:
+                for error in errors:
+                    print(f"ERROR: {error}", file=sys.stderr)
+                return 1
+            print("Course generation audit passed")
         elif args.command == "context":
             print(make_context(Path(args.course_dir), args.question_id))
         elif args.command == "templates":

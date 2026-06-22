@@ -90,6 +90,7 @@ A mature implementation treats the bridge as the trust boundary, not decorative 
 When generating substantial content, keep orchestration files in `.learnloop/`:
 
 - `source_inventory.yaml`
+- `course_architecture.md`
 - `chapter_briefs/*.md`
 - `evidence_packs/*.md`
 - `claims.jsonl`

@@ -45,6 +45,7 @@ courses/acp-fundamentals/
 ├── questions.jsonl
 ├── .learnloop/
 │   ├── source_inventory.yaml
+│   ├── course_architecture.md
 │   ├── claims.jsonl
 │   ├── conflicts.jsonl
 │   ├── chapter_briefs/
@@ -122,7 +123,7 @@ LearnLoop is not a hosted course platform. It is a local protocol for helping a 
 3. Gather evidence before drafting in `.learnloop/evidence_packs/`.
 4. Track important facts in `.learnloop/claims.jsonl`.
 5. Record unresolved conflicts in `.learnloop/conflicts.jsonl`.
-6. Validate and build before showing the course.
+6. Run `learnloop audit`, validate, and build before showing the course.
 
 Subagents are optional parallel workers for research, drafting, or review; the main agent remains responsible for final merges and truth status.
 
@@ -132,6 +133,7 @@ Subagents are optional parallel workers for research, drafting, or review; the m
 python3 -m learnloop init my-course
 python3 -m learnloop build courses/acp-fundamentals
 python3 -m learnloop validate courses/acp-fundamentals
+python3 -m learnloop audit courses/acp-fundamentals
 python3 -m learnloop context courses/acp-fundamentals --question-id <id>
 python3 -m learnloop serve courses/acp-fundamentals --port 8787
 python3 -m learnloop templates courses/acp-fundamentals

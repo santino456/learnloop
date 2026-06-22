@@ -1,12 +1,4 @@
 /* Practice — worksheet/lab */
-.page {
-  width: min(860px, calc(100vw - 40px));
-}
-
-.hero,
-.lesson-header {
-  border-bottom: 2px solid var(--line-strong);
-}
 
 .exercise {
   border: 1px solid var(--line);

@@ -1,12 +1,4 @@
 /* Case — judgment notebook */
-.page {
-  width: min(820px, calc(100vw - 40px));
-}
-
-.hero,
-.lesson-header {
-  border-bottom: 2px solid var(--line-strong);
-}
 
 /* Scenario narrative */
 .judgment-task {

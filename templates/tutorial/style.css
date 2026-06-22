@@ -1,24 +1,4 @@
 /* Tutorial — editorial reading */
-.page {
-  width: min(780px, calc(100vw - 40px));
-  padding-top: 56px;
-}
-
-.hero,
-.lesson-header {
-  border-bottom: 2px solid var(--line-strong);
-  padding-bottom: 40px;
-  margin-bottom: 40px;
-}
-
-h1 {
-  font-size: clamp(40px, 6vw, 68px);
-  letter-spacing: 0.02em;
-}
-
-.lede {
-  font-size: 22px;
-}
 
 .checkpoint {
   border-left-color: var(--accent-warm);

@@ -1,23 +1,4 @@
 /* Reference — dense knowledge warehouse */
-.page {
-  width: min(960px, calc(100vw - 40px));
-  padding-top: 24px;
-}
-
-.hero,
-.lesson-header {
-  padding-bottom: 20px;
-  margin-bottom: 20px;
-}
-
-h1 {
-  font-size: clamp(34px, 4.5vw, 52px);
-  margin-bottom: 12px;
-}
-
-h2 { margin-top: 32px; }
-p, li, .card-body p, .card-body li { font-size: 15px; }
-.lede { font-size: 17px; }
 
 /* Card filter */
 .card-filter {

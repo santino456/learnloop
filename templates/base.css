@@ -45,28 +45,16 @@ body {
   padding: 48px 0 120px;
 }
 
-.template-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 20px;
-  padding: 6px 12px;
-  background: var(--paper);
+.top-nav-template {
+  margin-left: auto;
+  padding: 2px 8px;
+  background: var(--accent-soft);
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--accent);
   letter-spacing: 0.04em;
-}
-
-.template-label::before {
-  content: "";
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background: var(--accent-warm);
-  border-radius: 50%;
 }
 
 .file-warning {

@@ -101,6 +101,82 @@ section { margin: 24px 0; }
 .exercise-done input { width: 18px; height: 18px; accent-color: var(--success); }
 .exercise-done.checked { color: var(--success); font-weight: 500; }
 
+/* Interactive exercise controls */
+.exercise-check {
+  padding: 8px 16px;
+  background: var(--accent);
+  color: white;
+  border: 0;
+  border-radius: 6px;
+  font: 14px ui-sans-serif, system-ui, sans-serif;
+  cursor: pointer;
+}
+.exercise-check:hover { background: #1d4ed8; }
+.exercise-check:disabled { background: #94a3b8; cursor: not-allowed; }
+
+/* Choice options */
+.exercise-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0;
+}
+.choice-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease;
+}
+.choice-option:hover { background: #f1f5f9; }
+.choice-option input { margin-top: 4px; accent-color: var(--accent); }
+.choice-option.correct { border-color: var(--success); background: #f0fdf4; }
+.choice-option.incorrect { border-color: #dc2626; background: #fef2f2; }
+.choice-option.correct::after { content: " ✓"; color: var(--success); font-weight: 700; }
+.choice-option.incorrect::after { content: " ✗"; color: #dc2626; font-weight: 700; }
+
+/* Fill-in-the-blank inputs */
+.ll-blank {
+  display: inline-block;
+  width: 8em;
+  padding: 4px 8px;
+  margin: 0 2px;
+  border: 2px solid var(--line);
+  border-radius: 4px;
+  font: 15px ui-monospace, SFMono-Regular, Menlo, monospace;
+  vertical-align: middle;
+}
+.ll-blank:focus { outline: none; border-color: var(--accent); }
+.ll-blank.correct { border-color: var(--success); background: #f0fdf4; }
+.ll-blank.incorrect { border-color: #dc2626; background: #fef2f2; }
+
+/* Spot-the-bug code lines */
+.code-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 2px 0;
+  border-radius: 3px;
+}
+.code-line:hover { background: rgba(255,255,255,.05); }
+.bug-checkbox { margin-top: 2px; accent-color: var(--accent); }
+.buggy-line { background: rgba(220, 38, 38, .15); }
+.buggy-line.revealed { background: rgba(5, 150, 105, .2); }
+
+/* Feedback area */
+.exercise-feedback {
+  margin: 14px 0;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 15px;
+}
+.exercise-feedback[hidden] { display: none; }
+.exercise-feedback.correct { background: #f0fdf4; color: var(--success); border: 1px solid var(--success); }
+.exercise-feedback.incorrect { background: #fef2f2; color: #991b1b; border: 1px solid #dc2626; }
+
 /* Workshop checkpoint */
 .checkpoint {
   background: var(--panel);

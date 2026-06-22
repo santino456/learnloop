@@ -50,5 +50,13 @@ class Block:
     language: str | None = None
     content: str | None = None
     answer: str | None = None
+    explanation: str | None = None
     headers: list[str] | None = None
     rows: list[list[str]] | None = None
+    kind: str | None = None
+    choices: list[str] | None = None
+    answers: list[str] | None = None
+    buggy_lines: list[int] | None = None
+    perspective: str | None = None
+    tradeoffs: str | None = None
+    pitfalls: str | None = None

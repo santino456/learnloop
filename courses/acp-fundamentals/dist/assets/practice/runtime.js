@@ -10,8 +10,130 @@
   const list = document.getElementById("question-list");
   const count = document.getElementById("question-count");
 
-  // Show/hide answer and mark-done checkbox (memory only)
-  document.querySelectorAll(".exercise, .checkpoint").forEach((container) => {
+  // Interactive exercises
+  document.querySelectorAll(".exercise").forEach((container) => {
+    const kind = container.dataset.kind || "open";
+    const checkBtn = container.querySelector(".exercise-check");
+    const toggle = container.querySelector(".exercise-toggle");
+    const answer = container.querySelector(".exercise-answer");
+    const feedback = container.querySelector(".exercise-feedback");
+
+    if (kind === "choice") {
+      const options = container.querySelectorAll(".choice-option");
+      const correct = (container.dataset.correct || "").toUpperCase();
+      options.forEach((label) => {
+        const input = label.querySelector("input");
+        input.addEventListener("change", () => {
+          options.forEach((opt) => opt.classList.remove("selected"));
+          label.classList.add("selected");
+        });
+      });
+      if (checkBtn) {
+        checkBtn.addEventListener("click", () => {
+          const selected = container.querySelector(".choice-option input:checked");
+          if (!selected) {
+            showFeedback(feedback, "Please select an answer.", "neutral");
+            return;
+          }
+          const value = selected.value.toUpperCase();
+          options.forEach((label) => {
+            const letter = label.dataset.choice;
+            label.classList.remove("correct", "incorrect");
+            if (letter === correct) {
+              label.classList.add("correct");
+            } else if (letter === value) {
+              label.classList.add("incorrect");
+            }
+          });
+          if (value === correct) {
+            showFeedback(feedback, "Correct! " + (answer ? "See the explanation below." : ""), "correct");
+          } else {
+            showFeedback(feedback, "Not quite. The correct answer is highlighted.", "incorrect");
+          }
+          if (toggle && answer) toggle.removeAttribute("hidden");
+          checkBtn.disabled = true;
+        });
+      }
+    }
+
+    if (kind === "fill") {
+      const inputs = container.querySelectorAll(".ll-blank");
+      const answers = (container.dataset.answers || "").split(";").map((s) => s.trim());
+      if (checkBtn) {
+        checkBtn.addEventListener("click", () => {
+          let allCorrect = true;
+          inputs.forEach((input, idx) => {
+            const expected = answers[idx] || "";
+            const value = input.value.trim();
+            input.classList.remove("correct", "incorrect");
+            if (value.toLowerCase() === expected.toLowerCase()) {
+              input.classList.add("correct");
+            } else {
+              input.classList.add("incorrect");
+              allCorrect = false;
+            }
+          });
+          if (allCorrect) {
+            showFeedback(feedback, "Correct! All blanks match.", "correct");
+          } else {
+            showFeedback(feedback, "Some answers are incorrect. Try again or reveal the answer.", "incorrect");
+          }
+          if (toggle && answer) toggle.removeAttribute("hidden");
+        });
+      }
+    }
+
+    if (kind === "bug") {
+      const buggy = (container.dataset.buggyLines || "").split(",").filter(Boolean).map(Number);
+      const checkboxes = container.querySelectorAll(".bug-checkbox");
+      if (checkBtn) {
+        checkBtn.addEventListener("click", () => {
+          const selected = Array.from(checkboxes).filter((cb) => cb.checked).map((cb) => Number(cb.dataset.line));
+          const missed = buggy.filter((line) => !selected.includes(line));
+          const extra = selected.filter((line) => !buggy.includes(line));
+          checkboxes.forEach((cb) => {
+            const line = Number(cb.dataset.line);
+            const lineEl = cb.closest(".code-line");
+            lineEl?.classList.remove("revealed");
+            if (buggy.includes(line)) lineEl?.classList.add("revealed");
+          });
+          if (!missed.length && !extra.length) {
+            showFeedback(feedback, "Correct! You identified the buggy line(s).", "correct");
+          } else {
+            showFeedback(feedback, "Not quite. Buggy lines are now highlighted; extra selections are not bugs.", "incorrect");
+          }
+          if (toggle && answer) toggle.removeAttribute("hidden");
+        });
+      }
+    }
+
+    if (toggle && answer) {
+      toggle.addEventListener("click", () => {
+        const hidden = answer.hasAttribute("hidden");
+        if (hidden) {
+          answer.removeAttribute("hidden");
+          toggle.setAttribute("aria-expanded", "true");
+          toggle.textContent = "Hide answer";
+        } else {
+          answer.setAttribute("hidden", "");
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.textContent = "Show answer";
+        }
+      });
+    }
+  });
+
+  function showFeedback(el, text, state) {
+    if (!el) return;
+    el.removeAttribute("hidden");
+    el.classList.remove("correct", "incorrect");
+    if (state === "correct") el.classList.add("correct");
+    if (state === "incorrect") el.classList.add("incorrect");
+    el.textContent = text;
+  }
+
+  // Open exercises: show/hide answer and mark-done checkbox
+  document.querySelectorAll(".exercise[data-kind='open'], .checkpoint").forEach((container) => {
     const toggle = container.querySelector(".exercise-toggle, .checkpoint-toggle");
     const answer = container.querySelector(".exercise-answer, .checkpoint-answer");
     if (toggle && answer) {
@@ -35,7 +157,9 @@
       const label = checkbox.closest(".exercise-done");
       if (checkbox.checked) {
         label.classList.add("checked");
-        label.insertAdjacentHTML("beforeend", ' <span class="done-text">Done</span>');
+        if (!label.querySelector(".done-text")) {
+          label.insertAdjacentHTML("beforeend", ' <span class="done-text">Done</span>');
+        }
       } else {
         label.classList.remove("checked");
         label.querySelector(".done-text")?.remove();

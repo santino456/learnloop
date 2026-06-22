@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 import shutil
 from pathlib import Path
 from typing import Any
@@ -97,6 +98,21 @@ def _first_text_summary(blocks: list[Block]) -> str:
 
 
 def render_exercise(block: Block, template: Any | None = None) -> str:
+    template_name = template.name if template else ""
+    kind = block.kind or "open"
+
+    if template_name == "case" and kind == "case":
+        return render_case_exercise(block, template)
+
+    if template_name == "practice":
+        if kind == "choice":
+            return render_choice_exercise(block, template)
+        if kind == "fill":
+            return render_fill_exercise(block, template)
+        if kind == "bug":
+            return render_bug_exercise(block, template)
+
+    # Default / open exercise: show-answer toggle.
     task = render_blocks(block.blocks or [], template)
     answer_html = ""
     if block.answer:
@@ -115,10 +131,181 @@ def render_exercise(block: Block, template: Any | None = None) -> str:
         '</div>'
     )
     return (
-        f'<div class="exercise" data-has-answer="{has_answer}">\n'
+        f'<div class="exercise" data-kind="open" data-has-answer="{has_answer}">\n'
         f'<div class="exercise-task">\n{task}\n</div>\n'
         f'{answer_html}\n'
         f'{controls}\n'
+        f'</div>'
+    )
+
+
+def _render_task_without_choices(blocks: list[Block], template: Any | None) -> str:
+    filtered = [b for b in blocks if not (b.type == "list" and b.items and _is_choice_list(b.items))]
+    return render_blocks(filtered, template)
+
+
+def _is_choice_list(items: list[str]) -> bool:
+    from .parser import CHOICE_RE
+    return all(CHOICE_RE.match(item) for item in items)
+
+
+def render_choice_exercise(block: Block, template: Any | None) -> str:
+    task = _render_task_without_choices(block.blocks or [], template)
+    choices = block.choices or []
+    correct = (block.answer or "").strip().upper()
+    explanation_html = ""
+    if block.answer:
+        answer_md = block.answer
+        if block.explanation:
+            answer_md += f"\n\n{block.explanation}"
+        answer_body = render_blocks(parse_markdown(answer_md), template)
+        explanation_html = f'<div class="exercise-answer" hidden>\n{answer_body}\n</div>'
+    radios = "\n".join(
+        f'<label class="choice-option" data-choice="{chr(65 + i)}">'
+        f'<input type="radio" name="choice" value="{chr(65 + i)}"> '
+        f'<span>{html.escape(text)}</span></label>'
+        for i, text in enumerate(choices)
+    )
+    feedback = '<div class="exercise-feedback" role="status" hidden></div>'
+    controls = (
+        '<div class="exercise-controls">\n'
+        '  <button class="exercise-check" type="button">Check</button>\n'
+        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Reveal answer</button>\n'
+        '  <label class="exercise-done">\n'
+        '    <input type="checkbox"> Mark as done\n'
+        '  </label>\n'
+        '</div>'
+    )
+    return (
+        f'<div class="exercise" data-kind="choice" data-correct="{html.escape(correct)}">\n'
+        f'<div class="exercise-task">\n{task}\n</div>\n'
+        f'<form class="exercise-choices">\n{radios}\n</form>\n'
+        f'{feedback}\n'
+        f'{explanation_html}\n'
+        f'{controls}\n'
+        f'</div>'
+    )
+
+
+def render_fill_exercise(block: Block, template: Any | None) -> str:
+    task = render_blocks(block.blocks or [], template)
+    answers = block.answers or []
+    data_answers = html.escape(";".join(answers))
+    task = _replace_blanks_with_inputs(task, answers)
+    explanation_html = ""
+    if block.answer:
+        answer_md = block.answer
+        if block.explanation:
+            answer_md += f"\n\n{block.explanation}"
+        answer_body = render_blocks(parse_markdown(answer_md), template)
+        explanation_html = f'<div class="exercise-answer" hidden>\n{answer_body}\n</div>'
+    feedback = '<div class="exercise-feedback" role="status" hidden></div>'
+    controls = (
+        '<div class="exercise-controls">\n'
+        '  <button class="exercise-check" type="button">Check</button>\n'
+        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Show answer</button>\n'
+        '  <label class="exercise-done">\n'
+        '    <input type="checkbox"> Mark as done\n'
+        '  </label>\n'
+        '</div>'
+    )
+    return (
+        f'<div class="exercise" data-kind="fill" data-answers="{data_answers}">\n'
+        f'<div class="exercise-task">\n{task}\n</div>\n'
+        f'{feedback}\n'
+        f'{explanation_html}\n'
+        f'{controls}\n'
+        f'</div>'
+    )
+
+
+def _replace_blanks_with_inputs(task_html: str, answers: list[str]) -> str:
+    blank_re = re.compile(r"_{8,}")
+    idx = [0]
+
+    def replacer(match: re.Match[str]) -> str:
+        answer = html.escape(answers[idx[0]]) if idx[0] < len(answers) else ""
+        idx[0] += 1
+        return f'<input type="text" class="ll-blank" data-answer="{answer}" autocomplete="off">'
+
+    return blank_re.sub(replacer, task_html)
+
+
+def render_bug_exercise(block: Block, template: Any | None) -> str:
+    task = render_blocks(block.blocks or [], template)
+    buggy = block.buggy_lines or []
+    data_bugs = html.escape(",".join(str(n) for n in buggy))
+    task = _decorate_buggy_lines(task, buggy)
+    explanation_html = ""
+    if block.answer:
+        answer_body = render_blocks(parse_markdown(block.answer), template)
+        explanation_html = f'<div class="exercise-answer" hidden>\n{answer_body}\n</div>'
+    feedback = '<div class="exercise-feedback" role="status" hidden></div>'
+    controls = (
+        '<div class="exercise-controls">\n'
+        '  <button class="exercise-check" type="button">Check</button>\n'
+        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Show answer</button>\n'
+        '  <label class="exercise-done">\n'
+        '    <input type="checkbox"> Mark as done\n'
+        '  </label>\n'
+        '</div>'
+    )
+    return (
+        f'<div class="exercise" data-kind="bug" data-buggy-lines="{data_bugs}">\n'
+        f'<div class="exercise-task">\n{task}\n</div>\n'
+        f'{feedback}\n'
+        f'{explanation_html}\n'
+        f'{controls}\n'
+        f'</div>'
+    )
+
+
+def _decorate_buggy_lines(task_html: str, buggy_lines: list[int]) -> str:
+    # Operate on the textual content of <pre><code ...>...</code></pre> blocks.
+    pre_re = re.compile(r"(<pre><code[^>]*>)(.*?)(</code></pre>)", re.S)
+
+    def repl_pre(match: re.Match[str]) -> str:
+        open_tag, content, close_tag = match.groups()
+        lines = content.split("\n")
+        out: list[str] = [open_tag]
+        for line_no, raw_line in enumerate(lines, start=1):
+            clean = re.sub(r"\s*<!--\s*bug\s*-->\s*$", "", raw_line)
+            cls = "buggy-line" if line_no in buggy_lines else ""
+            checkbox = f'<input type="checkbox" class="bug-checkbox" data-line="{line_no}">'
+            out.append(f'<div class="code-line {cls}" data-line="{line_no}">{checkbox}<span>{clean}</span></div>')
+        out.append(close_tag)
+        return "\n".join(out)
+
+    return pre_re.sub(repl_pre, task_html)
+
+
+def render_case_exercise(block: Block, template: Any | None) -> str:
+    task = render_blocks(block.blocks or [], template)
+    perspective = render_blocks(parse_markdown(block.perspective or ""), template) if block.perspective else ""
+    tradeoffs = render_blocks(parse_markdown(block.tradeoffs or ""), template) if block.tradeoffs else ""
+    pitfalls = render_blocks(parse_markdown(block.pitfalls or ""), template) if block.pitfalls else ""
+    hidden_sections = ""
+    if perspective or tradeoffs or pitfalls:
+        parts = []
+        if perspective:
+            parts.append(f'<section class="judgment-section perspective" hidden><h4>Author perspective</h4>\n{perspective}\n</section>')
+        if tradeoffs:
+            parts.append(f'<section class="judgment-section tradeoffs" hidden><h4>Tradeoffs</h4>\n{tradeoffs}\n</section>')
+        if pitfalls:
+            parts.append(f'<section class="judgment-section pitfalls" hidden><h4>Pitfalls</h4>\n{pitfalls}\n</section>')
+        joined_parts = "\n".join(parts)
+        hidden_sections = f'<div class="judgment-reveal" hidden>\n{joined_parts}\n</div>'
+    return (
+        f'<div class="exercise" data-kind="case">\n'
+        f'<div class="exercise-task judgment-task">\n{task}\n</div>\n'
+        f'<textarea class="judgment-reasoning" placeholder="Write your reasoning here..."></textarea>\n'
+        f'{hidden_sections}\n'
+        f'<div class="exercise-controls">\n'
+        '  <button class="exercise-compare" type="button">Compare with author perspective</button>\n'
+        '  <label class="exercise-done">\n'
+        '    <input type="checkbox"> Mark as done\n'
+        '  </label>\n'
+        '</div>\n'
         f'</div>'
     )
 

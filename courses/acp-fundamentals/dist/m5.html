@@ -54,16 +54,26 @@
 <ul><li>客户端集成很痛 → 考虑 ACP。</li><li>工具和数据接入很痛 → 考虑 MCP。</li><li>多 Agent 交接很痛 → 考虑 A2A。</li></ul></section>
 <section><h2 data-section-id="m5-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m5-summary" data-ask-title="模块小结">Ask here</button></h2>
 <ul><li>ACP 连接客户端和 Agent。</li><li>MCP 连接 Agent 和工具。</li><li>A2A 连接 Agent 和 Agent。</li><li>好的架构先命名边界，再选择协议。</li></ul>
-<div class="exercise" data-has-answer="true">
-<div class="exercise-task">
-<p>你正在做一个“本地代码助手”，它需要读取当前项目文件、调用测试命令、并把结果展示在 IDE 面板里。请选择最合理的协议组合。</p>
-<ul><li>A. 全部用 ACP：IDE 面板通过 ACP 直接调用文件系统和测试命令。</li><li>B. IDE 面板通过 ACP 驱动 Agent；Agent 通过 MCP 读取文件和调用测试命令。</li><li>C. IDE 面板直接调用 MCP；Agent 只负责显示结果。</li><li>D. 引入 A2A，让“文件 Agent”和“测试 Agent”互相协作。</li></ul>
+<div class="exercise" data-kind="case">
+<div class="exercise-task judgment-task">
+<p>你团队想给 IDE 加一个“自动改 bug”助手。它需要读取本地代码、调用测试命令、并把结果展示在 IDE 面板。</p>
+<p>有人建议直接上 A2A，让“分析 Agent”和“测试 Agent”互相协作；有人建议先做一个简单的 ACP 本地客户端。</p>
+<p>你会怎么选？先写下你的主要顾虑。</p>
 </div>
-<div class="exercise-answer" hidden>
-<p><strong>B</strong> 最合理。ACP 负责 IDE 与 Agent 之间的客户端- Agent 边界；MCP 负责 Agent 与外部工具/数据之间的接入。A2A 在本场景中没有多个独立 Agent 角色，属于过度设计。</p>
+<textarea class="judgment-reasoning" placeholder="Write your reasoning here..."></textarea>
+<div class="judgment-reveal" hidden>
+<section class="judgment-section perspective" hidden><h4>Author perspective</h4>
+<p>这个场景下，真正的边界是“IDE 如何驱动一个本地 Agent”。如果没有多个独立 Agent 角色，A2A 是过度设计；ACP + MCP 更自然。</p>
+</section>
+<section class="judgment-section tradeoffs" hidden><h4>Tradeoffs</h4>
+<ul><li>ACP：解决客户端- Agent 边界，适合让 IDE 驱动本地 Agent。</li><li>MCP：解决 Agent 与工具/文件的边界，适合读取代码和调用测试命令。</li><li>A2A：需要多个 Agent 互相委托时才值得引入。</li></ul>
+</section>
+<section class="judgment-section pitfalls" hidden><h4>Pitfalls</h4>
+<ul><li>不要因为一个 Agent 内部有多个步骤就引入 A2A。</li><li>不要试图用 ACP 直接替代 MCP 去访问文件系统。</li></ul>
+</section>
 </div>
 <div class="exercise-controls">
-  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <button class="exercise-compare" type="button">Compare with author perspective</button>
   <label class="exercise-done">
     <input type="checkbox"> Mark as done
   </label>

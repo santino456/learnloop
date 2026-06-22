@@ -10,8 +10,24 @@
   const list = document.getElementById("question-list");
   const count = document.getElementById("question-count");
 
-  // Scenario exercises: turn the first list in each exercise into selectable options
-  document.querySelectorAll(".exercise").forEach((exercise) => {
+  // Judgment cards: reveal author perspective, tradeoffs, pitfalls
+  document.querySelectorAll(".exercise[data-kind='case']").forEach((exercise) => {
+    const compare = exercise.querySelector(".exercise-compare");
+    const reveal = exercise.querySelector(".judgment-reveal");
+    const sections = exercise.querySelectorAll(".judgment-section");
+    if (compare && reveal) {
+      compare.addEventListener("click", () => {
+        reveal.removeAttribute("hidden");
+        sections.forEach((section) => section.removeAttribute("hidden"));
+        compare.setAttribute("aria-expanded", "true");
+        compare.textContent = "Compared";
+        compare.disabled = true;
+      });
+    }
+  });
+
+  // Legacy case exercises without judgment markers still get reveal behavior
+  document.querySelectorAll(".exercise:not([data-kind='case'])").forEach((exercise) => {
     const toggle = exercise.querySelector(".exercise-toggle");
     if (toggle) {
       toggle.textContent = "Reveal reasoning";

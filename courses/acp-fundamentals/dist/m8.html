@@ -56,16 +56,25 @@
 <p>选择它，是因为它简化了系统；跳过它，是因为它只增加协议仪式而没有改善学习或开发流程。</p></section>
 <section><h2 data-section-id="m8-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m8-summary" data-ask-title="模块小结">Ask here</button></h2>
 <ul><li>ACP 最强的地方在本地、多步骤、会用工具的 Agent 会话。</li><li>简单的单轮聊天通常不需要 ACP。</li><li>公开教学示例应该使用虚构、安全的项目。</li></ul>
-<div class="exercise" data-has-answer="true">
-<div class="exercise-task">
-<p>你接到了一个需求：为内部开发者做一个命令行工具，让它可以调用本地 Agent 来审查代码、运行测试并把结果写回文件。判断 ACP 是否合适。</p>
-<ul><li>A. 不合适，直接调用模型 API 就够了。</li><li>B. 合适，因为涉及本地文件、工具调用、多步骤会话和共享协议收益。</li><li>C. 应该用 A2A，因为需要“代码审查 Agent”和“测试 Agent”两个角色。</li><li>D. 应该用 MCP 替代 ACP，因为 MCP 也能调用测试命令。</li></ul>
+<div class="exercise" data-kind="case">
+<div class="exercise-task judgment-task">
+<p>你接到了一个需求：为内部开发者做一个命令行工具，让它可以调用本地 Agent 来审查代码、运行测试并把结果写回文件。团队里有人觉得直接用模型 HTTP API 就够了，有人坚持要上 ACP。</p>
+<p>你会怎么判断？先写下你的主要顾虑。</p>
 </div>
-<div class="exercise-answer" hidden>
-<p><strong>B</strong> 最合适。该场景符合决策四问：本地文件/工具、多步骤、客户端中介工具调用、共享协议收益。D 的 MCP 只解决 Agent-工具层，不解决客户端- Agent 驱动层；C 的 A2A 在没有两个独立 Agent 角色时是过度设计；A 忽略了工具调用和本地上下文需求。</p>
+<textarea class="judgment-reasoning" placeholder="Write your reasoning here..."></textarea>
+<div class="judgment-reveal" hidden>
+<section class="judgment-section perspective" hidden><h4>Author perspective</h4>
+<p>这个需求同时命中了 ACP 的几个核心信号：本地文件访问、多步骤会话、客户端中介工具调用、以及多个内部工具可能从共享协议受益。因此 ACP 值得认真考虑，而不是简单用一次 HTTP 调用替代。</p>
+</section>
+<section class="judgment-section tradeoffs" hidden><h4>Tradeoffs</h4>
+<ul><li>直接调用模型 API：最简单，但把所有工具调用和文件访问逻辑塞进客户端，难以复用和审计。</li><li>使用 ACP：把客户端- Agent 边界标准化，Agent 可以请求工具调用，客户端负责执行与策略控制。</li><li>引入 A2A：只有在真的需要“代码审查 Agent”和“测试 Agent”作为两个独立角色互相委托时才有意义。</li></ul>
+</section>
+<section class="judgment-section pitfalls" hidden><h4>Pitfalls</h4>
+<ul><li>不要因为“可能会扩展成多 Agent”就提前引入 A2A。</li><li>不要把 ACP 当作替代 MCP 的工具访问层；Agent 仍然可以通过 MCP 读写文件和调用命令。</li><li>不要忽略权限策略：客户端必须决定哪些工具调用可以被允许。</li></ul>
+</section>
 </div>
 <div class="exercise-controls">
-  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <button class="exercise-compare" type="button">Compare with author perspective</button>
   <label class="exercise-done">
     <input type="checkbox"> Mark as done
   </label>

@@ -56,32 +56,41 @@
 </div></section>
 <section><h2 data-section-id="m3-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="模块小结">Ask here</button></h2>
 <ul><li>initialize 在客户端和 Agent 之间建立了第一份可靠契约。</li><li>能力协商让可选功能变得可控。</li><li>具体协议字段必须针对当前实现版本验证。</li></ul>
-<div class="exercise" data-has-answer="true">
+<div class="exercise" data-kind="choice" data-correct="C">
 <div class="exercise-task">
-<p>补全下面的初始化请求：客户端名叫 <code>learnloop-cli</code>，版本 <code>1.0.0</code>，声明支持 <code>tools</code> 能力。</p>
-<pre><code class="language-json">{
-  &quot;jsonrpc&quot;: &quot;2.0&quot;,
-  &quot;id&quot;: 1,
-  &quot;method&quot;: &quot;initialize&quot;,
-  &quot;params&quot;: {
-    &quot;___________&quot;: {&quot;name&quot;: &quot;___________&quot;, &quot;version&quot;: &quot;___________&quot;},
-    &quot;___________&quot;: {&quot;tools&quot;: {}}
-  }
-}</code></pre>
+<p>initialize 请求中的哪两个字段让双方互相了解身份与支持的功能？</p>
 </div>
+<form class="exercise-choices">
+<label class="choice-option" data-choice="A"><input type="radio" name="choice" value="A"> <span>method 和 id</span></label>
+<label class="choice-option" data-choice="B"><input type="radio" name="choice" value="B"> <span>params 和 jsonrpc</span></label>
+<label class="choice-option" data-choice="C"><input type="radio" name="choice" value="C"> <span>clientInfo 和 capabilities</span></label>
+<label class="choice-option" data-choice="D"><input type="radio" name="choice" value="D"> <span>stdout 和 stderr</span></label>
+</form>
+<div class="exercise-feedback" role="status" hidden></div>
 <div class="exercise-answer" hidden>
-<pre><code class="language-json">{
-  &quot;jsonrpc&quot;: &quot;2.0&quot;,
-  &quot;id&quot;: 1,
-  &quot;method&quot;: &quot;initialize&quot;,
-  &quot;params&quot;: {
-    &quot;clientInfo&quot;: {&quot;name&quot;: &quot;learnloop-cli&quot;, &quot;version&quot;: &quot;1.0.0&quot;},
-    &quot;capabilities&quot;: {&quot;tools&quot;: {}}
-  }
-}</code></pre>
+<p>C</p>
+<p><code>clientInfo</code> 说明客户端是谁，<code>capabilities</code> 说明各自支持什么。<code>method</code>/<code>id</code>/<code>params</code> 是 JSON-RPC 通用字段，<code>stdout</code>/<code>stderr</code> 是本地传输通道。</p>
 </div>
 <div class="exercise-controls">
-  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <button class="exercise-check" type="button">Check</button>
+  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Reveal answer</button>
+  <label class="exercise-done">
+    <input type="checkbox"> Mark as done
+  </label>
+</div>
+</div>
+<div class="exercise" data-kind="fill" data-answers="stdin;stdout;stderr">
+<div class="exercise-task">
+<p>补全：客户端向 Agent 的 <input type="text" class="ll-blank" data-answer="stdin" autocomplete="off"> 写入 JSON，Agent 向 <input type="text" class="ll-blank" data-answer="stdout" autocomplete="off"> 返回 JSON，日志走 <input type="text" class="ll-blank" data-answer="stderr" autocomplete="off">。</p>
+</div>
+<div class="exercise-feedback" role="status" hidden></div>
+<div class="exercise-answer" hidden>
+<p>stdin; stdout; stderr</p>
+<p>行分隔 JSON 的本地模式：stdin 进，stdout 出，stderr 留给日志。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-check" type="button">Check</button>
+  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Show answer</button>
   <label class="exercise-done">
     <input type="checkbox"> Mark as done
   </label>

@@ -206,6 +206,78 @@ class LearnLoopTests(unittest.TestCase):
         self.assertIn("stdout", block.blocks[0].text)
         self.assertIn("logs go to stderr", block.answer)
 
+    def test_multiple_choice_exercise_parses_choices_and_answer(self) -> None:
+        blocks = parse_markdown(
+            "::: exercise\n本地 ACP 最常用什么传输？\n\n"
+            "- A. HTTP\n"
+            "- B. SSE\n"
+            "- C. stdio + line-delimited JSON\n"
+            "- D. WebSocket\n\n"
+            "--- answer\nC\n"
+            "--- explanation\n本地最小客户端通常是子进程 stdio。\n"
+            "---\n:::\n"
+        )
+        self.assertEqual(len(blocks), 1)
+        block = blocks[0]
+        self.assertEqual(block.type, "exercise")
+        self.assertEqual(block.kind, "choice")
+        self.assertEqual(block.answer, "C")
+        self.assertEqual(
+            block.choices,
+            [
+                "HTTP",
+                "SSE",
+                "stdio + line-delimited JSON",
+                "WebSocket",
+            ],
+        )
+        self.assertEqual(block.explanation, "本地最小客户端通常是子进程 stdio。")
+
+    def test_fill_in_the_blank_exercise_stores_expected_answers(self) -> None:
+        blocks = parse_markdown(
+            "::: exercise\n"
+            "补全：客户端向 Agent 的 ________ 写入 JSON。\n\n"
+            "--- answer\nstdin; stdout; stderr\n"
+            "--- explanation\nstdin 进，stdout 出。\n"
+            "---\n:::\n"
+        )
+        self.assertEqual(len(blocks), 1)
+        block = blocks[0]
+        self.assertEqual(block.type, "exercise")
+        self.assertEqual(block.kind, "fill")
+        self.assertEqual(block.answers, ["stdin", "stdout", "stderr"])
+        self.assertEqual(block.explanation, "stdin 进，stdout 出。")
+
+    def test_case_exercise_renders_judgment_card_html(self) -> None:
+        from learnloop.renderer import render_blocks
+        from learnloop.templates import load_template
+
+        md = (
+            "::: exercise\n"
+            "你团队想给 IDE 加一个助手。\n\n"
+            "你会怎么选？\n\n"
+            "--- perspective\n"
+            "真正的边界是 IDE 如何驱动本地 Agent。\n\n"
+            "--- tradeoffs\n"
+            "- ACP：适合。\n"
+            "- MCP：适合。\n\n"
+            "--- pitfalls\n"
+            "- 不要过度设计。\n"
+            "---\n:::\n"
+        )
+        blocks = parse_markdown(md)
+        template = load_template("case")
+        html = render_blocks(blocks, template)
+        self.assertIn('data-kind="case"', html)
+        self.assertIn('class="judgment-reasoning"', html)
+        self.assertIn("Compare with author perspective", html)
+        self.assertIn("Author perspective", html)
+        self.assertIn("Tradeoffs", html)
+        self.assertIn("Pitfalls", html)
+        self.assertIn("class=\"judgment-section perspective\"", html)
+        self.assertIn("class=\"judgment-section tradeoffs\"", html)
+        self.assertIn("class=\"judgment-section pitfalls\"", html)
+
     def test_exercise_without_answer_has_no_answer(self) -> None:
         blocks = parse_markdown("::: exercise\nWrite a short answer.\n:::\n")
         self.assertEqual(len(blocks), 1)

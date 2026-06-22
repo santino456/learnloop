@@ -81,28 +81,29 @@ print(receive())</code></pre>
 </div></section>
 <section><h2 data-section-id="m6-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="模块小结">Ask here</button></h2>
 <ul><li>最小本地客户端依赖子进程管道。</li><li>行分隔 JSON 要求严格的换行和刷新行为。</li><li>可运行示例必须针对真实 Agent 版本验证。</li></ul>
-<div class="exercise" data-has-answer="true">
+<div class="exercise" data-kind="bug" data-buggy-lines="4">
 <div class="exercise-task">
-<p>下面这段最小客户端代码有一处 bug，会导致 Agent 收不到请求。请找出并修复。</p>
-<pre><code class="language-python">proc = subprocess.Popen([&quot;agent&quot;], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
-
-def send(message):
-    proc.stdin.write(json.dumps(message) + &quot;\n&quot;)
-
-def receive():
-    return json.loads(proc.stdout.readline())
-
-send({&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;initialize&quot;,&quot;params&quot;:{}})
-print(receive())</code></pre>
+<p>下面这段最小客户端代码有一处 bug，会导致 Agent 收不到请求。请勾选你认为有问题的代码行。</p>
+<pre><code class="language-python">
+<div class="code-line " data-line="1"><input type="checkbox" class="bug-checkbox" data-line="1"><span>proc = subprocess.Popen([&quot;agent&quot;], stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)</span></div>
+<div class="code-line " data-line="2"><input type="checkbox" class="bug-checkbox" data-line="2"><span></span></div>
+<div class="code-line " data-line="3"><input type="checkbox" class="bug-checkbox" data-line="3"><span>def send(message):</span></div>
+<div class="code-line buggy-line" data-line="4"><input type="checkbox" class="bug-checkbox" data-line="4"><span>    proc.stdin.write(json.dumps(message) + &quot;\n&quot;)  # &lt;!-- bug --&gt;</span></div>
+<div class="code-line " data-line="5"><input type="checkbox" class="bug-checkbox" data-line="5"><span></span></div>
+<div class="code-line " data-line="6"><input type="checkbox" class="bug-checkbox" data-line="6"><span>def receive():</span></div>
+<div class="code-line " data-line="7"><input type="checkbox" class="bug-checkbox" data-line="7"><span>    return json.loads(proc.stdout.readline())</span></div>
+<div class="code-line " data-line="8"><input type="checkbox" class="bug-checkbox" data-line="8"><span></span></div>
+<div class="code-line " data-line="9"><input type="checkbox" class="bug-checkbox" data-line="9"><span>send({&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;initialize&quot;,&quot;params&quot;:{}})</span></div>
+<div class="code-line " data-line="10"><input type="checkbox" class="bug-checkbox" data-line="10"><span>print(receive())</span></div>
+</code></pre>
 </div>
+<div class="exercise-feedback" role="status" hidden></div>
 <div class="exercise-answer" hidden>
-<p><code>send</code> 缺少 <code>proc.stdin.flush()</code>。修复后：</p>
-<pre><code class="language-python">def send(message):
-    proc.stdin.write(json.dumps(message) + &quot;\n&quot;)
-    proc.stdin.flush()</code></pre>
+<p>第 4 行 <code>send</code> 函数缺少 <code>proc.stdin.flush()</code>。</p>
 </div>
 <div class="exercise-controls">
-  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <button class="exercise-check" type="button">Check</button>
+  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Show answer</button>
   <label class="exercise-done">
     <input type="checkbox"> Mark as done
   </label>

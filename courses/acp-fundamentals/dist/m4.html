@@ -65,16 +65,24 @@
 <p>Agent 申请读取 <code>/workspace/campus-guide/README.md</code>。客户端返回一段简短文件摘要。Agent 回答：“CampusGuide 是本课程里用来解释资源和工具调用流程的虚构校园问答助手。”</p></section>
 <section><h2 data-section-id="m4-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m4-summary" data-ask-title="模块小结">Ask here</button></h2>
 <ul><li>提示词消息承载用户意图。</li><li>资源让上下文变得可寻址。</li><li>工具调用让 Agent 请求客户端在受控范围内执行操作。</li><li>公开教学示例应该使用虚构路径和项目。</li></ul>
-<div class="exercise" data-has-answer="true">
+<div class="exercise" data-kind="choice" data-correct="B">
 <div class="exercise-task">
-<p>把下面的交互补全为正确的 ACP 消息顺序：</p>
-<ol><li>客户端发送 _______ 消息，携带用户问题。</li><li>Agent 返回一个 _______ 请求，想读取 <code>README.md</code>。</li><li>客户端执行后发送 _______ 消息。</li><li>Agent 返回最终 _______。</li></ol>
+<p>一个学习者问：“CampusGuide 是做什么的？”下面哪一项正确描述了 ACP 消息顺序？</p>
 </div>
+<form class="exercise-choices">
+<label class="choice-option" data-choice="A"><input type="radio" name="choice" value="A"> <span>客户端发送 tool_result → Agent 发送 prompt → 客户端发送 tool_call → Agent 返回 response</span></label>
+<label class="choice-option" data-choice="B"><input type="radio" name="choice" value="B"> <span>客户端发送 prompt → Agent 发送 tool_call → 客户端发送 tool_result → Agent 返回 response</span></label>
+<label class="choice-option" data-choice="C"><input type="radio" name="choice" value="C"> <span>Agent 发送 prompt → 客户端发送 tool_call → Agent 发送 tool_result → 客户端返回 response</span></label>
+<label class="choice-option" data-choice="D"><input type="radio" name="choice" value="D"> <span>客户端发送 prompt → 客户端发送 tool_call → Agent 发送 tool_result → Agent 返回 response</span></label>
+</form>
+<div class="exercise-feedback" role="status" hidden></div>
 <div class="exercise-answer" hidden>
-<ol><li>prompt（或 messages）</li><li>tool_call（或 tool）</li><li>tool_result</li><li>response（或 completion）</li></ol>
+<p>B</p>
+<p>用户问题由客户端以 prompt 发起；Agent 决定需要读取 README 并发出 tool_call；客户端执行后返回 tool_result；Agent 拿到结果后给出最终 response。</p>
 </div>
 <div class="exercise-controls">
-  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <button class="exercise-check" type="button">Check</button>
+  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Reveal answer</button>
   <label class="exercise-done">
     <input type="checkbox"> Mark as done
   </label>

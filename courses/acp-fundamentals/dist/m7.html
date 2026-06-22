@@ -55,16 +55,26 @@ ACP Agent</code></pre>
 </div></section>
 <section><h2 data-section-id="m7-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m7-summary" data-ask-title="模块小结">Ask here</button></h2>
 <ul><li>浏览器需要 bridge 才能使用本地 ACP Agent。</li><li>bridge 负责进程和协议的整洁性。</li><li>SSE 通常足以支撑流式回答。</li><li>在本地闭环被证明有用之前，不要急着搭建完整平台。</li></ul>
-<div class="exercise" data-has-answer="true">
-<div class="exercise-task">
-<p>你正在设计一个浏览器内的 ACP 助手。团队提出了两种方案，请选择更合理的一种。</p>
-<ul><li>A. 浏览器页面直接通过 JavaScript 的 <code>child_process</code> 启动本地 Agent。</li><li>B. 浏览器通过 SSE 连接一个本地 bridge；bridge 启动并持有 stdio Agent 进程。</li><li>C. 浏览器通过普通 HTTP 轮询 Agent 进程的标准输出。</li><li>D. 浏览器直接使用 WebSocket 与 Agent 进程通信。</li></ul>
+<div class="exercise" data-kind="case">
+<div class="exercise-task judgment-task">
+<p>你正在设计一个浏览器内的 ACP 助手。团队提出了两种方案：</p>
+<p>方案 A：浏览器页面直接通过 JavaScript 启动本地 Agent 进程。 方案 B：浏览器通过 SSE 连接一个本地 bridge；bridge 启动并持有 stdio Agent 进程。</p>
+<p>你会怎么选？先写下你的主要顾虑。</p>
 </div>
-<div class="exercise-answer" hidden>
-<p><strong>B</strong> 最合理。浏览器无法直接启动子进程，bridge 提供了必要的进程隔离和协议转换；SSE 适合流式回答。A 违反浏览器安全模型；C 的轮询效率低；D 在没有双向高频通信需求时比 SSE 更复杂。</p>
+<textarea class="judgment-reasoning" placeholder="Write your reasoning here..."></textarea>
+<div class="judgment-reveal" hidden>
+<section class="judgment-section perspective" hidden><h4>Author perspective</h4>
+<p>浏览器的核心约束是沙箱：网页不能直接启动子进程，也不能直接读写本地 stdin/stdout。因此 bridge 不仅是“可选中间层”，而是让浏览器能够与本地 Agent 交互的最小可信边界。</p>
+</section>
+<section class="judgment-section tradeoffs" hidden><h4>Tradeoffs</h4>
+<ul><li>方案 A：违反浏览器安全模型，无法在不引入私有插件或 Native Messaging 的情况下实现。</li><li>方案 B：bridge 承担进程管理与协议转换，浏览器只负责展示与 SSE 接收，复杂度可控。</li><li>WebSocket 替代 SSE：在没有高频双向通信需求时，比 SSE 更复杂。</li></ul>
+</section>
+<section class="judgment-section pitfalls" hidden><h4>Pitfalls</h4>
+<ul><li>不要把 bridge 做成通用远程代理，否则会带来未授权访问风险。</li><li>不要假设 bridge 所在机器与浏览器所在机器一定相同；部署形态会变化。</li></ul>
+</section>
 </div>
 <div class="exercise-controls">
-  <button class="exercise-toggle" type="button" aria-expanded="false">Show answer</button>
+  <button class="exercise-compare" type="button">Compare with author perspective</button>
   <label class="exercise-done">
     <input type="checkbox"> Mark as done
   </label>

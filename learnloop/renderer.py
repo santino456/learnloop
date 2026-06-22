@@ -383,10 +383,17 @@ def module_nav_links(course: CourseDoc, module: ModuleDoc) -> str:
 def render_index(course: CourseDoc, template: Any) -> str:
     cards = []
     for idx, module in enumerate(course.modules, start=1):
+        label = _module_template_label(course, module)
         cards.append(
             f"""<a class="module-card" href="{html.escape(module_output_name(module))}">
   <span class="module-number">{idx:02d}</span>
-  <span class="module-text"><strong>{html.escape(module.title)}</strong><em>{html.escape(module.summary)}</em></span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>{html.escape(module.title)}</strong>
+      <span class="module-template">{html.escape(label)}</span>
+    </span>
+    <em>{html.escape(module.summary)}</em>
+  </span>
 </a>"""
         )
     content = f"""<header class="hero">
@@ -394,9 +401,6 @@ def render_index(course: CourseDoc, template: Any) -> str:
   <h1>{html.escape(course.title)}</h1>
   <p class="lede">{html.escape(course.subtitle)}</p>
 </header>
-<section class="intro">
-  <p>一次学习一个模块。当某个概念变得模糊时，直接在对应章节旁提问。LearnLoop 会把问题连同它所在的课程上下文一起保存，方便后续让 Agent 回答或改进材料。</p>
-</section>
 <nav class="modules">{''.join(cards)}</nav>"""
 
     page = template.template_html
@@ -461,6 +465,15 @@ def _copy_template_assets(dist: Path, template: Any) -> None:
 
 def module_output_name(module: ModuleDoc) -> str:
     return f"{module.id}.html"
+
+
+def _module_template_label(course: CourseDoc, module: ModuleDoc) -> str:
+    try:
+        frontmatter, _ = parse_module(course.root / module.file)
+    except Exception:
+        frontmatter = {}
+    name = frontmatter.get("template") or module.template or course.template or "tutorial"
+    return name.upper()
 
 
 def validate_course(course_dir: Path) -> list[str]:

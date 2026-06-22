@@ -42,7 +42,7 @@ body {
 .page {
   width: min(820px, calc(100vw - 40px));
   margin: 0 auto;
-  padding: 48px 0 120px;
+  padding: 32px 0 120px;
 }
 
 .top-nav-template {
@@ -78,9 +78,19 @@ body {
 
 .hero,
 .lesson-header {
-  padding-bottom: 24px;
-  margin-bottom: 24px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
   border-bottom: 1px solid var(--line-strong);
+}
+
+.hero h1 {
+  margin-bottom: 8px;
+}
+
+.hero .lede {
+  font-size: 16px;
+  line-height: 1.55;
+  margin-bottom: 0;
 }
 
 .eyebrow {
@@ -139,28 +149,24 @@ p, li {
   max-width: 720px;
 }
 
-.intro, .callout {
+.callout {
   background: var(--paper);
-  border-left: 4px solid var(--accent);
+  border-left: 4px solid var(--accent-warm);
   padding: 20px 24px;
   margin: 24px 0;
   border-radius: 0 var(--radius) var(--radius) 0;
   box-shadow: var(--shadow);
 }
 
-.callout {
-  border-left-color: var(--accent-warm);
-}
-
 .modules {
   display: grid;
-  gap: 14px;
-  margin-top: 32px;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .module-card {
   display: grid;
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 64px 1fr;
   color: inherit;
   text-decoration: none;
   background: var(--paper);
@@ -178,21 +184,39 @@ p, li {
   place-items: center;
   background: var(--accent-soft);
   color: var(--accent);
-  font: 700 28px var(--font-mono);
+  font: 700 24px var(--font-mono);
   border-radius: var(--radius) 0 0 var(--radius);
 }
-.module-text { padding: 20px 22px; }
-.module-text strong {
-  display: block;
-  font-size: 18px;
-  font-family: var(--font-display);
+.module-text { padding: 16px 18px; }
+.module-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
   margin-bottom: 4px;
+}
+.module-text strong {
+  font-size: 17px;
+  font-family: var(--font-display);
 }
 .module-text em {
   display: block;
   color: var(--muted);
   font-style: normal;
   font-size: 14px;
+}
+.module-template {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--line);
+  padding: 2px 7px;
+  border-radius: 999px;
 }
 
 .top-nav, .next-prev {

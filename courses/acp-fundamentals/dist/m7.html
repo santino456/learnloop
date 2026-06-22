@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bridge ACP to the browser | LearnLoop</title>
+  <title>把 ACP 桥接到浏览器 | LearnLoop</title>
   <link rel="stylesheet" href="assets/workshop/style.css">
 </head>
 <body>
@@ -11,28 +11,31 @@
   <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m7</span></nav>
 <article class="lesson" data-course-id="acp-fundamentals" data-module-id="m7">
   <header class="lesson-header">
-    <p class="eyebrow">ACP Fundamentals</p>
-    <h1>Bridge ACP to the browser</h1>
-    <p class="lede">Browsers cannot start local subprocesses, so a local bridge owns the ACP process.</p>
+    <p class="eyebrow">ACP 基础</p>
+    <h1>把 ACP 桥接到浏览器</h1>
+    <p class="lede">浏览器无法启动本地子进程，因此需要一个本地 bridge 来持有 ACP 进程。</p>
   </header>
-  <section><h2 data-section-id="m7-why" data-section-title="Why a browser needs a bridge">Why a browser needs a bridge <button class="ask-btn" data-ask-section="m7-why" data-ask-title="Why a browser needs a bridge">Ask here</button></h2>
-<p>A browser page cannot safely spawn a local agent process. It also cannot directly manage stdin and stdout pipes.</p>
-<p>The usual shape is a local bridge: browser talks to bridge over HTTP or SSE; bridge talks to the ACP agent over stdio.</p></section>
-<section><h2 data-section-id="m7-architecture" data-section-title="Bridge architecture">Bridge architecture <button class="ask-btn" data-ask-section="m7-architecture" data-ask-title="Bridge architecture">Ask here</button></h2>
+  <section><h2 data-section-id="m7-why" data-section-title="浏览器为什么需要桥接">浏览器为什么需要桥接 <button class="ask-btn" data-ask-section="m7-why" data-ask-title="浏览器为什么需要桥接">Ask here</button></h2>
+<p>浏览器页面不能安全地启动本地 Agent 进程，也无法直接管理 stdin/stdout 管道。</p>
+<p>常见做法是引入一个<strong>本地 bridge</strong>：浏览器与 bridge 通过 HTTP 或 SSE 通信；bridge 再通过 stdio 与 ACP Agent 通信。</p>
+<div class="checkpoint"><p>为什么浏览器不能直接管理 stdio？这涉及浏览器的哪个核心安全限制？</p></div></section>
+<section><h2 data-section-id="m7-architecture" data-section-title="Bridge 架构">Bridge 架构 <button class="ask-btn" data-ask-section="m7-architecture" data-ask-title="Bridge 架构">Ask here</button></h2>
 <pre><code class="language-text">Browser UI
-  | HTTP or SSE
+  | HTTP 或 SSE
 Local Bridge
   | JSON lines over stdio
 ACP Agent</code></pre>
-<p>The bridge owns process lifetime, request ids, tool policy, and stream conversion.</p></section>
-<section><h2 data-section-id="m7-http" data-section-title="Minimal HTTP responsibilities">Minimal HTTP responsibilities <button class="ask-btn" data-ask-section="m7-http" data-ask-title="Minimal HTTP responsibilities">Ask here</button></h2>
-<p>A small bridge needs only a few responsibilities at first:</p>
-<ul><li>Accept a user message from the browser.</li><li>Convert it into an ACP request.</li><li>Read agent responses.</li><li>Stream or return the answer.</li><li>Store logs and errors in a debuggable place.</li></ul></section>
-<section><h2 data-section-id="m7-sse" data-section-title="HTTP, SSE, or WebSocket">HTTP, SSE, or WebSocket <button class="ask-btn" data-ask-section="m7-sse" data-ask-title="HTTP, SSE, or WebSocket">Ask here</button></h2>
-<p>Use plain HTTP for request-response interactions. Use SSE when the main need is streaming text from the agent to the browser. Use WebSocket when both sides need frequent bidirectional messages.</p>
-<p>Start with the simplest transport that preserves the learning loop.</p></section>
-<section><h2 data-section-id="m7-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m7-summary" data-ask-title="Module recap">Ask here</button></h2>
-<ul><li>Browsers need a bridge for local ACP agents.</li><li>The bridge is responsible for process and protocol hygiene.</li><li>SSE is often enough for streaming answers.</li><li>Do not build a full platform before the local loop proves useful.</li></ul></section>
+<p>bridge 负责：进程生命周期、请求 id、工具策略、流转换。</p></section>
+<section><h2 data-section-id="m7-http" data-section-title="最小 HTTP 职责">最小 HTTP 职责 <button class="ask-btn" data-ask-section="m7-http" data-ask-title="最小 HTTP 职责">Ask here</button></h2>
+<p>一个小型 bridge 最初只需要承担这些职责：</p>
+<ul><li>接收来自浏览器的用户消息。</li><li>把它转换成 ACP 请求。</li><li>读取 Agent 响应。</li><li>以流式或一次性方式返回答案。</li><li>把日志和错误存到可调试的位置。</li></ul></section>
+<section><h2 data-section-id="m7-sse" data-section-title="HTTP、SSE 还是 WebSocket">HTTP、SSE 还是 WebSocket <button class="ask-btn" data-ask-section="m7-sse" data-ask-title="HTTP、SSE 还是 WebSocket">Ask here</button></h2>
+<ul><li><strong>HTTP</strong>：适合请求-响应式交互。</li><li><strong>SSE</strong>：适合把 Agent 的流式文本推送到浏览器。</li><li><strong>WebSocket</strong>：适合双方需要频繁双向通信的场景。</li></ul>
+<p>从最简单的传输开始，只要能保留学习闭环即可。</p>
+<div class="checkpoint"><p>如果只需要“用户发一条消息，Agent 流式返回一段文字”，应该优先选 HTTP、SSE 还是 WebSocket？</p></div></section>
+<section><h2 data-section-id="m7-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m7-summary" data-ask-title="模块小结">Ask here</button></h2>
+<ul><li>浏览器需要 bridge 才能使用本地 ACP Agent。</li><li>bridge 负责进程和协议的整洁性。</li><li>SSE 通常足以支撑流式回答。</li><li>在本地闭环被证明有用之前，不要急着搭建完整平台。</li></ul>
+<div class="exercise"><p>列出本地 bridge 的五个最小职责；然后说明：如果其中任何一项被遗漏，可能会在浏览器端出现什么问题？</p></div></section>
   <footer class="next-prev"><a href="m6.html">Previous</a><a href="m8.html">Next</a></footer>
 </article>
 <template id="ask-template">

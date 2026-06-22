@@ -24,7 +24,7 @@ class LearnLoopTests(unittest.TestCase):
         dist = build_course(SAMPLE)
         self.assertTrue((dist / "index.html").exists())
         self.assertTrue((dist / "m1.html").exists())
-        self.assertIn("What ACP is", (dist / "index.html").read_text(encoding="utf-8"))
+        self.assertIn("ACP 是什么", (dist / "index.html").read_text(encoding="utf-8"))
 
     def test_init_creates_valid_course(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

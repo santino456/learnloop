@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Communication model | LearnLoop</title>
+  <title>ACP 的通信模型 | LearnLoop</title>
   <link rel="stylesheet" href="assets/editorial/style.css">
 </head>
 <body>
@@ -11,25 +11,27 @@
   <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m2</span></nav>
 <article class="lesson" data-course-id="acp-fundamentals" data-module-id="m2">
   <header class="lesson-header">
-    <p class="eyebrow">ACP Fundamentals</p>
-    <h1>Communication model</h1>
-    <p class="lede">ACP messages are structured requests and responses between a client and an agent.</p>
+    <p class="eyebrow">ACP 基础</p>
+    <h1>ACP 的通信模型</h1>
+    <p class="lede">ACP 消息是客户端与 Agent 之间结构化的请求与响应。</p>
   </header>
-  <section><h2 data-section-id="m2-roles" data-section-title="Client and agent roles">Client and agent roles <button class="ask-btn" data-ask-section="m2-roles" data-ask-title="Client and agent roles">Ask here</button></h2>
-<p>In ACP, the client owns the user-facing surface. It sends requests, provides context, and may execute tools on behalf of the agent.</p>
-<p>The agent owns reasoning and task execution strategy. It receives prompts, may ask for tool calls, and returns responses.</p></section>
-<section><h2 data-section-id="m2-jsonrpc" data-section-title="JSON-RPC shape">JSON-RPC shape <button class="ask-btn" data-ask-section="m2-jsonrpc" data-ask-title="JSON-RPC shape">Ask here</button></h2>
-<p>Many ACP examples use JSON-RPC-like messages: each request has an <code>id</code>, a <code>method</code>, and optional <code>params</code>; each response links back to the request id.</p>
+  <section><h2 data-section-id="m2-roles" data-section-title="客户端与 Agent 的角色">客户端与 Agent 的角色 <button class="ask-btn" data-ask-section="m2-roles" data-ask-title="客户端与 Agent 的角色">Ask here</button></h2>
+<p>在 ACP 里，<strong>客户端</strong>负责用户能直接触摸到的界面：发送请求、提供上下文、并代表 Agent 执行工具调用。</p>
+<p><strong>Agent</strong>则负责推理和任务执行策略：接收提示、申请工具调用、返回结果。</p>
+<div class="checkpoint"><p>客户端和 Agent 各拥有哪一类职责？请各写一条。比如“客户端负责……，Agent 负责……”。</p></div></section>
+<section><h2 data-section-id="m2-jsonrpc" data-section-title="JSON-RPC 形态">JSON-RPC 形态 <button class="ask-btn" data-ask-section="m2-jsonrpc" data-ask-title="JSON-RPC 形态">Ask here</button></h2>
+<p>很多 ACP 示例采用类似 JSON-RPC 的消息：每条请求有 <code>id</code>、<code>method</code> 和可选的 <code>params</code>；每条响应通过相同的 <code>id</code> 与请求对应。</p>
 <pre><code class="language-json">{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;initialize&quot;,&quot;params&quot;:{&quot;capabilities&quot;:{}}}</code></pre>
-<p>When teaching or implementing from an example, verify the exact fields against the agent you are running.</p></section>
-<section><h2 data-section-id="m2-stdio" data-section-title="Local transport">Local transport <button class="ask-btn" data-ask-section="m2-stdio" data-ask-title="Local transport">Ask here</button></h2>
-<p>The local pattern is line-delimited JSON over standard input and output.</p>
-<ul><li>The client writes one JSON object plus a newline to the agent&#x27;s stdin.</li><li>The agent writes one JSON object plus a newline to stdout.</li><li>Logs should go to stderr so stdout stays parseable.</li></ul></section>
-<section><h2 data-section-id="m2-lifecycle" data-section-title="Conversation lifecycle">Conversation lifecycle <button class="ask-btn" data-ask-section="m2-lifecycle" data-ask-title="Conversation lifecycle">Ask here</button></h2>
-<p>A minimal session usually follows this mental model:</p>
-<ol><li>Start the agent process.</li><li>Send an initialize request.</li><li>Send a prompt or task request.</li><li>Handle response messages and possible tool calls.</li><li>Close the process when the session is done.</li></ol></section>
-<section><h2 data-section-id="m2-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="Module recap">Ask here</button></h2>
-<ul><li>ACP separates user-facing client responsibilities from agent responsibilities.</li><li>Local ACP depends on clean stdout and explicit flushing.</li><li>Treat examples as protocol sketches until they are tested against the exact agent version.</li></ul></section>
+<p>在教学或实现时，一定要对照你实际运行的 Agent 版本确认字段名称。</p></section>
+<section><h2 data-section-id="m2-stdio" data-section-title="本地传输">本地传输 <button class="ask-btn" data-ask-section="m2-stdio" data-ask-title="本地传输">Ask here</button></h2>
+<p>本地模式通常是<strong>行分隔的 JSON</strong>，通过标准输入和标准输出传输。</p>
+<ul><li>客户端向 Agent 的 stdin 写入一条 JSON 并加上换行。</li><li>Agent 向 stdout 写入一条 JSON 并加上换行。</li><li>日志应该输出到 stderr，保证 stdout 始终可解析。</li></ul></section>
+<section><h2 data-section-id="m2-lifecycle" data-section-title="会话生命周期">会话生命周期 <button class="ask-btn" data-ask-section="m2-lifecycle" data-ask-title="会话生命周期">Ask here</button></h2>
+<p>一次最小会话通常遵循这样的心智模型：</p>
+<ol><li>启动 Agent 进程。</li><li>发送 initialize 请求。</li><li>发送 prompt 或任务请求。</li><li>处理响应消息以及可能的工具调用。</li><li>会话结束时关闭进程。</li></ol>
+<div class="checkpoint"><p>为什么 stdout 必须保持“干净”？如果日志混进 stdout 会发生什么？</p></div></section>
+<section><h2 data-section-id="m2-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="模块小结">Ask here</button></h2>
+<ul><li>ACP 把面向用户的客户端职责和 Agent 的推理职责分开。</li><li>本地 ACP 依赖干净的 stdout 和显式刷新缓冲区。</li><li>示例只是协议草图，必须针对具体 Agent 版本验证后再运行。</li></ul></section>
   <footer class="next-prev"><a href="m1.html">Previous</a><a href="m3.html">Next</a></footer>
 </article>
 <template id="ask-template">

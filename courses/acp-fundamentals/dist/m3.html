@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Initialize and capabilities | LearnLoop</title>
-  <link rel="stylesheet" href="assets/editorial/style.css">
+  <title>初始化与能力协商 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/workshop/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
   <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m3</span></nav>
 <article class="lesson" data-course-id="acp-fundamentals" data-module-id="m3">
   <header class="lesson-header">
-    <p class="eyebrow">ACP Fundamentals</p>
-    <h1>Initialize and capabilities</h1>
-    <p class="lede">The first exchange establishes what both sides can do.</p>
+    <p class="eyebrow">ACP 基础</p>
+    <h1>初始化与能力协商</h1>
+    <p class="lede">第一次正式交换用来确定双方都能做什么。</p>
   </header>
-  <section><h2 data-section-id="m3-handshake" data-section-title="Initialize handshake">Initialize handshake <button class="ask-btn" data-ask-section="m3-handshake" data-ask-title="Initialize handshake">Ask here</button></h2>
-<p>The initialize request is the first structured conversation between client and agent. Its job is to establish protocol compatibility and advertise capabilities.</p>
+  <section><h2 data-section-id="m3-handshake" data-section-title="initialize 握手">initialize 握手 <button class="ask-btn" data-ask-section="m3-handshake" data-ask-title="initialize 握手">Ask here</button></h2>
+<p><code>initialize</code> 是客户端和 Agent 之间的第一次结构化对话。它的任务是确认协议兼容，并互相通报各自支持的能力。</p>
 <pre><code class="language-json">{
   &quot;jsonrpc&quot;: &quot;2.0&quot;,
   &quot;id&quot;: 1,
@@ -26,14 +26,17 @@
     &quot;clientInfo&quot;: {&quot;name&quot;: &quot;minimal-client&quot;, &quot;version&quot;: &quot;0.1.0&quot;}
   }
 }</code></pre>
-<div class="callout">Verification note: concrete field names and protocol versions can change. Check the current ACP implementation or CLI help before publishing runnable examples.</div></section>
-<section><h2 data-section-id="m3-capabilities" data-section-title="Capability negotiation">Capability negotiation <button class="ask-btn" data-ask-section="m3-capabilities" data-ask-title="Capability negotiation">Ask here</button></h2>
-<p>Capabilities prevent the client and agent from guessing. A client can say what resources, tools, or interaction modes it supports. An agent can say what it can handle.</p>
-<p>The important habit is not memorizing a specific capability matrix. The important habit is checking both sides before using an optional feature.</p></section>
-<section><h2 data-section-id="m3-failure" data-section-title="Failed negotiation">Failed negotiation <button class="ask-btn" data-ask-section="m3-failure" data-ask-title="Failed negotiation">Ask here</button></h2>
-<p>If the handshake fails, do not continue as if the session is valid. Surface a clear error that says which required capability or protocol version did not match.</p></section>
-<section><h2 data-section-id="m3-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="Module recap">Ask here</button></h2>
-<ul><li>Initialize creates the first reliable contract between client and agent.</li><li>Capability checks keep optional features honest.</li><li>Exact protocol fields must be verified against the implementation in use.</li></ul></section>
+<div class="callout">验证提示：具体字段名和协议版本可能变化。在把示例写成可运行代码前，先对照你使用的 ACP 实现或 CLI 帮助文档确认。</div>
+<div class="checkpoint"><p>initialize 请求里，哪一部分用来告诉 Agent“我是谁”？</p></div></section>
+<section><h2 data-section-id="m3-capabilities" data-section-title="能力协商">能力协商 <button class="ask-btn" data-ask-section="m3-capabilities" data-ask-title="能力协商">Ask here</button></h2>
+<p>能力协商（capabilities）让双方不必互相猜测。客户端可以说自己支持哪些资源、工具或交互模式；Agent 也可以说它能处理什么。</p>
+<p>重要的不是背下某一张固定的能力矩阵，而是养成习惯：<strong>在使用可选功能之前，先检查双方都支持什么</strong>。</p></section>
+<section><h2 data-section-id="m3-failure" data-section-title="协商失败怎么办">协商失败怎么办 <button class="ask-btn" data-ask-section="m3-failure" data-ask-title="协商失败怎么办">Ask here</button></h2>
+<p>如果握手失败，就不要继续假装会话有效。应该抛出明确错误，说明是哪一项必需能力或协议版本没有匹配上。</p>
+<div class="checkpoint"><p>假设 Agent 要求 <code>streaming</code> 能力，但客户端没声明支持，接下来会发生什么？应该怎么处理？</p></div></section>
+<section><h2 data-section-id="m3-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="模块小结">Ask here</button></h2>
+<ul><li>initialize 在客户端和 Agent 之间建立了第一份可靠契约。</li><li>能力协商让可选功能变得可控。</li><li>具体协议字段必须针对当前实现版本验证。</li></ul>
+<div class="exercise"><p>写一段伪代码：客户端发送 initialize，收到响应后检查 Agent 是否声明了 <code>tools</code> 能力；如果没有，打印错误并结束进程。</p></div></section>
   <footer class="next-prev"><a href="m2.html">Previous</a><a href="m4.html">Next</a></footer>
 </article>
 <template id="ask-template">
@@ -53,6 +56,6 @@
   <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
 </aside></main>
   <script src="/config.js"></script>
-  <script src="assets/editorial/runtime.js"></script>
+  <script src="assets/workshop/runtime.js"></script>
 </body>
 </html>

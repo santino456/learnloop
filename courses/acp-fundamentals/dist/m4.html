@@ -3,46 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prompt, resources, and tool calls | LearnLoop</title>
-  <link rel="stylesheet" href="assets/editorial/style.css">
+  <title>提示词、资源与工具调用 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/workshop/style.css">
 </head>
 <body>
   <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
   <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m4</span></nav>
 <article class="lesson" data-course-id="acp-fundamentals" data-module-id="m4">
   <header class="lesson-header">
-    <p class="eyebrow">ACP Fundamentals</p>
-    <h1>Prompt, resources, and tool calls</h1>
-    <p class="lede">Prompts carry user intent, resources carry context, and tool calls let the agent ask the client to do work.</p>
+    <p class="eyebrow">ACP 基础</p>
+    <h1>提示词、资源与工具调用</h1>
+    <p class="lede">提示词承载用户意图，资源让上下文可寻址，工具调用让 Agent 请求客户端代劳。</p>
   </header>
-  <section><h2 data-section-id="m4-prompt" data-section-title="Prompt content">Prompt content <button class="ask-btn" data-ask-section="m4-prompt" data-ask-title="Prompt content">Ask here</button></h2>
-<p>A prompt is not just a string. In protocol-oriented systems it often becomes a structured message with a role and one or more content blocks.</p>
+  <section><h2 data-section-id="m4-prompt" data-section-title="提示词内容">提示词内容 <button class="ask-btn" data-ask-section="m4-prompt" data-ask-title="提示词内容">Ask here</button></h2>
+<p>提示词不只是一段字符串。在面向协议的系统中，它通常变成一条结构化消息，包含角色和一个或多个内容块。</p>
 <pre><code class="language-json">{
   &quot;role&quot;: &quot;user&quot;,
   &quot;content&quot;: [
-    {&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;Summarize this project for a new contributor.&quot;}
+    {&quot;type&quot;: &quot;text&quot;, &quot;text&quot;: &quot;给新成员总结一下这个项目。&quot;}
   ]
-}</code></pre></section>
-<section><h2 data-section-id="m4-resources" data-section-title="Resource references">Resource references <button class="ask-btn" data-ask-section="m4-resources" data-ask-title="Resource references">Ask here</button></h2>
-<p>Resources point the agent at context without pasting everything into a single prompt. For a public teaching example, use a fictitious project path:</p>
+}</code></pre>
+<div class="checkpoint"><p>消息里的 <code>content</code> 为什么是数组而不是单个字符串？这会带来什么好处？</p></div></section>
+<section><h2 data-section-id="m4-resources" data-section-title="资源引用">资源引用 <button class="ask-btn" data-ask-section="m4-resources" data-ask-title="资源引用">Ask here</button></h2>
+<p>资源的作用是让 Agent 找到上下文，而不是把所有内容都塞进一个 prompt。在教学示例里，可以用一个虚构的项目路径：</p>
 <pre><code class="language-json">{
   &quot;type&quot;: &quot;resource_link&quot;,
   &quot;uri&quot;: &quot;file:///workspace/campus-guide/README.md&quot;,
-  &quot;description&quot;: &quot;CampusGuide project README&quot;
+  &quot;description&quot;: &quot;CampusGuide 项目 README&quot;
 }</code></pre>
-<p>CampusGuide is a fictional campus Q&amp;A assistant. It is useful as an example because it has documents, user questions, and local files without exposing any private project.</p></section>
-<section><h2 data-section-id="m4-tool-flow" data-section-title="Tool call flow">Tool call flow <button class="ask-btn" data-ask-section="m4-tool-flow" data-ask-title="Tool call flow">Ask here</button></h2>
-<p>An agent may decide it needs a tool result before answering. The client decides whether the tool call is allowed, executes it, and returns the result.</p>
+<p>CampusGuide 是一个虚构的校园问答助手。用它做例子很合适：有文档、有用户问题、有本地文件，但又不会暴露任何私有项目。</p></section>
+<section><h2 data-section-id="m4-tool-flow" data-section-title="工具调用流程">工具调用流程 <button class="ask-btn" data-ask-section="m4-tool-flow" data-ask-title="工具调用流程">Ask here</button></h2>
+<p>Agent 可能觉得自己需要先拿到某个工具结果才能回答。客户端负责判断这个工具调用是否允许，执行它，再把结果返回。</p>
 <pre><code class="language-json">{
   &quot;name&quot;: &quot;read_file&quot;,
   &quot;arguments&quot;: &quot;{\&quot;path\&quot;:\&quot;/workspace/campus-guide/README.md\&quot;}&quot;
 }</code></pre>
-<p>The agent should not silently assume tool results. The client should not execute unsafe tool calls without a policy.</p></section>
-<section><h2 data-section-id="m4-example" data-section-title="Complete teaching example">Complete teaching example <button class="ask-btn" data-ask-section="m4-example" data-ask-title="Complete teaching example">Ask here</button></h2>
-<p>A learner asks: &quot;What does CampusGuide do?&quot;</p>
-<p>The agent asks to read <code>/workspace/campus-guide/README.md</code>. The client returns a short file excerpt. The agent answers: &quot;CampusGuide is a fictional campus Q&amp;A assistant used in this lesson to explain resource and tool-call flow.&quot;</p></section>
-<section><h2 data-section-id="m4-summary" data-section-title="Module recap">Module recap <button class="ask-btn" data-ask-section="m4-summary" data-ask-title="Module recap">Ask here</button></h2>
-<ul><li>Prompt messages carry user intent.</li><li>Resources make context addressable.</li><li>Tool calls let the agent ask the client to perform controlled work.</li><li>Public examples should use fictitious paths and projects.</li></ul></section>
+<p>Agent 不应该默认工具调用一定成功；客户端也不应该在没有任何策略的情况下执行不安全的工具调用。</p>
+<div class="checkpoint"><p>在工具调用链路中，谁是“决策者”，谁是“执行者”？分别对应客户端还是 Agent？</p></div></section>
+<section><h2 data-section-id="m4-example" data-section-title="完整教学示例">完整教学示例 <button class="ask-btn" data-ask-section="m4-example" data-ask-title="完整教学示例">Ask here</button></h2>
+<p>学习者问：“CampusGuide 是做什么的？”</p>
+<p>Agent 申请读取 <code>/workspace/campus-guide/README.md</code>。客户端返回一段简短文件摘要。Agent 回答：“CampusGuide 是本课程里用来解释资源和工具调用流程的虚构校园问答助手。”</p></section>
+<section><h2 data-section-id="m4-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m4-summary" data-ask-title="模块小结">Ask here</button></h2>
+<ul><li>提示词消息承载用户意图。</li><li>资源让上下文变得可寻址。</li><li>工具调用让 Agent 请求客户端在受控范围内执行操作。</li><li>公开教学示例应该使用虚构路径和项目。</li></ul>
+<div class="exercise"><p>画一张时序图或用文字列出 5 步：用户提问 → Agent 申请资源 → 客户端返回 → Agent 申请工具 → 客户端返回 → Agent 给出最终回答。</p></div></section>
   <footer class="next-prev"><a href="m3.html">Previous</a><a href="m5.html">Next</a></footer>
 </article>
 <template id="ask-template">
@@ -62,6 +65,6 @@
   <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
 </aside></main>
   <script src="/config.js"></script>
-  <script src="assets/editorial/runtime.js"></script>
+  <script src="assets/workshop/runtime.js"></script>
 </body>
 </html>

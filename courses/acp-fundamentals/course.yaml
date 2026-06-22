@@ -1,39 +1,39 @@
 id: acp-fundamentals
-title: "ACP Fundamentals"
-subtitle: "Learn Agent Client Protocol through small concepts, local questions, and agent-ready learning context."
-audience: "Developers evaluating agent protocols for local tools and editors."
+title: "ACP 基础"
+subtitle: "通过小概念、本地提问和 Agent 就绪的学习上下文，理解 Agent Client Protocol。"
+audience: "正在为本地工具或编辑器评估 Agent 协议的开发者。"
 default_port: 8787
 template: editorial
 modules:
   - id: m1
-    title: "What ACP is and why it exists"
+    title: "ACP 是什么，为什么需要它"
     file: "modules/01.md"
-    summary: "Understand the client-agent integration problem ACP tries to solve."
+    summary: "理解 ACP 试图解决的客户端- Agent 集成问题。"
   - id: m2
-    title: "Communication model"
+    title: "ACP 的通信模型"
     file: "modules/02.md"
-    summary: "Read ACP as JSON-RPC over a transport, with clear client and agent roles."
+    summary: "把 ACP 看作传输层上的 JSON-RPC，明确客户端与 Agent 的角色。"
   - id: m3
-    title: "Initialize and capabilities"
+    title: "初始化与能力协商"
     file: "modules/03.md"
-    summary: "Learn the handshake and why capability negotiation matters."
+    summary: "学习握手过程，以及能力协商为何重要。"
   - id: m4
-    title: "Prompt, resources, and tool calls"
+    title: "提示词、资源与工具调用"
     file: "modules/04.md"
-    summary: "See how prompts carry content, references, and tool requests."
+    summary: "看提示词如何承载内容、引用和工具请求。"
   - id: m5
-    title: "ACP, MCP, and A2A"
+    title: "ACP、MCP 与 A2A 的区别"
     file: "modules/05.md"
-    summary: "Separate the protocol layers so you choose the right one."
+    summary: "把协议分层，才能选出正确的那一层。"
   - id: m6
-    title: "Build a minimal ACP client"
+    title: "构建最小 ACP 客户端"
     file: "modules/06.md"
-    summary: "Sketch the smallest local client and the buffering rules that matter."
+    summary: "画出最小本地客户端草图，以及真正影响正确性的缓冲规则。"
   - id: m7
-    title: "Bridge ACP to the browser"
+    title: "把 ACP 桥接到浏览器"
     file: "modules/07.md"
-    summary: "Use a local bridge when a web UI needs to talk to a stdio agent."
+    summary: "当 Web UI 需要与 stdio Agent 对话时，用本地 bridge 解决。"
   - id: m8
-    title: "Boundaries and judgment"
+    title: "边界与判断"
     file: "modules/08.md"
-    summary: "Decide when ACP is worth the extra moving parts."
+    summary: "判断什么时候值得引入 ACP 这些额外复杂度。"

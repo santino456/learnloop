@@ -1,64 +1,30 @@
-/* Tutorial — editorial/magazine reading experience */
+/* Tutorial — editorial reading */
 .page {
-  width: min(820px, calc(100vw - 48px));
-  padding-top: 64px;
+  width: min(780px, calc(100vw - 40px));
+  padding-top: 56px;
 }
 
 .hero,
 .lesson-header {
-  border-bottom: 2px solid var(--accent-warm);
+  border-bottom: 2px solid var(--line-strong);
   padding-bottom: 40px;
   margin-bottom: 40px;
 }
 
 h1 {
-  font-size: clamp(44px, 7vw, 76px);
-  letter-spacing: -0.03em;
+  font-size: clamp(40px, 6vw, 68px);
+  letter-spacing: 0.02em;
 }
-
-h2 { font-weight: 600; }
 
 .lede {
   font-size: 22px;
-  color: var(--muted);
 }
 
-.intro {
-  background: var(--paper);
-  border-left-color: var(--accent);
-}
-
-/* Reflection checkpoint */
 .checkpoint {
-  border-left: 4px solid var(--highlight);
+  border-left-color: var(--accent-warm);
   background: #fffbf0;
 }
-.checkpoint::before {
-  content: "💡 Reflection";
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--accent);
-  margin-bottom: 10px;
-}
+.checkpoint::before { content: "💡 反思"; color: var(--accent-warm); }
 
-/* Minimal exercise treatment */
-.exercise {
-  border-left: 4px solid var(--accent);
-}
-.exercise::before {
-  content: "Exercise";
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--accent);
-  margin-bottom: 10px;
-}
-
-@media (max-width: 640px) {
-  h1 { font-size: 40px; }
-}
+.exercise { border-left-color: var(--accent); }
+.exercise::before { content: "练习"; }

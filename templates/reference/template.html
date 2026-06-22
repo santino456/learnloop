@@ -4,20 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ page_title }}</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Serif+SC:wght@500;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/base.css">
   <link rel="stylesheet" href="{{ css_href }}">
 </head>
 <body>
-  <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
-  <header class="reference-header">
-    <span class="reference-brand">Reference</span>
-    <span class="reference-course">{{ course_title }}</span>
-  </header>
-  <main class="page">{{ content }}</main>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <div class="template-label">参考 Reference</div>
+    {{ content }}
+  </main>
   <script src="/config.js"></script>
+  <script src="assets/runtime-base.js"></script>
   <script src="{{ js_src }}"></script>
 </body>
 </html>

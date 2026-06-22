@@ -2,33 +2,44 @@
 
 ## Current status
 
-Comprehensive frontend redesign completed for the ACP fundamentals sample course. All four templates (`tutorial`, `reference`, `practice`, `case`) now share a unified warm-purple + cream design system, use a distinctive serif/sans/mono font pairing, and have polished, template-specific interactions.
+Frontend redesign and stabilization completed after user feedback. All four templates (`tutorial`, `reference`, `practice`, `case`) now share a unified warm-paper theme, use clean system fonts for Chinese, and have consistent template labels. Question drawer groups questions by section and filters to the current module.
 
 ## Completed work
 
-- **Shared design system**
-  - Added `templates/base.css` with the warm-purple palette, typography, spacing, tables, code blocks with copy buttons, callouts, module cards, navigation, ask forms, question drawer, and shared exercise/checkpoint primitives.
-  - Updated all `templates/*/template.html` files to load Google Fonts and `assets/base.css` plus their own `style.css`.
-  - Updated `learnloop/renderer.py` to copy `templates/base.css` into `dist/assets/base.css` during every build.
+- **Unified warm-paper theme**
+  - Rewrote `templates/base.css` with warm paper/cream palette (`#f7f2e8` background, brown accents).
+  - Removed Google Fonts; switched to system fonts optimized for Chinese (`PingFang SC`, `Microsoft YaHei`, `Noto Serif SC` fallback for headings).
+  - All 4 templates now load `assets/base.css` plus a small template-specific override.
 
-- **Template-specific polish**
-  - `tutorial`: editorial reading experience, generous whitespace, reflection checkpoints with amber accent.
-  - `reference`: dense knowledge warehouse with sticky header, file-folder cards, smooth expand/collapse via `.card-inner`, and a runtime card-filter input.
-  - `practice`: worksheet aesthetic with styled radio cards, underlined fill-in-the-blank inputs, spot-the-bug line highlighting, smooth feedback reveal, and prominent check buttons.
-  - `case`: judgment notebook with scenario card, lined reasoning textarea, smooth accordion reveal, and colored perspective/tradeoffs/pitfalls sections.
+- **Template labels**
+  - Each page shows a consistent label: 教程 Tutorial / 参考 Reference / 练习 Practice / 案例 Case.
+  - Removed the reference-only sticky header; all templates use the same label component.
 
-- **Runtime parity**
-  - Rewrote all four `runtime.js` files to keep: question drawer, `/ask` posting, copy buttons, mark-done checkboxes, answer toggles, reference card toggles/filter, practice exercise checking, and case judgment reveal.
+- **Question drawer rewrite**
+  - Drawer now shows only questions from the current module.
+  - Questions are grouped by section with section titles.
+  - Item text wraps properly; no truncation.
+  - UI text translated to Chinese.
+
+- **Reference template fix**
+  - Cards expand/collapse reliably with `display` toggle instead of grid animation.
+  - No content truncation.
+  - Content remains deep and detailed (m2).
+
+- **Practice / Case polish**
+  - Choice, fill-in, spot-the-bug exercises share the warm-paper theme.
+  - Case judgment card uses consistent colors and notebook-style textarea.
+
+- **Runtime refactor**
+  - Created `templates/runtime-base.js` for shared question/ask/copy logic.
+  - Each template's `runtime.js` only handles template-specific interactions.
+  - All UI strings in runtime translated to Chinese.
 
 - **Content**
-  - Deepened `modules/02.md` into a dense reference module with role tables, JSON-RPC field reference, request/response/error examples, stdio rules and Python snippet, lifecycle steps, and quick-reference card.
-
-- **Tests**
-  - Updated `tests/test_learnloop.py` to assert that `assets/base.css` is generated and loaded, and added `test_all_templates_produce_non_empty_html`.
+  - `modules/02.md` remains the dense reference module.
+  - Index intro and all hardcoded UI strings translated to Chinese.
 
 ## Verification
-
-Run:
 
 ```bash
 cd /Users/hqyone/Documents/learn-with-ai
@@ -38,41 +49,8 @@ python3 -m unittest discover -s tests -v
 python3 /Users/hqyone/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/learnloop
 ```
 
-Browser check:
-
-```bash
-python3 -m learnloop serve courses/acp-fundamentals --port 8800
-```
-
-Then open `index.html`, `m1.html`, `m2.html`, `m3.html`, `m5.html`.
-
-## Template / theme architecture
-
-```text
-templates/
-├── base.css            # shared variables, typography, components, utilities
-├── tutorial/
-│   ├── template.html   # loads base.css + style.css + fonts
-│   ├── style.css       # editorial overrides
-│   └── runtime.js
-├── reference/
-│   ├── template.html
-│   ├── style.css       # dense/card overrides
-│   └── runtime.js      # card toggles + filter
-├── practice/
-│   ├── template.html
-│   ├── style.css       # interactive exercise overrides
-│   └── runtime.js      # choice / fill / bug checking
-└── case/
-    ├── template.html
-    ├── style.css       # judgment notebook overrides
-    └── runtime.js      # perspective/tradeoffs/pitfalls reveal
-```
-
 ## Known issues / next steps
 
-- Google Fonts require an internet connection on first load. If offline-first becomes a hard requirement, bundle font files or switch to refined system-only stacks.
-- Reference card expand/collapse uses CSS `grid-template-rows` animation; very long cards (> viewport height) still expand instantly because `grid-template-rows: 1fr` expands to content size—acceptable for reference cards.
-- The judgment reveal uses a fixed `max-height` transition; extremely long judgment cards may clip if content exceeds the chosen max-height.
-- No visual regression automation; browser screenshots are still a manual step.
-- Consider adding a dark mode toggle or print stylesheet in a future pass.
+- Visual review by user is needed; screenshot feedback welcome.
+- Consider adding a dark-mode theme later.
+- Sidebar file-management / multi-course switch is a future feature, not implemented.

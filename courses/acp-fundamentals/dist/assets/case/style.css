@@ -1,60 +1,48 @@
-/* Case — judgment notebook aesthetic */
+/* Case — judgment notebook */
 .page {
-  width: min(860px, calc(100vw - 48px));
+  width: min(820px, calc(100vw - 40px));
 }
 
 .hero,
 .lesson-header {
-  border-bottom: 3px solid var(--accent);
+  border-bottom: 2px solid var(--line-strong);
 }
 
 /* Scenario narrative */
 .judgment-task {
-  background: #fffbf2;
-  border: 1px solid #f5deb3;
-  border-radius: var(--radius);
-  padding: 22px 26px;
-  margin-bottom: 18px;
-  box-shadow: var(--shadow);
-  position: relative;
+  background: #fffbf0;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent-warm);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 18px 22px;
+  margin-bottom: 16px;
 }
 .judgment-task::before {
-  content: "📖 Scenario";
+  content: "📖 场景";
   display: block;
   font-family: var(--font-mono);
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--highlight);
-  margin-bottom: 10px;
+  letter-spacing: 0.1em;
+  color: var(--accent-warm);
+  margin-bottom: 8px;
 }
 
 .exercise[data-kind="case"] {
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--accent);
+  border-left-color: var(--accent);
 }
-.exercise[data-kind="case"]::before {
-  content: "Judgment";
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--accent);
-  margin-bottom: 10px;
-}
+.exercise[data-kind="case"]::before { content: "思辨"; }
 
 /* Notebook reasoning textarea */
 .judgment-reasoning {
   width: 100%;
   min-height: 140px;
   padding: 16px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius);
   font: 16px var(--font-body);
   line-height: 1.8;
-  background: repeating-linear-gradient(#fff, #fff 31px, var(--line) 31px, var(--line) 32px);
-  background-attachment: local;
+  background: #fff;
   resize: vertical;
 }
 .judgment-reasoning:focus {
@@ -65,78 +53,43 @@
 
 /* Reveal accordion */
 .judgment-reveal {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.45s ease, opacity 0.3s ease;
+  display: none;
+  margin-top: 16px;
 }
-.judgment-reveal.open {
-  max-height: 1200px;
-  opacity: 1;
-}
+.judgment-reveal.open { display: block; }
 
 .judgment-section {
-  padding: 18px 20px;
-  margin-bottom: 14px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
   border-radius: 0 var(--radius) var(--radius) 0;
 }
 .judgment-section h4 {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 17px;
 }
 .judgment-section.perspective {
-  background: #f5f3ff;
+  background: var(--accent-soft);
   border-left: 4px solid var(--accent);
 }
-.judgment-section.perspective h4 { color: var(--accent-strong); }
+.judgment-section.perspective h4 { color: var(--accent); }
 .judgment-section.tradeoffs {
   background: #fff7ed;
-  border-left: 4px solid var(--highlight);
+  border-left: 4px solid var(--accent-warm);
 }
-.judgment-section.tradeoffs h4 { color: #b45309; }
+.judgment-section.tradeoffs h4 { color: var(--accent-strong); }
 .judgment-section.pitfalls {
-  background: #fef2f2;
+  background: var(--danger-soft);
   border-left: 4px solid var(--danger);
 }
-.judgment-section.pitfalls h4 { color: #b91c1c; }
+.judgment-section.pitfalls h4 { color: var(--danger); }
 
-.exercise-compare { background: var(--accent-strong); }
-
-/* Legacy option selection inside case exercises */
-.exercise-options {
-  list-style: none;
-  padding: 0;
-  margin: 16px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.exercise-options li {
-  padding: 12px 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.exercise-options li:hover { background: var(--accent-soft); }
-.exercise-options li.selected {
+.exercise-compare {
+  background: var(--accent);
+  color: #fff;
   border-color: var(--accent);
-  background: var(--accent-soft);
-  font-weight: 600;
 }
+.exercise-compare:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
 
-.checkpoint {
-  border-left: 4px solid var(--success);
-  background: #f6fdf9;
-}
-.checkpoint::before {
-  content: "⚡ Checkpoint";
-  display: block;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--success);
-  margin-bottom: 10px;
-}
+.checkpoint { border-left-color: var(--success); }
+.checkpoint::before { content: "⚡ 自检"; }

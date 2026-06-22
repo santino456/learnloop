@@ -1,0 +1,150 @@
+/* LearnLoop shared runtime — question drawer, ask form, copy buttons */
+window.LearnLoopRuntime = (() => {
+  const config = window.LEARNLOOP_CONFIG || { apiBase: window.location.origin };
+
+  function init() {
+    if (window.location.protocol === "file:") {
+      document.getElementById("file-warning")?.classList.add("visible");
+    }
+    initCopyButtons();
+    initAskButtons();
+    initDrawer();
+    loadQuestions();
+  }
+
+  function initCopyButtons() {
+    document.querySelectorAll("pre").forEach((pre) => {
+      const code = pre.querySelector("code");
+      if (!code) return;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "copy-btn";
+      btn.textContent = "复制";
+      btn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(code.textContent || "");
+          btn.textContent = "已复制";
+          btn.classList.add("copied");
+          setTimeout(() => {
+            btn.textContent = "复制";
+            btn.classList.remove("copied");
+          }, 1500);
+        } catch (_e) {
+          btn.textContent = "失败";
+          setTimeout(() => { btn.textContent = "复制"; }, 1500);
+        }
+      });
+      pre.appendChild(btn);
+    });
+  }
+
+  function initAskButtons() {
+    document.querySelectorAll("[data-ask-section]").forEach((button) => {
+      button.addEventListener("click", () => openAsk(button));
+    });
+  }
+
+  function initDrawer() {
+    const drawer = document.getElementById("question-drawer");
+    document.querySelector("[data-open-drawer]")?.addEventListener("click", () => {
+      drawer?.classList.add("open");
+      loadQuestions();
+    });
+    document.querySelector("[data-close-drawer]")?.addEventListener("click", () => {
+      drawer?.classList.remove("open");
+    });
+  }
+
+  function openAsk(button) {
+    document.querySelectorAll(".ask-form").forEach((node) => node.remove());
+    const template = document.getElementById("ask-template");
+    if (!template) return;
+    const form = template.content.firstElementChild.cloneNode(true);
+    const lesson = document.querySelector(".lesson");
+    const anchor = button.closest("[data-section-id]") || lesson || document.querySelector(".page");
+    anchor.insertAdjacentElement("afterend", form);
+    const textarea = form.querySelector("textarea");
+    const status = form.querySelector(".ask-status");
+    textarea.placeholder = "你对这一节有什么疑问？";
+    textarea.focus();
+    form.querySelector("[data-cancel]").textContent = "取消";
+    form.querySelector("[type='submit']").textContent = "保存问题";
+    form.querySelector("[data-cancel]").addEventListener("click", () => form.remove());
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const question = textarea.value.trim();
+      if (!question) {
+        status.textContent = "请先写一个问题。";
+        return;
+      }
+      const moduleId = lesson?.dataset.moduleId || "";
+      const payload = {
+        module_id: moduleId,
+        section_id: button.dataset.askSection,
+        section_title: button.dataset.askTitle,
+        question,
+      };
+      try {
+        const response = await fetch(`${config.apiBase}/ask`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) throw new Error(await response.text());
+        status.textContent = "已保存到 questions.jsonl";
+        textarea.value = "";
+        await loadQuestions();
+        setTimeout(() => form.remove(), 900);
+      } catch (error) {
+        status.textContent = "保存失败。请通过本地 LearnLoop 服务器（localhost）打开此页面。";
+      }
+    });
+  }
+
+  async function loadQuestions() {
+    const list = document.getElementById("question-list");
+    const count = document.getElementById("question-count");
+    if (!list || !count) return;
+    try {
+      const response = await fetch(`${config.apiBase}/questions`);
+      const allQuestions = await response.json();
+      const lesson = document.querySelector(".lesson");
+      const moduleId = lesson?.dataset.moduleId || "";
+      const moduleQuestions = allQuestions.filter((q) => q.module_id === moduleId);
+      count.textContent = moduleQuestions.length;
+      list.innerHTML = moduleQuestions.length
+        ? renderQuestionGroups(moduleQuestions)
+        : '<p class="question-empty">本模块还没有问题。</p>';
+    } catch (_error) {
+      list.innerHTML = '<p class="question-empty">启动本地服务器后，这里会显示本模块的问题。</p>';
+    }
+  }
+
+  function renderQuestionGroups(questions) {
+    const grouped = {};
+    questions.forEach((q) => {
+      const key = q.section_id || "未分类";
+      const title = q.section_title || key;
+      if (!grouped[key]) grouped[key] = { title, items: [] };
+      grouped[key].items.push(q);
+    });
+    return Object.values(grouped).map((group) => `
+      <div class="question-section-group">
+        <h3 class="question-section-title">${escapeHtml(group.title)}</h3>
+        ${group.items.map(renderQuestion).join("")}
+      </div>
+    `).join("");
+  }
+
+  function renderQuestion(question) {
+    return `<div class="question-item"><p>${escapeHtml(question.question)}</p><small>${escapeHtml(question.status || "")} · ${escapeHtml((question.id || "").slice(0, 8))}</small></div>`;
+  }
+
+  function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value || "";
+    return div.innerHTML;
+  }
+
+  return { init, loadQuestions, openAsk, escapeHtml };
+})();

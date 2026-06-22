@@ -56,7 +56,7 @@ def render_section(block: Block, template: Any | None = None) -> str:
     inner = render_blocks(block.blocks or [], template)
     ask_button = (
         f'<button class="ask-btn" data-ask-section="{section_id}" '
-        f'data-ask-title="{title}">Ask here</button>'
+        f'data-ask-title="{title}">提问</button>'
     )
 
     if template and template.name == "reference":
@@ -124,9 +124,9 @@ def render_exercise(block: Block, template: Any | None = None) -> str:
     controls = (
         '<div class="exercise-controls">\n'
         '  <button class="exercise-toggle" type="button" aria-expanded="false">'
-        'Show answer</button>\n'
+        '显示答案</button>\n'
         '  <label class="exercise-done">\n'
-        '    <input type="checkbox"> Mark as done\n'
+        '    <input type="checkbox"> 已完成\n'
         '  </label>\n'
         '</div>'
     )
@@ -169,10 +169,10 @@ def render_choice_exercise(block: Block, template: Any | None) -> str:
     feedback = '<div class="exercise-feedback" role="status" hidden></div>'
     controls = (
         '<div class="exercise-controls">\n'
-        '  <button class="exercise-check" type="button">Check</button>\n'
-        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Reveal answer</button>\n'
+        '  <button class="exercise-check" type="button">检查</button>\n'
+        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>显示答案</button>\n'
         '  <label class="exercise-done">\n'
-        '    <input type="checkbox"> Mark as done\n'
+        '    <input type="checkbox"> 已完成\n'
         '  </label>\n'
         '</div>'
     )
@@ -202,10 +202,10 @@ def render_fill_exercise(block: Block, template: Any | None) -> str:
     feedback = '<div class="exercise-feedback" role="status" hidden></div>'
     controls = (
         '<div class="exercise-controls">\n'
-        '  <button class="exercise-check" type="button">Check</button>\n'
-        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Show answer</button>\n'
+        '  <button class="exercise-check" type="button">检查</button>\n'
+        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>显示答案</button>\n'
         '  <label class="exercise-done">\n'
-        '    <input type="checkbox"> Mark as done\n'
+        '    <input type="checkbox"> 已完成\n'
         '  </label>\n'
         '</div>'
     )
@@ -243,10 +243,10 @@ def render_bug_exercise(block: Block, template: Any | None) -> str:
     feedback = '<div class="exercise-feedback" role="status" hidden></div>'
     controls = (
         '<div class="exercise-controls">\n'
-        '  <button class="exercise-check" type="button">Check</button>\n'
-        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Show answer</button>\n'
+        '  <button class="exercise-check" type="button">检查</button>\n'
+        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>显示答案</button>\n'
         '  <label class="exercise-done">\n'
-        '    <input type="checkbox"> Mark as done\n'
+        '    <input type="checkbox"> 已完成\n'
         '  </label>\n'
         '</div>'
     )
@@ -288,22 +288,22 @@ def render_case_exercise(block: Block, template: Any | None) -> str:
     if perspective or tradeoffs or pitfalls:
         parts = []
         if perspective:
-            parts.append(f'<section class="judgment-section perspective" hidden><h4>Author perspective</h4>\n{perspective}\n</section>')
+            parts.append(f'<section class="judgment-section perspective" hidden><h4>作者视角</h4>\n{perspective}\n</section>')
         if tradeoffs:
-            parts.append(f'<section class="judgment-section tradeoffs" hidden><h4>Tradeoffs</h4>\n{tradeoffs}\n</section>')
+            parts.append(f'<section class="judgment-section tradeoffs" hidden><h4>取舍与 trade-offs</h4>\n{tradeoffs}\n</section>')
         if pitfalls:
-            parts.append(f'<section class="judgment-section pitfalls" hidden><h4>Pitfalls</h4>\n{pitfalls}\n</section>')
+            parts.append(f'<section class="judgment-section pitfalls" hidden><h4>常见误区</h4>\n{pitfalls}\n</section>')
         joined_parts = "\n".join(parts)
         hidden_sections = f'<div class="judgment-reveal" hidden>\n{joined_parts}\n</div>'
     return (
         f'<div class="exercise" data-kind="case">\n'
         f'<div class="exercise-task judgment-task">\n{task}\n</div>\n'
-        f'<textarea class="judgment-reasoning" placeholder="Write your reasoning here..."></textarea>\n'
+        f'<textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>\n'
         f'{hidden_sections}\n'
         f'<div class="exercise-controls">\n'
-        '  <button class="exercise-compare" type="button">Compare with author perspective</button>\n'
+        '  <button class="exercise-compare" type="button">对比作者视角</button>\n'
         '  <label class="exercise-done">\n'
-        '    <input type="checkbox"> Mark as done\n'
+        '    <input type="checkbox"> 已完成\n'
         '  </label>\n'
         '</div>\n'
         f'</div>'
@@ -322,7 +322,7 @@ def render_checkpoint(block: Block, template: Any | None = None) -> str:
     controls = (
         '<div class="checkpoint-controls">\n'
         '  <button class="checkpoint-toggle" type="button" aria-expanded="false">'
-        'Show answer</button>\n'
+        '显示提示</button>\n'
         '</div>'
     )
     return (
@@ -341,7 +341,7 @@ def render_module_page(
     template: Any,
 ) -> str:
     content = render_blocks(sections, template)
-    content = f"""<nav class="top-nav"><a href="index.html">Learning path</a><span>{html.escape(module.id)}</span></nav>
+    content = f"""<nav class="top-nav"><a href="index.html">学习路径</a><span>{html.escape(module.id)}</span></nav>
 <article class="lesson" data-course-id="{html.escape(course.id)}" data-module-id="{html.escape(module.id)}">
   <header class="lesson-header">
     <p class="eyebrow">{html.escape(course.title)}</p>
@@ -367,12 +367,12 @@ def module_nav_links(course: CourseDoc, module: ModuleDoc) -> str:
     previous_module = course.modules[idx - 1] if idx > 0 else None
     next_module = course.modules[idx + 1] if idx + 1 < len(course.modules) else None
     prev_link = (
-        f'<a href="{html.escape(module_output_name(previous_module))}">Previous</a>'
+        f'<a href="{html.escape(module_output_name(previous_module))}">上一节</a>'
         if previous_module
         else "<span></span>"
     )
     next_link = (
-        f'<a href="{html.escape(module_output_name(next_module))}">Next</a>'
+        f'<a href="{html.escape(module_output_name(next_module))}">下一节</a>'
         if next_module
         else "<span></span>"
     )
@@ -389,12 +389,12 @@ def render_index(course: CourseDoc, template: Any) -> str:
 </a>"""
         )
     content = f"""<header class="hero">
-  <p class="eyebrow">LearnLoop Course</p>
+  <p class="eyebrow">LearnLoop 课程</p>
   <h1>{html.escape(course.title)}</h1>
   <p class="lede">{html.escape(course.subtitle)}</p>
 </header>
 <section class="intro">
-  <p>Read one module at a time. When a concept gets fuzzy, ask directly beside that section. LearnLoop stores the question with its exact course context so an agent can answer and improve the material later.</p>
+  <p>一次学习一个模块。当某个概念变得模糊时，直接在对应章节旁提问。LearnLoop 会把问题连同它所在的课程上下文一起保存，方便后续让 Agent 回答或改进材料。</p>
 </section>
 <nav class="modules">{''.join(cards)}</nav>"""
 
@@ -416,6 +416,9 @@ def build_course(course_dir: Path) -> Path:
     base_css = template_root() / "base.css"
     if base_css.exists():
         shutil.copy(base_css, dist / "assets" / "base.css")
+    base_js = template_root() / "runtime-base.js"
+    if base_js.exists():
+        shutil.copy(base_js, dist / "assets" / "runtime-base.js")
 
     index_template = select_template(course_dir, course)
     (dist / "index.html").write_text(
@@ -541,17 +544,17 @@ def validate_course(course_dir: Path) -> list[str]:
 
 QUESTION_UI = """<template id="ask-template">
   <form class="ask-form">
-    <textarea name="question" placeholder="What is unclear here?"></textarea>
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
     <div class="ask-actions">
-      <button type="button" data-cancel>Cancel</button>
-      <button type="submit">Save question</button>
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
     </div>
     <p class="ask-status" role="status"></p>
   </form>
 </template>
-<button class="question-fab" data-open-drawer>Questions <span id="question-count">0</span></button>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
 <aside class="question-drawer" id="question-drawer" aria-hidden="true">
-  <header><h2>Questions</h2><button data-close-drawer>Close</button></header>
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
   <div id="question-list" class="question-list"></div>
-  <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
 </aside>"""

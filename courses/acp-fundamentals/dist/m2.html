@@ -4,19 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ACP 的通信模型 | LearnLoop</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Serif+SC:wght@500;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/base.css">
   <link rel="stylesheet" href="assets/reference/style.css">
 </head>
 <body>
-  <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
-  <header class="reference-header">
-    <span class="reference-brand">Reference</span>
-    <span class="reference-course">ACP 基础</span>
-  </header>
-  <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m2</span></nav>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <div class="template-label">参考 Reference</div>
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m2</span></nav>
 <article class="lesson" data-course-id="acp-fundamentals" data-module-id="m2">
   <header class="lesson-header">
     <p class="eyebrow">ACP 基础</p>
@@ -27,7 +22,7 @@
   <div class="card-header">
     <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
     <span class="card-title">客户端与 Agent 的角色</span>
-    <button class="ask-btn" data-ask-section="m2-roles" data-ask-title="客户端与 Agent 的角色">Ask here</button>
+    <button class="ask-btn" data-ask-section="m2-roles" data-ask-title="客户端与 Agent 的角色">提问</button>
   </div>
   <div class="card-summary">ACP 的通信发生在两个核心角色之间：客户端（Client）与 Agent。</div>
   <div class="card-body"><div class="card-inner">
@@ -43,7 +38,7 @@
   <div class="card-header">
     <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
     <span class="card-title">JSON-RPC 形态</span>
-    <button class="ask-btn" data-ask-section="m2-jsonrpc" data-ask-title="JSON-RPC 形态">Ask here</button>
+    <button class="ask-btn" data-ask-section="m2-jsonrpc" data-ask-title="JSON-RPC 形态">提问</button>
   </div>
   <div class="card-summary">ACP 的消息通常以 JSON-RPC 2.0 帧形式传输。一条最小请求包含四个字段：</div>
   <div class="card-body"><div class="card-inner">
@@ -86,7 +81,7 @@
   <div class="card-header">
     <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
     <span class="card-title">本地传输</span>
-    <button class="ask-btn" data-ask-section="m2-stdio" data-ask-title="本地传输">Ask here</button>
+    <button class="ask-btn" data-ask-section="m2-stdio" data-ask-title="本地传输">提问</button>
   </div>
   <div class="card-summary">本地模式下，ACP 使用行分隔的 JSON 通过标准流交换消息。</div>
   <div class="card-body"><div class="card-inner">
@@ -127,7 +122,7 @@ def receive():
   <div class="card-header">
     <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
     <span class="card-title">会话生命周期</span>
-    <button class="ask-btn" data-ask-section="m2-lifecycle" data-ask-title="会话生命周期">Ask here</button>
+    <button class="ask-btn" data-ask-section="m2-lifecycle" data-ask-title="会话生命周期">提问</button>
   </div>
   <div class="card-summary">一个完整会话可以拆成以下步骤：</div>
   <div class="card-body"><div class="card-inner">
@@ -166,7 +161,7 @@ def receive():
   <div class="card-header">
     <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
     <span class="card-title">模块小结</span>
-    <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="模块小结">Ask here</button>
+    <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="模块小结">提问</button>
   </div>
   <div class="card-summary">快速参考卡：</div>
   <div class="card-body"><div class="card-inner">
@@ -175,25 +170,27 @@ def receive():
 <ul><li><strong>客户端</strong>：组装上下文 + 执行工具 + 管理会话。</li><li><strong>Agent</strong>：接收提示 + 推理 + 申请工具。</li><li><strong>stdin / stdout</strong>：一次一行 JSON；stderr 只放日志。</li><li><strong>生命周期</strong>：启动 → 握手 → 任务 → 响应 / 工具循环 → 关闭。</li></ul>
   </div></div>
 </section>
-  <footer class="next-prev"><a href="m1.html">Previous</a><a href="m3.html">Next</a></footer>
+  <footer class="next-prev"><a href="m1.html">上一节</a><a href="m3.html">下一节</a></footer>
 </article>
 <template id="ask-template">
   <form class="ask-form">
-    <textarea name="question" placeholder="What is unclear here?"></textarea>
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
     <div class="ask-actions">
-      <button type="button" data-cancel>Cancel</button>
-      <button type="submit">Save question</button>
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
     </div>
     <p class="ask-status" role="status"></p>
   </form>
 </template>
-<button class="question-fab" data-open-drawer>Questions <span id="question-count">0</span></button>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
 <aside class="question-drawer" id="question-drawer" aria-hidden="true">
-  <header><h2>Questions</h2><button data-close-drawer>Close</button></header>
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
   <div id="question-list" class="question-list"></div>
-  <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
-</aside></main>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
   <script src="/config.js"></script>
+  <script src="assets/runtime-base.js"></script>
   <script src="assets/reference/runtime.js"></script>
 </body>
 </html>

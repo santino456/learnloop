@@ -4,25 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ACP 是什么，为什么需要它 | LearnLoop</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Serif+SC:wght@500;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/base.css">
   <link rel="stylesheet" href="assets/tutorial/style.css">
 </head>
 <body>
-  <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
-  <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m1</span></nav>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <div class="template-label">教程 Tutorial</div>
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m1</span></nav>
 <article class="lesson" data-course-id="acp-fundamentals" data-module-id="m1">
   <header class="lesson-header">
     <p class="eyebrow">ACP 基础</p>
     <h1>ACP 是什么，为什么需要它</h1>
     <p class="lede">ACP 给客户端和编码 Agent 提供了一套共享协议，避免每个工具都要为每个 Agent 写专属适配器。</p>
   </header>
-  <section><h2 data-section-id="m1-problem" data-section-title="集成困境">集成困境 <button class="ask-btn" data-ask-section="m1-problem" data-ask-title="集成困境">Ask here</button></h2>
+  <section><h2 data-section-id="m1-problem" data-section-title="集成困境">集成困境 <button class="ask-btn" data-ask-section="m1-problem" data-ask-title="集成困境">提问</button></h2>
 <p>想象一下：有三款编辑器，又有三个编码 Agent。如果没有共享协议，每款编辑器都要为每个 Agent 单独写适配器；每个 Agent 厂商也要去理解每款编辑器的私有集成接口。</p>
 <p>这根本没法扩展。问题不在模型够不够聪明，而在<strong>客户端和 Agent 之间的接口</strong>没有统一标准。</p></section>
-<section><h2 data-section-id="m1-solution" data-section-title="ACP 的回答">ACP 的回答 <button class="ask-btn" data-ask-section="m1-solution" data-ask-title="ACP 的回答">Ask here</button></h2>
+<section><h2 data-section-id="m1-solution" data-section-title="ACP 的回答">ACP 的回答 <button class="ask-btn" data-ask-section="m1-solution" data-ask-title="ACP 的回答">提问</button></h2>
 <p>ACP 在客户端和 Agent 之间放了一份标准契约。客户端可以是编辑器、终端工具或本地应用；Agent 则是一个接收请求、申请工具调用、返回结果的进程。</p>
 <div class="callout">核心思路：只要实现一次 ACP 客户端，或实现一次兼容 ACP 的 Agent，就能在多个说同一种协议的工具之间复用这套集成。</div>
 <div class="checkpoint" data-has-answer="true">
@@ -33,12 +32,12 @@
 <p>因为集成痛苦主要来自 N×M 的适配器组合，而不是模型能力。统一接口把 N×M 变成 N+M。</p>
 </div>
 <div class="checkpoint-controls">
-  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
 </div>
 </div></section>
-<section><h2 data-section-id="m1-roles" data-section-title="谁受益">谁受益 <button class="ask-btn" data-ask-section="m1-roles" data-ask-title="谁受益">Ask here</button></h2>
+<section><h2 data-section-id="m1-roles" data-section-title="谁受益">谁受益 <button class="ask-btn" data-ask-section="m1-roles" data-ask-title="谁受益">提问</button></h2>
 <ul><li><strong>编辑器和 IDE 开发者</strong>：只需要走一条客户端集成路径。</li><li><strong>Agent 开发者</strong>：只需要维护一份服务端协议接口。</li><li><strong>用户</strong>：客户端和 Agent 不再强耦合，选择变多了。</li></ul></section>
-<section><h2 data-section-id="m1-modes" data-section-title="本地与远程模式">本地与远程模式 <button class="ask-btn" data-ask-section="m1-modes" data-ask-title="本地与远程模式">Ask here</button></h2>
+<section><h2 data-section-id="m1-modes" data-section-title="本地与远程模式">本地与远程模式 <button class="ask-btn" data-ask-section="m1-modes" data-ask-title="本地与远程模式">提问</button></h2>
 <p>最具体的模式是<strong>本地 Agent 进程</strong>：客户端把 Agent 作为子进程启动，通过标准输入输出交换行分隔的 JSON 消息。</p>
 <p>远程模式则走网络传输。除非你能对照当前 ACP 文档确认细节，否则把远程实现当作“实现相关”来处理。</p>
 <div class="checkpoint" data-has-answer="true">
@@ -49,33 +48,35 @@
 <p>行分隔的 JSON，通过 stdin/stdout 交换，日志走 stderr。</p>
 </div>
 <div class="checkpoint-controls">
-  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
 </div>
 </div></section>
-<section><h2 data-section-id="m1-not" data-section-title="ACP 不是什么">ACP 不是什么 <button class="ask-btn" data-ask-section="m1-not" data-ask-title="ACP 不是什么">Ask here</button></h2>
+<section><h2 data-section-id="m1-not" data-section-title="ACP 不是什么">ACP 不是什么 <button class="ask-btn" data-ask-section="m1-not" data-ask-title="ACP 不是什么">提问</button></h2>
 <p>ACP 不是 MCP 的替代品。MCP 解决的是 Agent 能使用哪些工具和数据源；ACP 解决的是<strong>客户端如何驱动一次 Agent 会话</strong>。</p>
 <p>ACP 也不一定适合所有聊天机器人。如果你的应用只发一个 HTTP 请求、收一个回答，那普通 API 调用就够了。</p></section>
-<section><h2 data-section-id="m1-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m1-summary" data-ask-title="模块小结">Ask here</button></h2>
+<section><h2 data-section-id="m1-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m1-summary" data-ask-title="模块小结">提问</button></h2>
 <ul><li>ACP 标准化了客户端到 Agent 的通信。</li><li>它减少了客户端与 Agent 之间的定制适配工作。</li><li>最适合本地、会用工具、有会话感的 Agent。</li><li>选择 ACP 的理由是它让集成变简单，而不是因为协议这个概念很时髦。</li></ul></section>
-  <footer class="next-prev"><span></span><a href="m2.html">Next</a></footer>
+  <footer class="next-prev"><span></span><a href="m2.html">下一节</a></footer>
 </article>
 <template id="ask-template">
   <form class="ask-form">
-    <textarea name="question" placeholder="What is unclear here?"></textarea>
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
     <div class="ask-actions">
-      <button type="button" data-cancel>Cancel</button>
-      <button type="submit">Save question</button>
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
     </div>
     <p class="ask-status" role="status"></p>
   </form>
 </template>
-<button class="question-fab" data-open-drawer>Questions <span id="question-count">0</span></button>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
 <aside class="question-drawer" id="question-drawer" aria-hidden="true">
-  <header><h2>Questions</h2><button data-close-drawer>Close</button></header>
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
   <div id="question-list" class="question-list"></div>
-  <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
-</aside></main>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
   <script src="/config.js"></script>
+  <script src="assets/runtime-base.js"></script>
   <script src="assets/tutorial/runtime.js"></script>
 </body>
 </html>

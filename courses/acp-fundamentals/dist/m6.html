@@ -4,25 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>构建最小 ACP 客户端 | LearnLoop</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Noto+Serif+SC:wght@500;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/base.css">
   <link rel="stylesheet" href="assets/practice/style.css">
 </head>
 <body>
-  <div class="file-warning" id="file-warning">Interactive questions require the local LearnLoop server.</div>
-  <main class="page"><nav class="top-nav"><a href="index.html">Learning path</a><span>m6</span></nav>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <div class="template-label">练习 Practice</div>
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m6</span></nav>
 <article class="lesson" data-course-id="acp-fundamentals" data-module-id="m6">
   <header class="lesson-header">
     <p class="eyebrow">ACP 基础</p>
     <h1>构建最小 ACP 客户端</h1>
     <p class="lede">一个最小本地客户端，本质就是子进程管理加上严格的行分隔 JSON。</p>
   </header>
-  <section><h2 data-section-id="m6-goal" data-section-title="目标与准备">目标与准备 <button class="ask-btn" data-ask-section="m6-goal" data-ask-title="目标与准备">Ask here</button></h2>
+  <section><h2 data-section-id="m6-goal" data-section-title="目标与准备">目标与准备 <button class="ask-btn" data-ask-section="m6-goal" data-ask-title="目标与准备">提问</button></h2>
 <p>最小的本地客户端只需要做四件事：启动 Agent 进程、发送 initialize、发送 prompt、读取响应。</p>
 <p>本模块用伪代码风格示例。在真正运行前，务必对照你当前使用的 Agent 实现确认方法名、字段和协议版本。</p></section>
-<section><h2 data-section-id="m6-process" data-section-title="启动子进程">启动子进程 <button class="ask-btn" data-ask-section="m6-process" data-ask-title="启动子进程">Ask here</button></h2>
+<section><h2 data-section-id="m6-process" data-section-title="启动子进程">启动子进程 <button class="ask-btn" data-ask-section="m6-process" data-ask-title="启动子进程">提问</button></h2>
 <pre><code class="language-python">import json
 import subprocess
 
@@ -43,10 +42,10 @@ proc = subprocess.Popen(
 <p>stdout 必须保持纯 JSON 行以便解析；stderr 用于日志和错误输出，两者不能混合。</p>
 </div>
 <div class="checkpoint-controls">
-  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
 </div>
 </div></section>
-<section><h2 data-section-id="m6-send-receive" data-section-title="发送与接收 JSON 行">发送与接收 JSON 行 <button class="ask-btn" data-ask-section="m6-send-receive" data-ask-title="发送与接收 JSON 行">Ask here</button></h2>
+<section><h2 data-section-id="m6-send-receive" data-section-title="发送与接收 JSON 行">发送与接收 JSON 行 <button class="ask-btn" data-ask-section="m6-send-receive" data-ask-title="发送与接收 JSON 行">提问</button></h2>
 <pre><code class="language-python">def send(message):
     proc.stdin.write(json.dumps(message) + &quot;\n&quot;)
     proc.stdin.flush()
@@ -57,7 +56,7 @@ def receive():
         raise RuntimeError(&quot;agent closed stdout&quot;)
     return json.loads(line)</code></pre>
 <p>换行和刷新不是装饰。没有它们，Agent 可能永远等不到完整输入。</p></section>
-<section><h2 data-section-id="m6-prompt" data-section-title="发送一条提示">发送一条提示 <button class="ask-btn" data-ask-section="m6-prompt" data-ask-title="发送一条提示">Ask here</button></h2>
+<section><h2 data-section-id="m6-prompt" data-section-title="发送一条提示">发送一条提示 <button class="ask-btn" data-ask-section="m6-prompt" data-ask-title="发送一条提示">提问</button></h2>
 <pre><code class="language-python">send({
     &quot;jsonrpc&quot;: &quot;2.0&quot;,
     &quot;id&quot;: 2,
@@ -70,7 +69,7 @@ def receive():
 })
 print(receive())</code></pre>
 <div class="callout">验证提示：这只是教学骨架。在把它当作可执行代码之前，先运行真实 Agent 的帮助命令或文档检查。</div></section>
-<section><h2 data-section-id="m6-buffering" data-section-title="缓冲规则">缓冲规则 <button class="ask-btn" data-ask-section="m6-buffering" data-ask-title="缓冲规则">Ask here</button></h2>
+<section><h2 data-section-id="m6-buffering" data-section-title="缓冲规则">缓冲规则 <button class="ask-btn" data-ask-section="m6-buffering" data-ask-title="缓冲规则">提问</button></h2>
 <ul><li>如果协议发送的是文本 JSON，使用文本模式。</li><li>每行写一个完整 JSON 对象。</li><li>每次请求后显式刷新。</li><li>保持 stdout 干净，日志发到 stderr。</li></ul>
 <div class="checkpoint" data-has-answer="true">
 <div class="checkpoint-task">
@@ -80,10 +79,10 @@ print(receive())</code></pre>
 <p>消息可能滞留在缓冲区，Agent 永远读不到完整 JSON 行，导致客户端挂起。</p>
 </div>
 <div class="checkpoint-controls">
-  <button class="checkpoint-toggle" type="button" aria-expanded="false">Show answer</button>
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
 </div>
 </div></section>
-<section><h2 data-section-id="m6-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="模块小结">Ask here</button></h2>
+<section><h2 data-section-id="m6-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="模块小结">提问</button></h2>
 <ul><li>最小本地客户端依赖子进程管道。</li><li>行分隔 JSON 要求严格的换行和刷新行为。</li><li>可运行示例必须针对真实 Agent 版本验证。</li></ul>
 <div class="exercise" data-kind="bug" data-buggy-lines="4">
 <div class="exercise-task">
@@ -106,32 +105,34 @@ print(receive())</code></pre>
 <p>第 4 行 <code>send</code> 函数缺少 <code>proc.stdin.flush()</code>。</p>
 </div>
 <div class="exercise-controls">
-  <button class="exercise-check" type="button">Check</button>
-  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>Show answer</button>
+  <button class="exercise-check" type="button">检查</button>
+  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>显示答案</button>
   <label class="exercise-done">
-    <input type="checkbox"> Mark as done
+    <input type="checkbox"> 已完成
   </label>
 </div>
 </div></section>
-  <footer class="next-prev"><a href="m5.html">Previous</a><a href="m7.html">Next</a></footer>
+  <footer class="next-prev"><a href="m5.html">上一节</a><a href="m7.html">下一节</a></footer>
 </article>
 <template id="ask-template">
   <form class="ask-form">
-    <textarea name="question" placeholder="What is unclear here?"></textarea>
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
     <div class="ask-actions">
-      <button type="button" data-cancel>Cancel</button>
-      <button type="submit">Save question</button>
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
     </div>
     <p class="ask-status" role="status"></p>
   </form>
 </template>
-<button class="question-fab" data-open-drawer>Questions <span id="question-count">0</span></button>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
 <aside class="question-drawer" id="question-drawer" aria-hidden="true">
-  <header><h2>Questions</h2><button data-close-drawer>Close</button></header>
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
   <div id="question-list" class="question-list"></div>
-  <footer>Ask an agent to read <code>questions.jsonl</code> or run <code>learnloop context</code>.</footer>
-</aside></main>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
   <script src="/config.js"></script>
+  <script src="assets/runtime-base.js"></script>
   <script src="assets/practice/runtime.js"></script>
 </body>
 </html>

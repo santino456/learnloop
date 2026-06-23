@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import socket
 import subprocess
 import sys
 import tempfile
@@ -88,6 +89,8 @@ class LearnLoopTests(unittest.TestCase):
                 wait_for(f"http://localhost:{port}/config.js")
                 config = request.urlopen(f"http://localhost:{port}/config.js", timeout=5).read().decode()
                 self.assertIn(str(port), config)
+                health = json.loads(request.urlopen(f"http://localhost:{port}/healthz", timeout=5).read().decode())
+                self.assertEqual(health["ok"], True)
                 body = json.dumps(
                     {
                         "module_id": "m1",
@@ -112,6 +115,24 @@ class LearnLoopTests(unittest.TestCase):
                     proc.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     proc.kill()
+
+    def test_explicit_occupied_port_fails_instead_of_drifting(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "port-course")
+            port = find_available_port(18100)
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.bind(("127.0.0.1", port))
+                sock.listen(1)
+                second = subprocess.run(
+                    [sys.executable, "-m", "learnloop", "serve", str(created), "--port", str(port)],
+                    cwd=str(ROOT),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=10,
+                )
+                self.assertNotEqual(second.returncode, 0)
+                self.assertIn("already in use", second.stderr)
 
     def test_course_level_template_selection_uses_tutorial_assets(self) -> None:
         dist = build_course(SAMPLE)

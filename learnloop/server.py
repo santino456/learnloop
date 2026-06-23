@@ -28,9 +28,20 @@ def find_available_port(start: int) -> int:
     raise LearnLoopError(f"No available port found near {start}")
 
 
+def ensure_port_available(port: int) -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        try:
+            sock.bind(("127.0.0.1", port))
+        except OSError as exc:
+            raise LearnLoopError(
+                f"Port {port} is already in use. Stop the old LearnLoop server or choose another port."
+            ) from exc
+    return port
+
+
 def serve_course(course_dir: Path, port: int | None = None) -> None:
     course = read_course(course_dir)
-    selected_port = find_available_port(port or course.default_port)
+    selected_port = ensure_port_available(port) if port is not None else find_available_port(course.default_port)
     dist = build_course(course.root)
     questions_file = course.root / "questions.jsonl"
     questions_file.touch(exist_ok=True)
@@ -51,12 +62,16 @@ def serve_course(course_dir: Path, port: int | None = None) -> None:
 
         def do_GET(self) -> None:
             parsed = urlparse(self.path)
+            if parsed.path == "/healthz":
+                self.send_json({"ok": True, "course_id": course.id, "port": selected_port})
+                return
             if parsed.path == "/questions":
                 self.send_json(load_questions(questions_file))
                 return
             if parsed.path == "/config.js":
+                host = self.headers.get("Host", f"127.0.0.1:{selected_port}")
                 config = {
-                    "apiBase": f"http://localhost:{selected_port}",
+                    "apiBase": f"http://{host}",
                     "courseId": course.id,
                     "courseTitle": course.title,
                 }
@@ -118,11 +133,11 @@ def serve_course(course_dir: Path, port: int | None = None) -> None:
         def log_message(self, fmt: str, *args: Any) -> None:
             print(f"[{time.strftime('%H:%M:%S')}] {fmt % args}")
 
-    server = ThreadingHTTPServer(("localhost", selected_port), Handler)
-    print(f"LearnLoop serving {course.title}")
-    print(f"URL: http://localhost:{selected_port}/")
-    print(f"Questions: {questions_file}")
-    print("Press Ctrl+C to stop")
+    server = ThreadingHTTPServer(("127.0.0.1", selected_port), Handler)
+    print(f"LearnLoop serving {course.title}", flush=True)
+    print(f"URL: http://127.0.0.1:{selected_port}/", flush=True)
+    print(f"Questions: {questions_file}", flush=True)
+    print("Press Ctrl+C to stop", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

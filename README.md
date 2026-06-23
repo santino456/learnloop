@@ -33,6 +33,12 @@ learnloop build courses/acp-fundamentals
 learnloop serve courses/acp-fundamentals
 ```
 
+`serve` prints the actual local URL. If you pass `--port`, that port is strict: LearnLoop will fail with a clear error instead of silently moving to another port. Check a running server with:
+
+```bash
+curl http://127.0.0.1:8787/healthz
+```
+
 ## Course Layout
 
 ```text

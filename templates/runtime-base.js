@@ -1,6 +1,7 @@
 /* LearnLoop shared runtime — question drawer, ask form, copy buttons */
 window.LearnLoopRuntime = (() => {
   const config = window.LEARNLOOP_CONFIG || { apiBase: window.location.origin };
+  const apiBase = config.apiBase || window.location.origin;
 
   function init() {
     if (window.location.protocol === "file:") {
@@ -65,10 +66,12 @@ window.LearnLoopRuntime = (() => {
     anchor.insertAdjacentElement("afterend", form);
     const textarea = form.querySelector("textarea");
     const status = form.querySelector(".ask-status");
+    const submit = form.querySelector("[type='submit']");
     textarea.placeholder = "你对这一节有什么疑问？";
     textarea.focus();
+    form.scrollIntoView({ block: "center", behavior: "smooth" });
     form.querySelector("[data-cancel]").textContent = "取消";
-    form.querySelector("[type='submit']").textContent = "保存问题";
+    submit.textContent = "保存问题";
     form.querySelector("[data-cancel]").addEventListener("click", () => form.remove());
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -85,18 +88,22 @@ window.LearnLoopRuntime = (() => {
         question,
       };
       try {
-        const response = await fetch(`${config.apiBase}/ask`, {
+        status.textContent = "保存中…";
+        submit.disabled = true;
+        const response = await fetchWithTimeout(`${apiBase}/ask`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        });
+        }, 8000);
         if (!response.ok) throw new Error(await response.text());
         status.textContent = "已保存到 questions.jsonl";
         textarea.value = "";
         await loadQuestions();
         setTimeout(() => form.remove(), 900);
       } catch (error) {
-        status.textContent = "保存失败。请通过本地 LearnLoop 服务器（localhost）打开此页面。";
+        status.textContent = "保存失败。请确认本地 LearnLoop 服务器仍在运行。";
+      } finally {
+        submit.disabled = false;
       }
     });
   }
@@ -106,7 +113,7 @@ window.LearnLoopRuntime = (() => {
     const count = document.getElementById("question-count");
     if (!list || !count) return;
     try {
-      const response = await fetch(`${config.apiBase}/questions`);
+      const response = await fetchWithTimeout(`${apiBase}/questions`, {}, 8000);
       const allQuestions = await response.json();
       const lesson = document.querySelector(".lesson");
       const moduleId = lesson?.dataset.moduleId || "";
@@ -144,6 +151,16 @@ window.LearnLoopRuntime = (() => {
     const div = document.createElement("div");
     div.textContent = value || "";
     return div.innerHTML;
+  }
+
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
   }
 
   return { init, loadQuestions, openAsk, escapeHtml };

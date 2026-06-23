@@ -168,8 +168,7 @@ LearnLoop is not a hosted course platform. It is a local protocol for helping a 
 
 Subagents are optional parallel workers for research, drafting, or review; the main agent remains responsible for final merges and truth status.
 
-Agents working in this repository should start with [AGENTS.md](AGENTS.md) and
-[Agent Quickstart](docs/agent-quickstart.md).
+Agents working in this repository should start with [AGENTS.md](AGENTS.md).
 
 See [Evidence And Sources](docs/evidence-and-sources.md) for the minimum source
 inventory, claims ledger, and conflict log rules.

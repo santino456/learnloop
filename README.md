@@ -43,6 +43,8 @@ python3 -m pip install -e .
 learnloop start courses --port 8787
 ```
 
+The sample is documented in [courses/acp-fundamentals](courses/acp-fundamentals/README.md).
+
 Each course is served as a resource on the same local service:
 
 ```text

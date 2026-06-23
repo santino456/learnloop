@@ -62,11 +62,12 @@ UI refinements are being driven by screenshot feedback. The course homepage and 
 ## Verification
 
 ```bash
-cd /Users/hqyone/Documents/learn-with-ai
+cd learnloop
 python3 -m learnloop validate courses/acp-fundamentals
 python3 -m learnloop build courses/acp-fundamentals
 python3 -m unittest discover -s tests -v
-python3 /Users/hqyone/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/learnloop
+# If available in your Codex environment:
+python3 path/to/quick_validate.py skills/learnloop
 ```
 
 ## Known issues / next steps

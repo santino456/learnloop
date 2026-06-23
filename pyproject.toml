@@ -2,12 +2,47 @@
 name = "learnloop"
 version = "0.1.0"
 description = "Local-first adaptive learning loops for technical courses."
+readme = "README.md"
 requires-python = ">=3.9"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  { name = "LearnLoop contributors" }
+]
 dependencies = []
+keywords = ["learning", "agents", "education", "local-first", "courseware"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Topic :: Education",
+  "Topic :: Software Development :: Documentation",
+]
 
 [project.scripts]
 learnloop = "learnloop.cli:main"
 
+[project.urls]
+Homepage = "https://github.com/santino456/learnloop"
+Repository = "https://github.com/santino456/learnloop"
+Issues = "https://github.com/santino456/learnloop/issues"
+
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["learnloop*"]
+
+[tool.setuptools.package-data]
+learnloop = [
+  "assets/templates/*.css",
+  "assets/templates/*.js",
+  "assets/templates/*/*.yaml",
+  "assets/templates/*/*.html",
+  "assets/templates/*/*.css",
+  "assets/templates/*/*.js",
+]

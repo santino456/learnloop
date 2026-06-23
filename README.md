@@ -18,20 +18,32 @@ LearnLoop connects the two:
 
 ## Quick Start
 
-Start one local LearnLoop service for every course under `courses/`:
+Install from the GitHub repository:
 
 ```bash
-cd learnloop
-python3 -m learnloop start courses --port 8787
+pipx install git+https://github.com/santino456/learnloop.git
 ```
 
-If installed as a package, the same commands are:
+Create a local course library and start LearnLoop:
 
 ```bash
+mkdir -p courses
+learnloop init demo-course --target courses
 learnloop start courses --port 8787
 ```
 
-Open `http://127.0.0.1:8787/` to see the course library. Each course is served as a resource on the same local service:
+Open `http://127.0.0.1:8787/` to see the course library.
+
+To try the richer ACP sample course, run from a local checkout:
+
+```bash
+git clone https://github.com/santino456/learnloop.git
+cd learnloop
+python3 -m pip install -e .
+learnloop start courses --port 8787
+```
+
+Each course is served as a resource on the same local service:
 
 ```text
 /course/acp-fundamentals/
@@ -41,14 +53,14 @@ Open `http://127.0.0.1:8787/` to see the course library. Each course is served a
 Use `status` and `stop` for the background service:
 
 ```bash
-python3 -m learnloop status courses
-python3 -m learnloop stop courses
+learnloop status courses
+learnloop stop courses
 ```
 
 `serve` is still available for foreground debugging:
 
 ```bash
-python3 -m learnloop serve courses --port 8787
+learnloop serve courses --port 8787
 ```
 
 Ports are strict by default: LearnLoop fails clearly instead of silently moving to another port. Use `--auto-port` only when you explicitly want a temporary alternative. Check a running server with:
@@ -95,7 +107,7 @@ template: perspective
 ---
 ```
 
-Built-in templates live in `templates/`:
+Built-in templates are packaged with LearnLoop:
 
 - `tutorial` — quiet, paper-like reading style.
 - `reference` — dense lookup and comparison layout.
@@ -105,7 +117,7 @@ Built-in templates live in `templates/`:
 List templates and see which template each module uses:
 
 ```bash
-python3 -m learnloop templates courses/acp-fundamentals
+learnloop templates courses/acp-fundamentals
 ```
 
 ## Container Syntax
@@ -154,16 +166,26 @@ Subagents are optional parallel workers for research, drafting, or review; the m
 ## CLI
 
 ```bash
-python3 -m learnloop init my-course
-python3 -m learnloop build courses/acp-fundamentals
-python3 -m learnloop validate courses/acp-fundamentals
-python3 -m learnloop audit courses/acp-fundamentals
-python3 -m learnloop context courses/acp-fundamentals --question-id <id>
-python3 -m learnloop start courses --port 8787
-python3 -m learnloop status courses
-python3 -m learnloop stop courses
-python3 -m learnloop serve courses --port 8787
-python3 -m learnloop templates courses/acp-fundamentals
+learnloop init my-course
+learnloop build courses/acp-fundamentals
+learnloop validate courses/acp-fundamentals
+learnloop audit courses/acp-fundamentals
+learnloop context courses/acp-fundamentals --question-id <id>
+learnloop start courses --port 8787
+learnloop status courses
+learnloop stop courses
+learnloop serve courses --port 8787
+learnloop templates courses/acp-fundamentals
+```
+
+## Development
+
+```bash
+python3 -m pip install -e .
+python3 -m unittest discover -s tests -v
+learnloop validate courses/acp-fundamentals
+learnloop build courses/acp-fundamentals
+learnloop audit courses/acp-fundamentals
 ```
 
 ## Current Status

@@ -106,7 +106,7 @@ For small personal learning notes, stage-gate notes can stay in the conversation
 
 ## Templates
 
-Templates live in `templates/<name>/` and contain:
+Built-in templates are packaged under `learnloop/assets/templates/<name>/` and contain:
 
 - `manifest.yaml`: template metadata and supported block types.
 - `template.html`: page shell with placeholders `{{ page_title }}`, `{{ course_title }}`, `{{ content }}`, `{{ css_href }}`, `{{ js_src }}`.

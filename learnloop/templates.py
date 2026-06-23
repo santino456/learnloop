@@ -18,7 +18,7 @@ class Template:
 
 
 def template_root() -> Path:
-    return Path(__file__).resolve().parent.parent / "templates"
+    return Path(__file__).resolve().parent / "assets" / "templates"
 
 
 def list_templates(root: Path | None = None) -> list[Template]:

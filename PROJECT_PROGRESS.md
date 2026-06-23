@@ -7,7 +7,7 @@ UI refinements are being driven by screenshot feedback. The course homepage and 
 ## Completed work
 
 - **Unified warm-paper theme**
-  - Rewrote `templates/base.css` with warm paper/cream palette (`#f7f2e8` background, brown accents).
+  - Rewrote packaged `learnloop/assets/templates/base.css` with warm paper/cream palette (`#f7f2e8` background, brown accents).
   - Removed Google Fonts; switched to system fonts optimized for Chinese (`PingFang SC`, `Microsoft YaHei`, `Noto Serif SC` fallback for headings).
   - All 4 templates now load `assets/base.css` plus a small template-specific override.
 
@@ -46,9 +46,14 @@ UI refinements are being driven by screenshot feedback. The course homepage and 
   - Added `learnloop audit` as a lightweight gate for source inventory, course architecture, evidence packs, and justified reference usage.
 
 - **Runtime refactor**
-  - Created `templates/runtime-base.js` for shared question/ask/copy logic.
+  - Created packaged `learnloop/assets/templates/runtime-base.js` for shared question/ask/copy logic.
   - Each template's `runtime.js` only handles template-specific interactions.
   - All UI strings in runtime translated to Chinese.
+
+- **Local course library service**
+  - Added `learnloop start/status/stop` for one background service that manages every course under `courses/`.
+  - Added `/api/courses`, `/course/<course_id>/...`, and course-scoped question APIs.
+  - Added a lightweight course-switching sidebar to generated pages when opened through the library service.
 
 - **Content**
   - `modules/02.md` remains the dense reference module.
@@ -68,4 +73,3 @@ python3 /Users/hqyone/.codex/skills/.system/skill-creator/scripts/quick_validate
 
 - Visual review by user is ongoing; screenshot feedback welcome.
 - Consider adding a dark-mode theme later.
-- Sidebar file-management / multi-course switch is a future feature, not implemented.

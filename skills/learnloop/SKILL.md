@@ -40,6 +40,7 @@ Never start by writing a long lesson. First run the stage gates below. For light
 - Read `references/orchestration.md` before generating or substantially rewriting course content. It contains the content-form rubric and subagent prompts.
 - Read `references/answering-loop.md` before answering learner questions.
 - Read `references/content-verification.md` before adding technical claims, commands, APIs, or protocol fields.
+- Read the repository docs `docs/content-forms.md` and `docs/course-quality.md` when preparing a course for reuse or publication.
 
 ## Persistence Policy
 

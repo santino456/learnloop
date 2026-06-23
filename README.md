@@ -120,6 +120,9 @@ List templates and see which template each module uses:
 learnloop templates courses/acp-fundamentals
 ```
 
+See [Content Forms](docs/content-forms.md) for when to use Tutorial,
+Reference, Practice, and Perspective.
+
 ## Container Syntax
 
 Mark practice blocks inside a module with `::: exercise` and `::: checkpoint` containers:
@@ -162,6 +165,9 @@ LearnLoop is not a hosted course platform. It is a local protocol for helping a 
 6. Run `learnloop audit`, validate, and build before showing the course.
 
 Subagents are optional parallel workers for research, drafting, or review; the main agent remains responsible for final merges and truth status.
+
+See [Course Quality](docs/course-quality.md) for the release checklist and
+quality bar for generated courses.
 
 ## CLI
 

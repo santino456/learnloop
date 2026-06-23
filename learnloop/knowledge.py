@@ -73,6 +73,7 @@ def audit_generation_readiness(course_dir: Path) -> list[str]:
 
     errors.extend(validate_knowledge_state(course_dir))
     errors.extend(_audit_reference_modules(course_dir))
+    errors.extend(_audit_learning_form_fit(course_dir))
     return errors
 
 
@@ -116,6 +117,40 @@ def _audit_reference_modules(course_dir: Path) -> list[str]:
             errors.append(f"{module.file}: reference module should use tables or dense lookup structure")
         if len(text.splitlines()) < 60:
             errors.append(f"{module.file}: reference module is too short to justify the reference template")
+    return errors
+
+
+def _audit_learning_form_fit(course_dir: Path) -> list[str]:
+    try:
+        course = read_course(course_dir)
+    except Exception:
+        return []
+
+    errors: list[str] = []
+    for module in course.modules:
+        path = course.root / module.file
+        if not path.exists():
+            continue
+        try:
+            frontmatter, blocks = parse_module(path)
+            module.template = frontmatter.get("template") or module.template
+            template = select_template(course_dir, course, module)
+        except Exception:
+            continue
+
+        flat = _walk_blocks(blocks)
+        if template.name == "practice":
+            practice_blocks = [block for block in flat if block.type in {"exercise", "checkpoint"}]
+            if not practice_blocks:
+                errors.append(f"{module.file}: practice module must include exercise or checkpoint blocks")
+            elif not any(block.answer or block.explanation for block in practice_blocks):
+                errors.append(f"{module.file}: practice module should include answers or feedback")
+
+        if template.name == "perspective" and not any(
+            block.type == "exercise" and block.kind == "perspective" for block in flat
+        ):
+            errors.append(f"{module.file}: perspective module must include a perspective exercise")
+
     return errors
 
 

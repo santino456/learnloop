@@ -45,6 +45,34 @@ class LearnLoopTests(unittest.TestCase):
             self.assertTrue(any("source_inventory.yaml" in error for error in errors))
             self.assertTrue(any("missing evidence pack" in error for error in errors))
 
+    def test_generation_audit_rejects_practice_without_practice_blocks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "weak-practice-course")
+            make_minimal_audit_workspace(created)
+            course_yaml = created / "course.yaml"
+            course_yaml.write_text(
+                course_yaml.read_text(encoding="utf-8").replace(
+                    "template: tutorial", "template: practice"
+                ),
+                encoding="utf-8",
+            )
+            errors = audit_generation_readiness(created)
+            self.assertTrue(any("practice module must include exercise or checkpoint" in error for error in errors))
+
+    def test_generation_audit_rejects_perspective_without_perspective_exercise(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "weak-perspective-course")
+            make_minimal_audit_workspace(created)
+            course_yaml = created / "course.yaml"
+            course_yaml.write_text(
+                course_yaml.read_text(encoding="utf-8").replace(
+                    "template: tutorial", "template: perspective"
+                ),
+                encoding="utf-8",
+            )
+            errors = audit_generation_readiness(created)
+            self.assertTrue(any("perspective module must include a perspective exercise" in error for error in errors))
+
     def test_duplicate_section_id_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "bad-course")
@@ -510,6 +538,40 @@ def wait_for(url: str) -> None:
             last_error = exc
             time.sleep(0.1)
     raise AssertionError(f"server did not start: {last_error}")
+
+
+def make_minimal_audit_workspace(course_dir: Path) -> None:
+    workspace = course_dir / ".learnloop"
+    (workspace / "source_inventory.yaml").write_text(
+        "sources:\n  - id: user-goal\n    type: user-provided\n",
+        encoding="utf-8",
+    )
+    (workspace / "course_architecture.md").write_text(
+        """# Course Architecture
+
+## Learner Goal
+
+Learn the topic.
+
+## Module Plan
+
+| Module | Learning job | Content forms | Why |
+|--------|--------------|---------------|-----|
+| m1 | Start | tutorial | Establish the model. |
+
+## Content Form Decisions
+
+Use only forms justified by the module job.
+""",
+        encoding="utf-8",
+    )
+    (workspace / "chapter_briefs" / "m1.md").write_text(
+        "# m1\n\nBoundary and goal.\n", encoding="utf-8"
+    )
+    (workspace / "evidence_packs" / "m1.md").write_text(
+        "## Sources\n\n- user-goal\n\n## Evidence\n\n- Starter evidence.\n",
+        encoding="utf-8",
+    )
 
 
 if __name__ == "__main__":

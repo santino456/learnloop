@@ -88,7 +88,7 @@ class LearnLoopTests(unittest.TestCase):
             try:
                 wait_for(f"http://localhost:{port}/config.js")
                 config = request.urlopen(f"http://localhost:{port}/config.js", timeout=5).read().decode()
-                self.assertIn(str(port), config)
+                self.assertIn("/api/courses/served-course", config)
                 health = json.loads(request.urlopen(f"http://localhost:{port}/healthz", timeout=5).read().decode())
                 self.assertEqual(health["ok"], True)
                 body = json.dumps(
@@ -109,6 +109,89 @@ class LearnLoopTests(unittest.TestCase):
                 self.assertEqual(saved["saved"]["status"], "open")
                 questions = (created / "questions.jsonl").read_text(encoding="utf-8")
                 self.assertIn("How does this work?", questions)
+            finally:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+
+    def test_library_server_serves_two_courses_from_one_port(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "courses"
+            root.mkdir()
+            first = init_course(root, "first-course")
+            second = init_course(root, "second-course")
+            port = find_available_port(18200)
+            proc = subprocess.Popen(
+                [sys.executable, "-m", "learnloop", "serve", str(root), "--port", str(port)],
+                cwd=str(ROOT),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            try:
+                wait_for(f"http://localhost:{port}/healthz")
+                health = json.loads(request.urlopen(f"http://localhost:{port}/healthz", timeout=5).read().decode())
+                self.assertEqual(health["courses"], 2)
+                courses = json.loads(request.urlopen(f"http://localhost:{port}/api/courses", timeout=5).read().decode())
+                self.assertEqual({course["id"] for course in courses}, {"first-course", "second-course"})
+                first_html = request.urlopen(f"http://localhost:{port}/course/first-course/m1.html", timeout=5).read().decode()
+                second_html = request.urlopen(f"http://localhost:{port}/course/second-course/m1.html", timeout=5).read().decode()
+                self.assertIn("Start Here", first_html)
+                self.assertIn("Start Here", second_html)
+
+                payload = json.dumps(
+                    {
+                        "module_id": "m1",
+                        "section_id": "m1-purpose",
+                        "section_title": "Why this course exists",
+                        "question": "Question for second course?",
+                    }
+                ).encode()
+                req = request.Request(
+                    f"http://localhost:{port}/api/courses/second-course/ask",
+                    data=payload,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                saved = json.loads(request.urlopen(req, timeout=5).read().decode())
+                self.assertEqual(saved["saved"]["course_id"], "second-course")
+                self.assertNotIn("Question for second course?", (first / "questions.jsonl").read_text(encoding="utf-8"))
+                self.assertIn("Question for second course?", (second / "questions.jsonl").read_text(encoding="utf-8"))
+            finally:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+
+    def test_library_build_failure_does_not_block_other_courses(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "courses"
+            root.mkdir()
+            good = init_course(root, "good-course")
+            bad = init_course(root, "bad-course")
+            bad_module = bad / "modules" / "01.md"
+            bad_module.write_text(
+                bad_module.read_text(encoding="utf-8") + "\n::: unsupported\nNope.\n:::\n",
+                encoding="utf-8",
+            )
+            port = find_available_port(18300)
+            proc = subprocess.Popen(
+                [sys.executable, "-m", "learnloop", "serve", str(root), "--port", str(port)],
+                cwd=str(ROOT),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            try:
+                wait_for(f"http://localhost:{port}/healthz")
+                good_html = request.urlopen(f"http://localhost:{port}/course/good-course/m1.html", timeout=5).read().decode()
+                self.assertIn("Start Here", good_html)
+                with self.assertRaises(Exception):
+                    request.urlopen(f"http://localhost:{port}/course/bad-course/m1.html", timeout=5).read()
+                self.assertTrue((good / "dist" / "m1.html").exists())
             finally:
                 proc.terminate()
                 try:

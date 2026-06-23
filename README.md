@@ -18,22 +18,40 @@ LearnLoop connects the two:
 
 ## Quick Start
 
-Build and serve the ACP sample course:
+Start one local LearnLoop service for every course under `courses/`:
 
 ```bash
 cd learnloop
-python3 -m learnloop build courses/acp-fundamentals
-python3 -m learnloop serve courses/acp-fundamentals
+python3 -m learnloop start courses --port 8787
 ```
 
 If installed as a package, the same commands are:
 
 ```bash
-learnloop build courses/acp-fundamentals
-learnloop serve courses/acp-fundamentals
+learnloop start courses --port 8787
 ```
 
-`serve` prints the actual local URL. If you pass `--port`, that port is strict: LearnLoop will fail with a clear error instead of silently moving to another port. Check a running server with:
+Open `http://127.0.0.1:8787/` to see the course library. Each course is served as a resource on the same local service:
+
+```text
+/course/acp-fundamentals/
+/course/kv-cache/
+```
+
+Use `status` and `stop` for the background service:
+
+```bash
+python3 -m learnloop status courses
+python3 -m learnloop stop courses
+```
+
+`serve` is still available for foreground debugging:
+
+```bash
+python3 -m learnloop serve courses --port 8787
+```
+
+Ports are strict by default: LearnLoop fails clearly instead of silently moving to another port. Use `--auto-port` only when you explicitly want a temporary alternative. Check a running server with:
 
 ```bash
 curl http://127.0.0.1:8787/healthz
@@ -141,7 +159,10 @@ python3 -m learnloop build courses/acp-fundamentals
 python3 -m learnloop validate courses/acp-fundamentals
 python3 -m learnloop audit courses/acp-fundamentals
 python3 -m learnloop context courses/acp-fundamentals --question-id <id>
-python3 -m learnloop serve courses/acp-fundamentals --port 8787
+python3 -m learnloop start courses --port 8787
+python3 -m learnloop status courses
+python3 -m learnloop stop courses
+python3 -m learnloop serve courses --port 8787
 python3 -m learnloop templates courses/acp-fundamentals
 ```
 
@@ -151,8 +172,8 @@ python3 -m learnloop templates courses/acp-fundamentals
 - Template-capable rendering pipeline with course- and module-level template selection.
 - Perspective template for judgment, taste, and higher-level learning experience.
 - Lightweight knowledge-state validation for verified claims and Perspective basis.
-- Local server writes structured learner questions.
-- Generated pages read `/config.js`, so non-default ports work.
+- Single local library service manages all courses under one port.
+- Generated pages read course-local `config.js`, so questions use the correct course API.
 - LearnLoop skill is normalized for agent-guided course generation and question answering.
 
 Not included in the first version: accounts, cloud sync, multi-user spaces, hosted marketplaces, or a long-running cloud agent service.

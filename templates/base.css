@@ -39,6 +39,91 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+body.has-ll-shell {
+  padding-left: 220px;
+}
+
+.ll-shell {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 220px;
+  background: var(--paper);
+  border-right: 1px solid var(--line-strong);
+  padding: 18px 14px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 4px 0 18px rgba(42, 33, 27, 0.06);
+}
+
+.ll-shell-home {
+  color: var(--ink);
+  text-decoration: none;
+  font: 700 16px var(--font-display);
+  padding: 6px 8px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.ll-shell-courses {
+  display: grid;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.ll-shell-course {
+  display: grid;
+  gap: 2px;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 8px;
+}
+
+.ll-shell-course:hover {
+  background: var(--paper-2);
+  border-color: var(--line);
+}
+
+.ll-shell-course.active {
+  background: var(--accent-soft);
+  border-color: var(--line-strong);
+}
+
+.ll-shell-course.error {
+  color: var(--danger);
+  cursor: not-allowed;
+}
+
+.ll-shell-course span {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.ll-shell-course small {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.ll-shell-questions {
+  margin-top: auto;
+  cursor: pointer;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.ll-shell-questions:hover {
+  background: var(--accent-strong);
+}
+
 .page {
   width: min(820px, calc(100vw - 40px));
   margin: 0 auto;
@@ -574,6 +659,46 @@ tr:last-child td { border-bottom: 0; }
 }
 
 @media (max-width: 640px) {
+  body.has-ll-shell {
+    padding-left: 0;
+    padding-top: 58px;
+  }
+
+  .ll-shell {
+    inset: 0 0 auto 0;
+    width: 100%;
+    height: 58px;
+    padding: 8px 10px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-strong);
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .ll-shell-home {
+    flex: 0 0 auto;
+    border-bottom: 0;
+    padding: 0 8px;
+  }
+
+  .ll-shell-courses {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .ll-shell-course {
+    min-width: 132px;
+    padding: 6px 8px;
+  }
+
+  .ll-shell-questions {
+    flex: 0 0 auto;
+    margin-top: 0;
+    padding: 8px 10px;
+  }
+
   .page { width: min(100vw - 28px, 820px); padding-top: 32px; }
   .module-card { grid-template-columns: 60px 1fr; }
   h1 { font-size: 36px; }

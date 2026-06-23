@@ -15,6 +15,7 @@ from .course import (
 from .knowledge import audit_generation_readiness
 from .model import ModuleDoc
 from .parser import parse_module, read_course
+from .server import start_library, status_library, stop_library
 from .templates import list_templates, select_template
 
 
@@ -33,9 +34,29 @@ def main(argv: list[str] | None = None) -> int:
     build_p = sub.add_parser("build", help="Generate HTML into dist/.")
     build_p.add_argument("course_dir", nargs="?", default=".")
 
-    serve_p = sub.add_parser("serve", help="Serve a course locally.")
-    serve_p.add_argument("course_dir", nargs="?", default=".")
+    start_p = sub.add_parser("start", help="Start the local LearnLoop library service in the background.")
+    start_p.add_argument("courses_root", nargs="?", default="courses")
+    start_p.add_argument("--port", type=int, default=8787)
+    start_p.add_argument(
+        "--auto-port",
+        action="store_true",
+        help="Use the requested port if available, otherwise pick the next free port.",
+    )
+
+    stop_p = sub.add_parser("stop", help="Stop the local LearnLoop library service.")
+    stop_p.add_argument("courses_root", nargs="?", default="courses")
+
+    status_p = sub.add_parser("status", help="Show the local LearnLoop library service status.")
+    status_p.add_argument("courses_root", nargs="?", default="courses")
+
+    serve_p = sub.add_parser("serve", help="Serve a course library in the foreground.")
+    serve_p.add_argument("course_dir", nargs="?", default="courses")
     serve_p.add_argument("--port", type=int, default=None)
+    serve_p.add_argument(
+        "--auto-port",
+        action="store_true",
+        help="Use the requested/default port if available, otherwise pick the next free port.",
+    )
 
     validate_p = sub.add_parser("validate", help="Validate course source and question logs.")
     validate_p.add_argument("course_dir", nargs="?", default=".")
@@ -62,8 +83,14 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "build":
             dist = build_course(Path(args.course_dir))
             print(f"Built {dist}")
+        elif args.command == "start":
+            start_library(Path(args.courses_root), args.port, auto_port=args.auto_port)
+        elif args.command == "stop":
+            stop_library(Path(args.courses_root))
+        elif args.command == "status":
+            status_library(Path(args.courses_root))
         elif args.command == "serve":
-            serve_course(Path(args.course_dir), args.port)
+            serve_course(Path(args.course_dir), args.port, auto_port=args.auto_port)
         elif args.command == "validate":
             errors = validate_course(Path(args.course_dir))
             if errors:

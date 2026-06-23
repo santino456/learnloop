@@ -10,6 +10,7 @@ window.LearnLoopRuntime = (() => {
     initCopyButtons();
     initAskButtons();
     initDrawer();
+    initLibraryShell();
     loadQuestions();
   }
 
@@ -125,6 +126,42 @@ window.LearnLoopRuntime = (() => {
     } catch (_error) {
       list.innerHTML = '<p class="question-empty">启动本地服务器后，这里会显示本模块的问题。</p>';
     }
+  }
+
+  async function initLibraryShell() {
+    if (!config.coursesUrl || document.querySelector(".ll-shell")) return;
+    try {
+      const response = await fetchWithTimeout(config.coursesUrl, {}, 8000);
+      if (!response.ok) return;
+      const courses = await response.json();
+      if (!Array.isArray(courses) || courses.length === 0) return;
+      document.body.classList.add("has-ll-shell");
+      document.body.insertAdjacentHTML("afterbegin", renderLibraryShell(courses));
+      document.querySelector("[data-shell-questions]")?.addEventListener("click", () => {
+        document.getElementById("question-drawer")?.classList.add("open");
+        loadQuestions();
+      });
+    } catch (_error) {
+      // Static files and older single-course servers do not expose a course library.
+    }
+  }
+
+  function renderLibraryShell(courses) {
+    const items = courses.map((course) => {
+      const active = course.id === config.courseId ? " active" : "";
+      const error = course.error ? " error" : "";
+      const href = course.error ? "#" : course.url;
+      const meta = course.error ? "配置错误" : `${course.module_count || 0} modules`;
+      return `<a class="ll-shell-course${active}${error}" href="${escapeHtml(href)}">
+        <span>${escapeHtml(course.title || course.id)}</span>
+        <small>${escapeHtml(meta)}</small>
+      </a>`;
+    }).join("");
+    return `<aside class="ll-shell" aria-label="LearnLoop course library">
+      <a class="ll-shell-home" href="${escapeHtml(config.libraryUrl || "/")}">LearnLoop</a>
+      <nav class="ll-shell-courses">${items}</nav>
+      <button class="ll-shell-questions" type="button" data-shell-questions>本模块问题</button>
+    </aside>`;
   }
 
   function renderQuestionGroups(questions) {

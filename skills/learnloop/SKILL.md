@@ -18,7 +18,7 @@ Your first job is **epistemic control**, not fast drafting. A fluent lesson is n
 - **Answer learner question**: read `references/answering-loop.md`, run `learnloop context`, write an answer artifact, and update course source only if the answer should be reused.
 - **Small course edit**: inspect the target module, preserve section ids, make the narrow edit, then run `learnloop validate` and `learnloop build`.
 - **New or substantial course generation**: follow the stage gates below before writing `modules/*.md`.
-- **Publication or reusable course**: also read `docs/content-forms.md`, `docs/course-quality.md`, and `references/content-verification.md`; run `learnloop audit`.
+- **Publication or reusable course**: also read `docs/content-forms.md`, `docs/evidence-and-sources.md`, `docs/course-quality.md`, and `references/content-verification.md`; run `learnloop audit`.
 
 ## Stage Gates
 
@@ -81,7 +81,7 @@ Use `python3 -m learnloop ...` only when the package is not installed.
 - Read `references/orchestration.md` before generating or substantially rewriting course content.
 - Read `references/answering-loop.md` before answering learner questions.
 - Read `references/content-verification.md` before adding technical claims, commands, APIs, or protocol fields.
-- Read `docs/content-forms.md` and `docs/course-quality.md` before preparing a course for reuse or publication.
+- Read `docs/content-forms.md`, `docs/evidence-and-sources.md`, and `docs/course-quality.md` before preparing a course for reuse or publication.
 
 ## Guardrails
 

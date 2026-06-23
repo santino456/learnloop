@@ -7,3 +7,5 @@
 - Add course-level question APIs and generated page configuration.
 - Add template-capable Markdown/YAML course rendering.
 - Add LearnLoop skill and lightweight course generation audit checks.
+- Add course quality, content-form, evidence, and release documentation.
+- Add GitHub issue and pull request templates for open-source use.

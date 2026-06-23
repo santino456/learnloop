@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -24,7 +25,8 @@ def validate_knowledge_state(course_dir: Path) -> list[str]:
         return []
 
     errors: list[str] = []
-    errors.extend(_validate_claims(workspace / "claims.jsonl"))
+    source_ids = _read_source_ids(workspace / "source_inventory.yaml")
+    errors.extend(_validate_claims(workspace / "claims.jsonl", source_ids))
     errors.extend(_validate_conflicts(workspace / "conflicts.jsonl"))
     return errors
 
@@ -154,7 +156,7 @@ def _audit_learning_form_fit(course_dir: Path) -> list[str]:
     return errors
 
 
-def _validate_claims(path: Path) -> list[str]:
+def _validate_claims(path: Path, source_ids: set[str] | None = None) -> list[str]:
     if not path.exists():
         return []
 
@@ -168,6 +170,9 @@ def _validate_claims(path: Path) -> list[str]:
             errors.append(f"{path.name}:{idx}: unsupported status: {status}")
         if status == "verified" and not (item.get("source_id") or item.get("source")):
             errors.append(f"{path.name}:{idx}: verified claim requires source_id or source")
+        source_id = str(item.get("source_id", "")).strip()
+        if source_id and source_ids is not None and source_id not in source_ids:
+            errors.append(f"{path.name}:{idx}: unknown source_id: {source_id}")
     return errors
 
 
@@ -198,6 +203,22 @@ def _read_jsonl(path: Path, errors: list[str]) -> list[tuple[int, dict[str, Any]
             continue
         items.append((idx, item))
     return items
+
+
+def _read_source_ids(path: Path) -> set[str] | None:
+    if not path.exists():
+        return None
+    source_ids: set[str] = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        match = re.match(r"\s*-\s+id:\s*(.+?)\s*$", line)
+        if not match:
+            continue
+        value = match.group(1).strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+        if value:
+            source_ids.add(value)
+    return source_ids
 
 
 def _walk_blocks(blocks: list[Block]) -> list[Block]:

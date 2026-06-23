@@ -307,6 +307,32 @@ class LearnLoopTests(unittest.TestCase):
             errors = validate_course(created)
             self.assertTrue(any("verified claim requires source" in error for error in errors))
 
+    def test_claim_source_id_must_exist_in_source_inventory(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "unknown-source-course")
+            source_inventory = created / ".learnloop" / "source_inventory.yaml"
+            source_inventory.write_text(
+                "sources:\n  - id: known-source\n    type: primary\n",
+                encoding="utf-8",
+            )
+            claims = created / ".learnloop" / "claims.jsonl"
+            claims.write_text(
+                json.dumps(
+                    {
+                        "id": "claim-1",
+                        "claim": "This source id does not exist.",
+                        "module_id": "m1",
+                        "section_id": "m1-purpose",
+                        "status": "verified",
+                        "source_id": "missing-source",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            errors = validate_course(created)
+            self.assertTrue(any("unknown source_id: missing-source" in error for error in errors))
+
     def test_perspective_without_basis_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "perspective-basis-course")

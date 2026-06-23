@@ -168,6 +168,9 @@ LearnLoop is not a hosted course platform. It is a local protocol for helping a 
 
 Subagents are optional parallel workers for research, drafting, or review; the main agent remains responsible for final merges and truth status.
 
+See [Evidence And Sources](docs/evidence-and-sources.md) for the minimum source
+inventory, claims ledger, and conflict log rules.
+
 See [Course Quality](docs/course-quality.md) for the release checklist and
 quality bar for generated courses.
 

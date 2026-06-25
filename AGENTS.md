@@ -7,10 +7,11 @@ the product documentation.
 
 1. `README.md` explains what LearnLoop is and how to run it.
 2. `skills/learnloop/SKILL.md` is the authority for agent course-generation
-   workflow.
-3. `docs/content-forms.md`, `docs/evidence-and-sources.md`, and
-   `docs/course-quality.md` define the quality bar for reusable courses.
-4. `docs/release.md` is the release checklist.
+   workflow. It describes how to think like a careful teacher before writing.
+3. `docs/content-forms.md` defines the four content forms and when to use them.
+4. `docs/evidence-and-sources.md` and `docs/course-quality.md` define the
+   quality bar for reusable courses; they are optional for personal courses.
+5. `docs/release.md` is the release checklist.
 
 ## Repository Rule
 
@@ -23,3 +24,5 @@ the source document instead of duplicating the same instructions here.
 - Preserve section ids in `modules/*.md`; learner questions depend on them.
 - Do not commit local scratch files, logs, or unrelated untracked courses unless
   the user explicitly asks.
+- `.learnloop/` is optional. Add it only when the course needs explicit source
+  tracking, claims, or conflict management.

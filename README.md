@@ -81,17 +81,11 @@ courses/acp-fundamentals/
 │   └── ...
 ├── answers/
 ├── questions.jsonl
-├── .learnloop/
-│   ├── source_inventory.yaml
-│   ├── course_architecture.md
-│   ├── claims.jsonl
-│   ├── conflicts.jsonl
-│   ├── chapter_briefs/
-│   └── evidence_packs/
-└── dist/
+├── dist/                 # generated output
+└── .learnloop/           # optional: sources, claims, conflicts for reusable courses
 ```
 
-`dist/` is generated output. Edit `course.yaml` and `modules/*.md`; use `.learnloop/` to track sources, claims, conflicts, and chapter-level evidence when generating substantial content with an agent.
+Edit `course.yaml` and `modules/*.md`; use `dist/` for generated HTML. Add `.learnloop/` only when you want explicit source tracking, claims, or conflict management for a reusable course.
 
 ## Templates
 
@@ -155,26 +149,23 @@ A mature implementation treats the bridge as the trust boundary.
 :::
 ```
 
-## Epistemic Workflow
+## Agent-Guided Course Generation
 
-LearnLoop is not a hosted course platform. It is a local protocol for helping a learner's own agent generate better learning material. For serious generation tasks, the main agent should:
+LearnLoop is not a hosted course platform. It is a local protocol for helping a learner's own agent generate better learning material.
 
-1. Inventory sources in `.learnloop/source_inventory.yaml`.
-2. Split work by chapter with `.learnloop/chapter_briefs/`.
-3. Gather evidence before drafting in `.learnloop/evidence_packs/`.
-4. Track important facts in `.learnloop/claims.jsonl`.
-5. Record unresolved conflicts in `.learnloop/conflicts.jsonl`.
-6. Run `learnloop audit`, validate, and build before showing the course.
+The agent should think like an experienced teacher:
 
-Subagents are optional parallel workers for research, drafting, or review; the main agent remains responsible for final merges and truth status.
+1. Understand the learner and the learning job.
+2. Research sources and verify high-stakes claims.
+3. Decide which modules are Tutorial, Reference, Practice, or Perspective.
+4. Draft content supported by the design and evidence.
+5. Self-review for unsupported claims, weak exercises, or private examples.
+6. Run `learnloop validate`, `learnloop build`, and optionally `learnloop audit`.
 
-Agents working in this repository should start with [AGENTS.md](AGENTS.md).
+For reusable or published courses, you can add a `.learnloop/` workspace to track sources, claims, and conflicts explicitly. For personal courses, agent-driven fact checking is enough.
 
-See [Evidence And Sources](docs/evidence-and-sources.md) for the minimum source
-inventory, claims ledger, and conflict log rules.
-
-See [Course Quality](docs/course-quality.md) for the release checklist and
-quality bar for generated courses.
+See [Evidence And Sources](docs/evidence-and-sources.md) for optional source tracking.
+See [Course Quality](docs/course-quality.md) for the release checklist and quality bar.
 
 ## CLI
 
@@ -210,5 +201,6 @@ learnloop audit courses/acp-fundamentals
 - Single local library service manages all courses under one port.
 - Generated pages read course-local `config.js`, so questions use the correct course API.
 - LearnLoop skill is normalized for agent-guided course generation and question answering.
+- `.learnloop/` workspace is now optional; the default workflow relies on agent-driven fact checking.
 
 Not included in the first version: accounts, cloud sync, multi-user spaces, hosted marketplaces, or a long-running cloud agent service.

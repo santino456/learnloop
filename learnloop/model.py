@@ -35,11 +35,13 @@ class Section:
     id: str
     title: str
     blocks: list[Block]
+    source: dict[str, Any] | None = None
 
 
 @dataclass
 class Block:
     type: str
+    source: dict[str, Any] | None = None
     level: int | None = None
     id: str | None = None
     title: str | None = None

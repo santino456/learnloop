@@ -223,6 +223,26 @@ Body.
             )
             errors = validate_course(created)
             self.assertTrue(any("Duplicate section id" in error for error in errors))
+            self.assertRegex(
+                "\n".join(errors),
+                r"Duplicate section id: m1-purpose at modules/01\.md:\d+; "
+                r"first seen at modules/01\.md:\d+",
+            )
+
+    def test_validate_reports_line_number_for_unclosed_container(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "unclosed-container-course")
+            module = created / "modules" / "01.md"
+            module.write_text(
+                module.read_text(encoding="utf-8")
+                + "\n::: decision\nShould we keep going?\n\n- A. Yes\n",
+                encoding="utf-8",
+            )
+            errors = validate_course(created)
+            self.assertRegex(
+                "\n".join(errors),
+                r"modules/01\.md:\d+: unclosed ::: decision block",
+            )
 
     def test_context_returns_question_section(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -787,6 +807,21 @@ Body.
         self.assertIn("<th>Role</th>", html)
         self.assertIn("<td>Agent</td>", html)
 
+    def test_parser_reports_line_number_for_malformed_table(self) -> None:
+        with self.assertRaisesRegex(
+            LearnLoopError, r"guide\.md:2: malformed table separator"
+        ):
+            parse_markdown(
+                "| Name | Role |\n| not a separator | still not |\n| ACP | Protocol |\n",
+                source="guide.md",
+            )
+
+    def test_parser_reports_line_number_for_unclosed_code_block(self) -> None:
+        with self.assertRaisesRegex(
+            LearnLoopError, r"guide\.md:1: unclosed fenced code block"
+        ):
+            parse_markdown("```python\nprint('hello')\n", source="guide.md")
+
     def test_markdown_image_renders_as_figure(self) -> None:
         from learnloop.renderer import render_blocks
 
@@ -901,6 +936,10 @@ Body.
             )
             errors = validate_course(created)
             self.assertTrue(any("missing alt text" in error for error in errors))
+            self.assertRegex(
+                "\n".join(errors),
+                r"modules/01\.md:\d+: figure image is missing alt text",
+            )
 
     def test_missing_local_image_file_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

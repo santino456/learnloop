@@ -13,3 +13,4 @@
 - Add `learnloop ingest` for PDF/DOCX/PPTX/Markdown/text material packs, with PDF captioned-figure extraction into course assets.
 - Harden local question handling, context generation, malformed course errors, and interactive exercise validation.
 - Use PyYAML for course/template metadata and build courses through a locked staging directory to avoid corrupted `dist/` output during concurrent builds.
+- Add source-line diagnostics for course validation errors such as duplicate section ids, missing media alt text, malformed tables, and unclosed containers/code blocks.

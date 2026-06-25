@@ -90,7 +90,7 @@ def parse_module(path: Path) -> tuple[dict[str, str], list[Block]]:
     text = path.read_text(encoding="utf-8")
     match = FRONTMATTER_RE.match(text)
     if not match:
-        return {}, parse_markdown(text)
+        return {}, parse_markdown(text, source=str(path))
     try:
         loaded = yaml.safe_load(match.group(1)) or {}
     except yaml.YAMLError as exc:
@@ -98,13 +98,30 @@ def parse_module(path: Path) -> tuple[dict[str, str], list[Block]]:
     if not isinstance(loaded, dict):
         raise LearnLoopError(f"Frontmatter in {path} must be a mapping")
     frontmatter = {str(key): str(value) for key, value in loaded.items()}
-    return frontmatter, parse_markdown(match.group(2))
+    body_line_offset = match.group(1).count("\n") + 3
+    return frontmatter, parse_markdown(
+        match.group(2), source=str(path), line_offset=body_line_offset
+    )
 
 
-def parse_markdown(text: str) -> list[Block]:
+def parse_markdown(
+    text: str, source: str | None = None, line_offset: int = 0
+) -> list[Block]:
     lines = text.splitlines()
-    blocks, _ = _parse_blocks(lines, 0, _never_stop)
+    blocks, _ = _parse_blocks(lines, 0, _never_stop, source, line_offset)
     return blocks
+
+
+def _source(source: str | None, line: int) -> dict[str, Any] | None:
+    if source is None:
+        return None
+    return {"file": source, "line": line}
+
+
+def _format_location(source: str | None, line: int) -> str:
+    if source:
+        return f"{source}:{line}"
+    return f"line {line}"
 
 
 def _never_stop(_line: str) -> bool:
@@ -274,9 +291,13 @@ def _parse_flow_items(lines: list[str]) -> list[str]:
     return [part.strip() for part in text.split("->") if part.strip()]
 
 
-def _parse_decision(inner: list[str]) -> Block:
+def _parse_decision(
+    inner: list[str], source: str | None = None, line_offset: int = 0
+) -> Block:
     task_lines, sections = split_container_content(inner)
-    task_blocks = parse_markdown("\n".join(task_lines))
+    task_blocks = parse_markdown(
+        "\n".join(task_lines), source=source, line_offset=line_offset
+    )
     choices: list[str] = []
     for block in task_blocks:
         if block.type != "list" or not block.items:
@@ -286,6 +307,7 @@ def _parse_decision(inner: list[str]) -> Block:
             choices.append(text)
     return Block(
         type="decision",
+        source=_source(source, line_offset),
         blocks=task_blocks,
         choices=choices or None,
         answer="\n".join(sections.get("answer", [])).strip() or None,
@@ -298,6 +320,8 @@ def _parse_blocks(
     lines: list[str],
     start: int,
     stop_pred: Any,
+    source: str | None,
+    line_offset: int,
 ) -> tuple[list[Block], int]:
     blocks: list[Block] = []
     i = start
@@ -314,17 +338,25 @@ def _parse_blocks(
 
         # Container blocks
         if line.startswith(":::"):
+            container_start = i
             marker = line[3:].strip()
             i += 1
             inner: list[str] = []
             while i < n and not lines[i].strip().startswith(":::"):
                 inner.append(lines[i])
                 i += 1
-            if i < n:
-                i += 1  # consume closing :::
+            if i >= n:
+                raise LearnLoopError(
+                    f"{_format_location(source, line_offset + container_start + 1)}: "
+                    f"unclosed ::: {marker or 'container'} block"
+                )
+            i += 1  # consume closing :::
+            inner_line_offset = line_offset + container_start + 1
             if marker in ("exercise", "checkpoint"):
                 task_lines, sections = split_container_content(inner)
-                task_blocks = parse_markdown("\n".join(task_lines))
+                task_blocks = parse_markdown(
+                    "\n".join(task_lines), source=source, line_offset=inner_line_offset
+                )
                 answer_text = "\n".join(sections.get("answer", [])).strip() or None
                 explanation_text = "\n".join(sections.get("explanation", [])).strip() or None
                 perspective_text = "\n".join(sections.get("perspective", [])).strip() or None
@@ -340,6 +372,7 @@ def _parse_blocks(
                 blocks.append(
                     Block(
                         type=marker,
+                        source=_source(source, line_offset + container_start + 1),
                         blocks=task_blocks,
                         answer=answer_text,
                         explanation=explanation_text,
@@ -353,33 +386,73 @@ def _parse_blocks(
                     )
                 )
             elif marker == "figure":
-                blocks.append(Block(type="figure", attrs=_parse_key_values(inner)))
+                blocks.append(
+                    Block(
+                        type="figure",
+                        source=_source(source, line_offset + container_start + 1),
+                        attrs=_parse_key_values(inner),
+                    )
+                )
             elif marker == "gallery":
-                blocks.append(Block(type="gallery", media=_parse_gallery_items(inner)))
+                blocks.append(
+                    Block(
+                        type="gallery",
+                        source=_source(source, line_offset + container_start + 1),
+                        media=_parse_gallery_items(inner),
+                    )
+                )
             elif marker == "flow":
-                blocks.append(Block(type="flow", items=_parse_flow_items(inner)))
+                blocks.append(
+                    Block(
+                        type="flow",
+                        source=_source(source, line_offset + container_start + 1),
+                        items=_parse_flow_items(inner),
+                    )
+                )
             elif marker == "timeline":
-                blocks.append(Block(type="timeline", media=_parse_timeline_items(inner)))
+                blocks.append(
+                    Block(
+                        type="timeline",
+                        source=_source(source, line_offset + container_start + 1),
+                        media=_parse_timeline_items(inner),
+                    )
+                )
             elif marker == "decision":
-                blocks.append(_parse_decision(inner))
+                decision = _parse_decision(inner, source, inner_line_offset)
+                decision.source = _source(source, line_offset + container_start + 1)
+                blocks.append(decision)
             else:
-                inner_blocks = parse_markdown("\n".join(inner))
-                blocks.append(Block(type=marker, blocks=inner_blocks))
+                inner_blocks = parse_markdown(
+                    "\n".join(inner), source=source, line_offset=inner_line_offset
+                )
+                blocks.append(
+                    Block(
+                        type=marker,
+                        source=_source(source, line_offset + container_start + 1),
+                        blocks=inner_blocks,
+                    )
+                )
             continue
 
         # Fenced code blocks
         if line.startswith("```"):
+            code_start = i
             lang = line[3:].strip()
             i += 1
             content_lines: list[str] = []
             while i < n and not lines[i].startswith("```"):
                 content_lines.append(lines[i])
                 i += 1
-            if i < n:
-                i += 1
+            if i >= n:
+                raise LearnLoopError(
+                    f"{_format_location(source, line_offset + code_start + 1)}: "
+                    "unclosed fenced code block"
+                )
+            i += 1
             blocks.append(
                 Block(
                     type="code",
+                    source=_source(source, line_offset + code_start + 1),
                     language=lang,
                     content="\n".join(content_lines),
                 )
@@ -389,6 +462,7 @@ def _parse_blocks(
         # Section headings (question anchors)
         section_match = SECTION_RE.match(line)
         if section_match:
+            section_start = i
             level = len(section_match.group(1))
             section_id = section_match.group(2)
             title = section_match.group(3)
@@ -396,10 +470,13 @@ def _parse_blocks(
                 lines,
                 i + 1,
                 lambda l, lvl=level: _is_section_at_or_above(l, lvl),
+                source,
+                line_offset,
             )
             blocks.append(
                 Block(
                     type="section",
+                    source=_source(source, line_offset + section_start + 1),
                     level=level,
                     id=section_id,
                     title=title,
@@ -414,6 +491,7 @@ def _parse_blocks(
             blocks.append(
                 Block(
                     type="heading",
+                    source=_source(source, line_offset + i + 1),
                     level=len(heading_match.group(1)),
                     title=heading_match.group(2).strip(),
                 )
@@ -423,7 +501,13 @@ def _parse_blocks(
 
         # Callouts
         if line.startswith("> "):
-            blocks.append(Block(type="callout", text=inline(line[2:].strip())))
+            blocks.append(
+                Block(
+                    type="callout",
+                    source=_source(source, line_offset + i + 1),
+                    text=inline(line[2:].strip()),
+                )
+            )
             i += 1
             continue
 
@@ -433,6 +517,7 @@ def _parse_blocks(
             blocks.append(
                 Block(
                     type="figure",
+                    source=_source(source, line_offset + i + 1),
                     attrs={"alt": image.group(1).strip(), "src": image.group(2).strip()},
                 )
             )
@@ -441,16 +526,25 @@ def _parse_blocks(
 
         # Unordered lists
         if line.startswith("- "):
+            list_start = i
             items: list[str] = []
             while i < n and lines[i].startswith("- "):
                 items.append(inline(lines[i][2:].strip()))
                 i += 1
-            blocks.append(Block(type="list", ordered=False, items=items))
+            blocks.append(
+                Block(
+                    type="list",
+                    source=_source(source, line_offset + list_start + 1),
+                    ordered=False,
+                    items=items,
+                )
+            )
             continue
 
         # Ordered lists
         ordered = ORDERED_RE.match(line)
         if ordered:
+            list_start = i
             items = []
             while i < n:
                 m = ORDERED_RE.match(lines[i])
@@ -458,17 +552,25 @@ def _parse_blocks(
                     break
                 items.append(inline(m.group(1)))
                 i += 1
-            blocks.append(Block(type="list", ordered=True, items=items))
+            blocks.append(
+                Block(
+                    type="list",
+                    source=_source(source, line_offset + list_start + 1),
+                    ordered=True,
+                    items=items,
+                )
+            )
             continue
 
         # Tables
-        table = _parse_table(lines, i)
+        table = _parse_table(lines, i, source, line_offset)
         if table:
             blocks.append(table[0])
             i = table[1]
             continue
 
         # Paragraph
+        para_start = i
         para_lines: list[str] = []
         while i < n and lines[i].strip():
             if (
@@ -480,12 +582,17 @@ def _parse_blocks(
                 or IMAGE_RE.match(lines[i])
                 or lines[i].startswith("- ")
                 or ORDERED_RE.match(lines[i])
-                or TABLE_RE.match(lines[i])
             ):
                 break
             para_lines.append(lines[i].strip())
             i += 1
-        blocks.append(Block(type="paragraph", text=inline(" ".join(para_lines))))
+        blocks.append(
+            Block(
+                type="paragraph",
+                source=_source(source, line_offset + para_start + 1),
+                text=inline(" ".join(para_lines)),
+            )
+        )
 
     return blocks, i
 
@@ -497,7 +604,9 @@ def _is_section_at_or_above(line: str, level: int) -> bool:
     return len(match.group(1)) <= level
 
 
-def _parse_table(lines: list[str], start: int) -> tuple[Block, int] | None:
+def _parse_table(
+    lines: list[str], start: int, source: str | None = None, line_offset: int = 0
+) -> tuple[Block, int] | None:
     """Parse a Markdown table starting at `start`.
 
     Returns a table Block and the index of the first line after the table,
@@ -523,6 +632,11 @@ def _parse_table(lines: list[str], start: int) -> tuple[Block, int] | None:
     separator = parse_row(lines[start + 1])
     # Separator row should contain only dashes (with optional alignment colons)
     if not all(re.match(r"^:?-+:?$", cell.strip()) for cell in separator):
+        if TABLE_RE.match(lines[start + 1]):
+            raise LearnLoopError(
+                f"{_format_location(source, line_offset + start + 2)}: "
+                "malformed table separator"
+            )
         return None
 
     rows: list[list[str]] = []
@@ -535,9 +649,20 @@ def _parse_table(lines: list[str], start: int) -> tuple[Block, int] | None:
         i += 1
 
     if not rows:
-        return None
+        raise LearnLoopError(
+            f"{_format_location(source, line_offset + start + 1)}: "
+            "table must include at least one body row"
+        )
 
-    return Block(type="table", headers=header, rows=rows), i
+    return (
+        Block(
+            type="table",
+            source=_source(source, line_offset + start + 1),
+            headers=header,
+            rows=rows,
+        ),
+        i,
+    )
 
 
 def inline(text: str) -> str:
@@ -585,7 +710,14 @@ def collect_sections(blocks: list[Block]) -> list[Section]:
     sections: list[Section] = []
     for block in blocks:
         if block.type == "section" and block.id:
-            sections.append(Section(id=block.id, title=block.title or "", blocks=block.blocks or []))
+            sections.append(
+                Section(
+                    id=block.id,
+                    title=block.title or "",
+                    blocks=block.blocks or [],
+                    source=block.source,
+                )
+            )
         if block.blocks:
             sections.extend(collect_sections(block.blocks))
     return sections

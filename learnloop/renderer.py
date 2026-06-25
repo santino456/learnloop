@@ -677,7 +677,7 @@ def validate_course(course_dir: Path) -> list[str]:
     except LearnLoopError as exc:
         return [str(exc)]
 
-    seen_sections: set[str] = set()
+    seen_sections: dict[str, str] = {}
     seen_modules: set[str] = set()
 
     for module in course.modules:
@@ -722,8 +722,13 @@ def validate_course(course_dir: Path) -> list[str]:
             errors.append(f"Module has no question sections: {module.file}")
         for section in sections:
             if section.id in seen_sections:
-                errors.append(f"Duplicate section id: {section.id}")
-            seen_sections.add(section.id)
+                first_seen = seen_sections[section.id]
+                errors.append(
+                    f"Duplicate section id: {section.id} at "
+                    f"{_source_label(section.source, module.file)}; first seen at {first_seen}"
+                )
+                continue
+            seen_sections[section.id] = _source_label(section.source, module.file)
 
     questions = course.root / "questions.jsonl"
     if questions.exists():
@@ -762,27 +767,29 @@ def validate_media_blocks(
     errors: list[str] = []
     for block in _walk_blocks(blocks):
         if block.type == "figure":
+            location = _source_label(block.source, module_file)
             attrs = block.attrs or {}
             src = attrs.get("src", "").strip()
             if not src:
-                errors.append(f"{module_file}: figure image is missing src")
+                errors.append(f"{location}: figure image is missing src")
             if not attrs.get("alt", "").strip():
-                errors.append(f"{module_file}: figure image is missing alt text")
-            errors.extend(_validate_media_src(src, module_file, "figure image", course_root))
+                errors.append(f"{location}: figure image is missing alt text")
+            errors.extend(_validate_media_src(src, location, "figure image", course_root))
         elif block.type == "gallery":
             for idx, item in enumerate(block.media or [], start=1):
+                location = _source_label(block.source, module_file)
                 src = item.get("src", "").strip()
                 label = f"gallery item {idx}"
                 if not src:
-                    errors.append(f"{module_file}: gallery item {idx} is missing src")
+                    errors.append(f"{location}: gallery item {idx} is missing src")
                 if not item.get("alt", "").strip():
-                    errors.append(f"{module_file}: gallery item {idx} is missing alt text")
-                errors.extend(_validate_media_src(src, module_file, label, course_root))
+                    errors.append(f"{location}: gallery item {idx} is missing alt text")
+                errors.extend(_validate_media_src(src, location, label, course_root))
     return errors
 
 
 def _validate_media_src(
-    src: str, module_file: str, label: str, course_root: Path | None
+    src: str, location: str, label: str, course_root: Path | None
 ) -> list[str]:
     if not src or src.startswith(("http://", "https://", "/", "data:")):
         return []
@@ -792,19 +799,28 @@ def _validate_media_src(
     errors: list[str] = []
     if suffix not in IMAGE_EXTENSIONS:
         errors.append(
-            f"{module_file}: {label} must reference an image file, got {src}"
+            f"{location}: {label} must reference an image file, got {src}"
         )
     if not clean.startswith("assets/"):
         errors.append(
-            f"{module_file}: {label} must use assets/... for local images, got {src}"
+            f"{location}: {label} must use assets/... for local images, got {src}"
         )
         return errors
     if ".." in Path(clean).parts:
-        errors.append(f"{module_file}: {label} cannot use parent paths: {src}")
+        errors.append(f"{location}: {label} cannot use parent paths: {src}")
         return errors
     if course_root is not None and not (course_root / clean).exists():
-        errors.append(f"{module_file}: {label} file does not exist: {src}")
+        errors.append(f"{location}: {label} file does not exist: {src}")
     return errors
+
+
+def _source_label(source: dict[str, Any] | None, fallback: str) -> str:
+    if not source:
+        return fallback
+    line = source.get("line")
+    if isinstance(line, int):
+        return f"{fallback}:{line}"
+    return fallback
 
 
 def _walk_blocks(blocks: list[Block]) -> list[Block]:

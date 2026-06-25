@@ -8,7 +8,7 @@ from .ingest import ingest_material
 from .parser import extract_section_text, read_course
 from .renderer import build_course, validate_course
 from .scaffold import scaffold_course
-from .server import find_available_port, load_questions, serve_course
+from .server import find_available_port, load_question_by_id, serve_course
 
 __all__ = [
     "LearnLoopError",
@@ -25,8 +25,7 @@ __all__ = [
 
 def make_context(course_dir: Path, question_id: str) -> str:
     course = read_course(course_dir)
-    questions = load_questions(course.root / "questions.jsonl")
-    question = next((q for q in questions if q.get("id") == question_id), None)
+    question = load_question_by_id(course.root / "questions.jsonl", question_id)
     if not question:
         raise LearnLoopError(f"Question id not found: {question_id}")
 
@@ -43,6 +42,10 @@ def make_context(course_dir: Path, question_id: str) -> str:
         module_path.read_text(encoding="utf-8"),
         str(question.get("section_id", "")),
     )
+    if not section_text:
+        raise LearnLoopError(
+            f"Question references missing section: {question.get('section_id')}"
+        )
     payload = {
         "course": {
             "id": course.id,

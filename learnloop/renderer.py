@@ -268,7 +268,14 @@ def _is_choice_list(items: list[str]) -> bool:
 def render_choice_exercise(block: Block, template: Any | None) -> str:
     task = _render_task_without_choices(block.blocks or [], template)
     choices = block.choices or []
+    if len(choices) > 26:
+        raise LearnLoopError("choice exercises support at most 26 options")
     correct = (block.answer or "").strip().upper()
+    labels = [choice_label(i) for i in range(len(choices))]
+    if correct and correct not in labels:
+        raise LearnLoopError(
+            f"choice answer '{correct}' is outside available options {', '.join(labels)}"
+        )
     explanation_html = ""
     if block.answer:
         answer_md = block.answer
@@ -277,8 +284,8 @@ def render_choice_exercise(block: Block, template: Any | None) -> str:
         answer_body = render_blocks(parse_markdown(answer_md), template)
         explanation_html = f'<div class="exercise-answer" hidden>\n{answer_body}\n</div>'
     radios = "\n".join(
-        f'<label class="choice-option" data-choice="{chr(65 + i)}">'
-        f'<input type="radio" name="choice" value="{chr(65 + i)}"> '
+        f'<label class="choice-option" data-choice="{labels[i]}">'
+        f'<input type="radio" name="choice" value="{labels[i]}"> '
         f'<span>{html.escape(text)}</span></label>'
         for i, text in enumerate(choices)
     )
@@ -293,7 +300,7 @@ def render_choice_exercise(block: Block, template: Any | None) -> str:
         '</div>'
     )
     return (
-        f'<div class="exercise" data-kind="choice" data-correct="{html.escape(correct)}">\n'
+        f'<div class="exercise" data-kind="choice" data-answer="{html.escape(correct)}">\n'
         f'<div class="exercise-task">\n{task}\n</div>\n'
         f'<form class="exercise-choices">\n{radios}\n</form>\n'
         f'{feedback}\n'
@@ -301,6 +308,12 @@ def render_choice_exercise(block: Block, template: Any | None) -> str:
         f'{controls}\n'
         f'</div>'
     )
+
+
+def choice_label(index: int) -> str:
+    if index < 0 or index >= 26:
+        raise LearnLoopError("choice exercises support at most 26 options")
+    return chr(65 + index)
 
 
 def render_fill_exercise(block: Block, template: Any | None) -> str:
@@ -350,7 +363,7 @@ def _replace_blanks_with_inputs(task_html: str, answers: list[str]) -> str:
 def render_bug_exercise(block: Block, template: Any | None) -> str:
     task = render_blocks(block.blocks or [], template)
     buggy = block.buggy_lines or []
-    data_bugs = html.escape(",".join(str(n) for n in buggy))
+    data_bugs = html.escape(json.dumps(buggy))
     task = _decorate_buggy_lines(task, buggy)
     explanation_html = ""
     if block.answer:
@@ -386,6 +399,7 @@ def _decorate_buggy_lines(task_html: str, buggy_lines: list[int]) -> str:
         out: list[str] = [open_tag]
         for line_no, raw_line in enumerate(lines, start=1):
             clean = re.sub(r"\s*<!--\s*bug\s*-->\s*$", "", raw_line)
+            clean = re.sub(r"\s*&lt;!--\s*bug\s*--&gt;\s*$", "", clean)
             cls = "buggy-line" if line_no in buggy_lines else ""
             checkbox = f'<input type="checkbox" class="bug-checkbox" data-line="{line_no}">'
             out.append(f'<div class="code-line {cls}" data-line="{line_no}">{checkbox}<span>{clean}</span></div>')

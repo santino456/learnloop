@@ -3,10 +3,12 @@ from __future__ import annotations
 import json
 import mimetypes
 import os
+import re
 import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 import uuid
 from dataclasses import dataclass
@@ -19,12 +21,18 @@ from urllib.parse import unquote, urlparse
 from urllib.request import urlopen
 
 from .model import LearnLoopError
-from .parser import read_course
+from .parser import collect_sections, parse_module, read_course
 from .renderer import build_course
 from .templates import template_root
 
 HOST = "127.0.0.1"
 DEFAULT_PORT = 8787
+MAX_ASK_BODY_BYTES = 16 * 1024
+MAX_QUESTION_CHARS = 4000
+MAX_ASK_FIELD_CHARS = 200
+CONTROL_CHARS_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+QUESTION_LOG_LOCKS: dict[Path, threading.Lock] = {}
+QUESTION_LOG_LOCKS_GUARD = threading.Lock()
 
 
 @dataclass
@@ -282,34 +290,54 @@ def make_handler(library: CourseLibrary, port: int) -> type[BaseHTTPRequestHandl
             if not entry:
                 self.send_error(404, f"unknown course: {course_id}")
                 return
-            length = int(self.headers.get("Content-Length", 0))
+            if entry.error:
+                self.send_error(400, entry.error)
+                return
+            try:
+                length = int(self.headers.get("Content-Length", 0))
+            except ValueError:
+                self.send_error(400, "invalid content length")
+                return
+            if length > MAX_ASK_BODY_BYTES:
+                self.send_error(413, "question request is too large")
+                return
             try:
                 data = json.loads(self.rfile.read(length).decode("utf-8"))
+            except UnicodeDecodeError:
+                self.send_error(400, "request body must be utf-8")
+                return
             except json.JSONDecodeError:
                 self.send_error(400, "invalid json")
                 return
 
-            question = str(data.get("question", "")).strip()
-            section_id = str(data.get("section_id", "")).strip()
-            module_id = str(data.get("module_id", "")).strip()
+            question = clean_question_text(str(data.get("question", "")))
+            section_id = clean_short_text(str(data.get("section_id", "")))
+            module_id = clean_short_text(str(data.get("module_id", "")))
             if not question or not section_id or not module_id:
                 self.send_error(400, "module_id, section_id, and question are required")
                 return
+            if len(question) > MAX_QUESTION_CHARS:
+                self.send_error(400, f"question exceeds {MAX_QUESTION_CHARS} characters")
+                return
+            if not course_target_exists(entry.root, module_id, section_id):
+                self.send_error(400, "module_id or section_id does not exist")
+                return
 
             questions_file = entry.root / "questions.jsonl"
-            questions_file.touch(exist_ok=True)
             saved = {
                 "id": uuid.uuid4().hex,
                 "timestamp": datetime.now().isoformat(timespec="seconds"),
                 "course_id": entry.id,
                 "module_id": module_id,
                 "section_id": section_id,
-                "section_title": str(data.get("section_title", "")).strip(),
+                "section_title": clean_short_text(str(data.get("section_title", ""))),
                 "question": question,
                 "status": "open",
             }
-            with questions_file.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps(saved, ensure_ascii=False) + "\n")
+            with question_log_lock(questions_file):
+                questions_file.touch(exist_ok=True)
+                with questions_file.open("a", encoding="utf-8") as fh:
+                    fh.write(json.dumps(saved, ensure_ascii=False) + "\n")
             self.send_json({"ok": True, "saved": saved})
 
         def send_course_error(self, title: str, message: str) -> None:
@@ -503,14 +531,64 @@ def load_questions(path: Path) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     if not path.exists():
         return items
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if not line.strip():
-            continue
-        try:
-            items.append(json.loads(line))
-        except json.JSONDecodeError:
-            continue
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            if not line.strip():
+                continue
+            try:
+                items.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
     return items
+
+
+def load_question_by_id(path: Path, question_id: str) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    with path.open(encoding="utf-8") as fh:
+        for line in fh:
+            if not line.strip():
+                continue
+            try:
+                item = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if item.get("id") == question_id:
+                return item
+    return None
+
+
+def clean_question_text(value: str) -> str:
+    value = CONTROL_CHARS_RE.sub("", value)
+    return value.strip()
+
+
+def clean_short_text(value: str) -> str:
+    value = CONTROL_CHARS_RE.sub("", value)
+    value = " ".join(value.split())
+    return value[:MAX_ASK_FIELD_CHARS]
+
+
+def course_target_exists(course_root: Path, module_id: str, section_id: str) -> bool:
+    try:
+        course = read_course(course_root)
+        module = next((item for item in course.modules if item.id == module_id), None)
+        if not module:
+            return False
+        _frontmatter, blocks = parse_module(course.root / module.file)
+        return any(section.id == section_id for section in collect_sections(blocks))
+    except (LearnLoopError, OSError):
+        return False
+
+
+def question_log_lock(path: Path) -> threading.Lock:
+    key = path.resolve()
+    with QUESTION_LOG_LOCKS_GUARD:
+        lock = QUESTION_LOG_LOCKS.get(key)
+        if lock is None:
+            lock = threading.Lock()
+            QUESTION_LOG_LOCKS[key] = lock
+        return lock
 
 
 def pidfile_for(root: Path) -> Path:

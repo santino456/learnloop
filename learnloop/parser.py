@@ -23,18 +23,24 @@ def read_course(course_dir: Path) -> CourseDoc:
         raise LearnLoopError(f"Missing course.yaml in {course_dir}")
 
     data = parse_course_yaml(course_file.read_text(encoding="utf-8"))
-    modules = [
-        ModuleDoc(
-            id=str(item["id"]),
-            title=str(item["title"]),
-            file=str(item["file"]),
-            summary=str(item.get("summary", "")),
-            template=str(item.get("template", "")) or None,
+    modules = []
+    for idx, item in enumerate(data.get("modules", []), start=1):
+        context = f"{course_file}: modules[{idx}]"
+        modules.append(
+            ModuleDoc(
+                id=_required_yaml_field(item, "id", context),
+                title=_required_yaml_field(item, "title", context),
+                file=_required_yaml_field(item, "file", context),
+                summary=str(item.get("summary", "")),
+                template=str(item.get("template", "")) or None,
+            )
         )
-        for item in data.get("modules", [])
-    ]
     if not modules:
         raise LearnLoopError("course.yaml must define at least one module")
+    try:
+        default_port = int(data.get("default_port", 8787))
+    except (TypeError, ValueError) as exc:
+        raise LearnLoopError(f"{course_file}: default_port must be an integer") from exc
 
     return CourseDoc(
         root=course_dir,
@@ -42,10 +48,17 @@ def read_course(course_dir: Path) -> CourseDoc:
         title=str(data.get("title", course_dir.name)),
         subtitle=str(data.get("subtitle", "")),
         audience=str(data.get("audience", "")),
-        default_port=int(data.get("default_port", 8787)),
+        default_port=default_port,
         template=str(data.get("template", "")) or None,
         modules=modules,
     )
+
+
+def _required_yaml_field(item: dict[str, Any], field: str, context: str) -> str:
+    value = str(item.get(field, "")).strip()
+    if not value:
+        raise LearnLoopError(f"{context}: missing required field '{field}'")
+    return value
 
 
 def parse_course_yaml(text: str) -> dict[str, Any]:
@@ -160,7 +173,7 @@ def split_on_answer(lines: list[str]) -> tuple[list[str], list[str]]:
     return task, sections.get("answer", [])
 
 
-CHOICE_RE = re.compile(r"^([A-D])\.\s*(.+)$")
+CHOICE_RE = re.compile(r"^([A-Z])\.\s*(.+)$")
 BLANK_RE = re.compile(r"_{8,}")
 BUG_MARKER = re.compile(r"<!--\s*bug\s*-->$")
 
@@ -175,7 +188,7 @@ def classify_exercise(
     # Perspective exercises are identified by their marker sections.
     # We do not inspect answer_text here; the caller already has perspective etc.
 
-    # Multiple choice: task contains a list whose items look like A. B. C. D.
+    # Multiple choice: task contains a list whose items look like A. B. C.
     for block in task_blocks:
         if block.type == "list" and block.items:
             choices: list[str] = []

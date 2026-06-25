@@ -8,9 +8,10 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib import request
 
-from learnloop.course import build_course, init_course, make_context, scaffold_course, validate_course
+from learnloop.course import LearnLoopError, build_course, init_course, make_context, scaffold_course, validate_course
 from learnloop.ingest import ingest_material
 from learnloop.knowledge import audit_generation_readiness
 from learnloop.parser import parse_markdown
@@ -35,6 +36,36 @@ class LearnLoopTests(unittest.TestCase):
             created = init_course(Path(tmp), "demo-course")
             self.assertEqual(validate_course(created), [])
             self.assertTrue((created / "modules" / "01.md").exists())
+
+    def test_read_course_reports_malformed_course_yaml(self) -> None:
+        from learnloop.parser import read_course
+
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "bad-yaml-course")
+            course_yaml = created / "course.yaml"
+            course_yaml.write_text(
+                "id: bad-yaml-course\n"
+                "title: Bad YAML Course\n"
+                "default_port: not-a-port\n"
+                "modules:\n"
+                "  - id: m1\n"
+                "    title: Start\n"
+                "    file: modules/01.md\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(LearnLoopError, "default_port must be an integer"):
+                read_course(created)
+
+            course_yaml.write_text(
+                "id: bad-yaml-course\n"
+                "title: Bad YAML Course\n"
+                "modules:\n"
+                "  - id: m1\n"
+                "    title: Start\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(LearnLoopError, "missing required field 'file'"):
+                read_course(created)
 
     def test_scaffold_course_creates_generation_workspace(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -168,6 +199,43 @@ class LearnLoopTests(unittest.TestCase):
             self.assertEqual(context["question"]["id"], "q1")
             self.assertIn("Why this course exists", context["section_context"])
 
+    def test_context_skips_invalid_question_log_lines(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "context-bad-log-course")
+            question = {
+                "id": "q-after-bad-line",
+                "timestamp": "2026-06-22T12:00:00",
+                "course_id": "context-bad-log-course",
+                "module_id": "m1",
+                "section_id": "m1-purpose",
+                "section_title": "Why this course exists",
+                "question": "Can you still find this?",
+                "status": "open",
+            }
+            (created / "questions.jsonl").write_text(
+                "{bad json}\n" + json.dumps(question) + "\n",
+                encoding="utf-8",
+            )
+            context = json.loads(make_context(created, "q-after-bad-line"))
+            self.assertEqual(context["question"]["question"], "Can you still find this?")
+
+    def test_context_rejects_missing_section_reference(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "context-missing-section-course")
+            question = {
+                "id": "q-missing-section",
+                "timestamp": "2026-06-22T12:00:00",
+                "course_id": "context-missing-section-course",
+                "module_id": "m1",
+                "section_id": "m1-does-not-exist",
+                "section_title": "Missing",
+                "question": "Where is this?",
+                "status": "open",
+            }
+            (created / "questions.jsonl").write_text(json.dumps(question) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(LearnLoopError, "missing section"):
+                make_context(created, "q-missing-section")
+
     def test_server_config_and_ask_on_non_default_port(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "served-course")
@@ -175,8 +243,8 @@ class LearnLoopTests(unittest.TestCase):
             proc = subprocess.Popen(
                 [sys.executable, "-m", "learnloop", "serve", str(created), "--port", str(port)],
                 cwd=str(ROOT),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 text=True,
             )
             try:
@@ -203,6 +271,42 @@ class LearnLoopTests(unittest.TestCase):
                 self.assertEqual(saved["saved"]["status"], "open")
                 questions = (created / "questions.jsonl").read_text(encoding="utf-8")
                 self.assertIn("How does this work?", questions)
+
+                bad_target = json.dumps(
+                    {
+                        "module_id": "m1",
+                        "section_id": "m1-missing",
+                        "section_title": "Missing",
+                        "question": "Can this target be saved?",
+                    }
+                ).encode()
+                req = request.Request(
+                    f"http://localhost:{port}/ask",
+                    data=bad_target,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with self.assertRaises(HTTPError) as ctx:
+                    request.urlopen(req, timeout=5).read()
+                self.assertEqual(ctx.exception.code, 400)
+
+                large_body = json.dumps(
+                    {
+                        "module_id": "m1",
+                        "section_id": "m1-purpose",
+                        "section_title": "Why this course exists",
+                        "question": "x" * 5000,
+                    }
+                ).encode()
+                req = request.Request(
+                    f"http://localhost:{port}/ask",
+                    data=large_body,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with self.assertRaises(HTTPError) as ctx:
+                    request.urlopen(req, timeout=5).read()
+                self.assertEqual(ctx.exception.code, 400)
             finally:
                 proc.terminate()
                 try:
@@ -220,8 +324,8 @@ class LearnLoopTests(unittest.TestCase):
             proc = subprocess.Popen(
                 [sys.executable, "-m", "learnloop", "serve", str(root), "--port", str(port)],
                 cwd=str(ROOT),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 text=True,
             )
             try:
@@ -275,8 +379,8 @@ class LearnLoopTests(unittest.TestCase):
             proc = subprocess.Popen(
                 [sys.executable, "-m", "learnloop", "serve", str(root), "--port", str(port)],
                 cwd=str(ROOT),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
                 text=True,
             )
             try:
@@ -511,6 +615,42 @@ class LearnLoopTests(unittest.TestCase):
         )
         self.assertEqual(block.explanation, "本地最小客户端通常是子进程 stdio。")
 
+    def test_multiple_choice_supports_more_than_four_options(self) -> None:
+        from learnloop.renderer import render_blocks
+        from learnloop.templates import load_template
+
+        blocks = parse_markdown(
+            "::: exercise\n选择正确选项。\n\n"
+            "- A. One\n"
+            "- B. Two\n"
+            "- C. Three\n"
+            "- D. Four\n"
+            "- E. Five\n\n"
+            "--- answer\nE\n"
+            "---\n:::\n"
+        )
+        block = blocks[0]
+        self.assertEqual(block.type, "exercise")
+        self.assertEqual(block.kind, "choice")
+        self.assertEqual(block.choices, ["One", "Two", "Three", "Four", "Five"])
+        html = render_blocks(blocks, load_template("practice"))
+        self.assertIn('data-answer="E"', html)
+        self.assertIn('data-choice="E"', html)
+
+    def test_multiple_choice_rejects_answer_outside_options(self) -> None:
+        from learnloop.renderer import render_blocks
+        from learnloop.templates import load_template
+
+        blocks = parse_markdown(
+            "::: exercise\n选择正确选项。\n\n"
+            "- A. One\n"
+            "- B. Two\n\n"
+            "--- answer\nZ\n"
+            "---\n:::\n"
+        )
+        with self.assertRaisesRegex(LearnLoopError, "outside available options"):
+            render_blocks(blocks, load_template("practice"))
+
     def test_fill_in_the_blank_exercise_stores_expected_answers(self) -> None:
         blocks = parse_markdown(
             "::: exercise\n"
@@ -525,6 +665,31 @@ class LearnLoopTests(unittest.TestCase):
         self.assertEqual(block.kind, "fill")
         self.assertEqual(block.answers, ["stdin", "stdout", "stderr"])
         self.assertEqual(block.explanation, "stdin 进，stdout 出。")
+
+    def test_spot_the_bug_exercise_renders_json_line_metadata(self) -> None:
+        from learnloop.renderer import render_blocks
+        from learnloop.templates import load_template
+
+        blocks = parse_markdown(
+            "::: exercise\n"
+            "找出错误行。\n\n"
+            "```python\n"
+            "print('ok')\n"
+            "raise RuntimeError('bad')  <!-- bug -->\n"
+            "print('done')\n"
+            "```\n\n"
+            "--- answer\n"
+            "第二行会直接抛错。\n"
+            "---\n"
+            ":::\n"
+        )
+        block = blocks[0]
+        self.assertEqual(block.kind, "bug")
+        self.assertEqual(block.buggy_lines, [2])
+        html = render_blocks(blocks, load_template("practice"))
+        self.assertIn('data-buggy-lines="[2]"', html)
+        self.assertIn('class="bug-checkbox" data-line="2"', html)
+        self.assertNotIn("&lt;!-- bug --&gt;", html)
 
     def test_perspective_exercise_renders_judgment_card_html(self) -> None:
         from learnloop.renderer import render_blocks

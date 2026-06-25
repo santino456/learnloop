@@ -639,7 +639,7 @@ def validate_course(course_dir: Path) -> list[str]:
         errors.extend(
             f"{module.file}: {error}" for error in validate_template_support(template, block_types)
         )
-        errors.extend(validate_media_blocks(blocks, module.file))
+        errors.extend(validate_media_blocks(blocks, module.file, course.root))
         errors.extend(validate_perspective_basis(blocks, module.file))
 
         sections = collect_sections(blocks)
@@ -678,21 +678,57 @@ def validate_course(course_dir: Path) -> list[str]:
     return errors
 
 
-def validate_media_blocks(blocks: list[Block], module_file: str) -> list[str]:
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif"}
+
+
+def validate_media_blocks(
+    blocks: list[Block], module_file: str, course_root: Path | None = None
+) -> list[str]:
     errors: list[str] = []
     for block in _walk_blocks(blocks):
         if block.type == "figure":
             attrs = block.attrs or {}
-            if not attrs.get("src", "").strip():
+            src = attrs.get("src", "").strip()
+            if not src:
                 errors.append(f"{module_file}: figure image is missing src")
             if not attrs.get("alt", "").strip():
                 errors.append(f"{module_file}: figure image is missing alt text")
+            errors.extend(_validate_media_src(src, module_file, "figure image", course_root))
         elif block.type == "gallery":
             for idx, item in enumerate(block.media or [], start=1):
-                if not item.get("src", "").strip():
+                src = item.get("src", "").strip()
+                label = f"gallery item {idx}"
+                if not src:
                     errors.append(f"{module_file}: gallery item {idx} is missing src")
                 if not item.get("alt", "").strip():
                     errors.append(f"{module_file}: gallery item {idx} is missing alt text")
+                errors.extend(_validate_media_src(src, module_file, label, course_root))
+    return errors
+
+
+def _validate_media_src(
+    src: str, module_file: str, label: str, course_root: Path | None
+) -> list[str]:
+    if not src or src.startswith(("http://", "https://", "/", "data:")):
+        return []
+
+    clean = src[2:] if src.startswith("./") else src
+    suffix = Path(clean).suffix.lower()
+    errors: list[str] = []
+    if suffix not in IMAGE_EXTENSIONS:
+        errors.append(
+            f"{module_file}: {label} must reference an image file, got {src}"
+        )
+    if not clean.startswith("assets/"):
+        errors.append(
+            f"{module_file}: {label} must use assets/... for local images, got {src}"
+        )
+        return errors
+    if ".." in Path(clean).parts:
+        errors.append(f"{module_file}: {label} cannot use parent paths: {src}")
+        return errors
+    if course_root is not None and not (course_root / clean).exists():
+        errors.append(f"{module_file}: {label} file does not exist: {src}")
     return errors
 
 

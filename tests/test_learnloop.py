@@ -604,6 +604,9 @@ class LearnLoopTests(unittest.TestCase):
     def test_missing_image_alt_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "alt-course")
+            assets = created / "assets"
+            assets.mkdir()
+            (assets / "no-alt.png").write_bytes(b"fake image")
             module = created / "modules" / "01.md"
             module.write_text(
                 module.read_text(encoding="utf-8") + "\n![](assets/no-alt.png)\n",
@@ -611,6 +614,33 @@ class LearnLoopTests(unittest.TestCase):
             )
             errors = validate_course(created)
             self.assertTrue(any("missing alt text" in error for error in errors))
+
+    def test_missing_local_image_file_fails_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "missing-image-course")
+            module = created / "modules" / "01.md"
+            module.write_text(
+                module.read_text(encoding="utf-8") + "\n![Diagram](assets/missing.png)\n",
+                encoding="utf-8",
+            )
+            errors = validate_course(created)
+            self.assertTrue(any("file does not exist: assets/missing.png" in error for error in errors))
+
+    def test_local_figure_must_use_image_asset(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "raw-pdf-image-course")
+            raw = created / "raw"
+            raw.mkdir()
+            (raw / "paper.pdf").write_bytes(b"%PDF-1.4")
+            module = created / "modules" / "01.md"
+            module.write_text(
+                module.read_text(encoding="utf-8")
+                + "\n::: figure\nsrc: raw/paper.pdf\nalt: Paper figure\ncaption: Bad source.\n:::\n",
+                encoding="utf-8",
+            )
+            errors = validate_course(created)
+            self.assertTrue(any("must reference an image file" in error for error in errors))
+            self.assertTrue(any("must use assets/..." in error for error in errors))
 
     def test_decision_without_answer_or_perspective_fails_audit(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

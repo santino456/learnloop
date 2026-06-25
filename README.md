@@ -34,6 +34,21 @@ learnloop start courses --port 8787
 
 Open `http://127.0.0.1:8787/` to see the course library.
 
+For an Agent-generated course that should be source-grounded and reusable, start
+with the richer scaffold:
+
+```bash
+learnloop scaffold-course mcp-fundamentals --target courses \
+  --title "MCP Fundamentals" \
+  --topic "Model Context Protocol" \
+  --audience "Developers learning AI tool integration"
+```
+
+This creates a valid starter course plus `generation_brief.md`, `.learnloop/`
+source tracking files, chapter briefs, evidence pack folders, `assets/`, and
+`raw/`. The scaffold is intentionally lightweight: it tells the Agent how to
+research, plan, draft, and validate without forcing a heavy workflow.
+
 To try the richer ACP sample course, run from a local checkout:
 
 ```bash
@@ -215,6 +230,7 @@ See [Course Quality](docs/course-quality.md) for the release checklist and quali
 
 ```bash
 learnloop init my-course
+learnloop scaffold-course my-course --target courses
 learnloop build courses/acp-fundamentals
 learnloop validate courses/acp-fundamentals
 learnloop audit courses/acp-fundamentals

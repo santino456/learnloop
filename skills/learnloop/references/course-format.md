@@ -13,6 +13,23 @@ Use this reference when creating, migrating, or repairing a LearnLoop course.
 - `.learnloop/`: optional orchestration workspace for sources, claims, conflicts, chapter briefs, and evidence packs.
 - `dist/`: generated HTML output.
 
+For new source-grounded courses, prefer:
+
+```bash
+learnloop scaffold-course my-course --target courses
+```
+
+This creates the required course files plus:
+
+- `generation_brief.md`: Agent-facing course generation route.
+- `.learnloop/course_architecture.md`: module form and boundary plan.
+- `.learnloop/chapter_briefs/`: one brief per planned chapter.
+- `.learnloop/evidence_packs/`: source-grounded evidence before drafting.
+- `assets/`: local images used by semantic components.
+- `raw/`: original source artifacts.
+
+Use `learnloop init` only for a minimal blank course.
+
 ## course.yaml
 
 Use this shape:

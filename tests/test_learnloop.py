@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 from urllib import request
 
-from learnloop.course import build_course, init_course, make_context, validate_course
+from learnloop.course import build_course, init_course, make_context, scaffold_course, validate_course
 from learnloop.knowledge import audit_generation_readiness
 from learnloop.parser import parse_markdown
 from learnloop.server import find_available_port
@@ -34,6 +34,28 @@ class LearnLoopTests(unittest.TestCase):
             created = init_course(Path(tmp), "demo-course")
             self.assertEqual(validate_course(created), [])
             self.assertTrue((created / "modules" / "01.md").exists())
+
+    def test_scaffold_course_creates_generation_workspace(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = scaffold_course(
+                Path(tmp),
+                "quality-course",
+                title="Quality Course",
+                topic="Course Quality",
+                audience="Agents and human reviewers",
+            )
+            self.assertEqual(validate_course(created), [])
+            self.assertEqual(audit_generation_readiness(created), [])
+            dist = build_course(created)
+            self.assertTrue((dist / "m1.html").exists())
+            self.assertTrue((created / "generation_brief.md").exists())
+            self.assertTrue((created / ".learnloop" / "source_inventory.yaml").exists())
+            self.assertTrue((created / ".learnloop" / "course_architecture.md").exists())
+            self.assertTrue((created / ".learnloop" / "chapter_briefs" / "m1.md").exists())
+            self.assertTrue((created / ".learnloop" / "evidence_packs" / "README.md").exists())
+            brief = (created / "generation_brief.md").read_text(encoding="utf-8")
+            self.assertIn("Ask Better Questions", brief)
+            self.assertIn("HTML Learning Components", brief)
 
     def test_sample_course_passes_generation_audit(self) -> None:
         self.assertEqual(audit_generation_readiness(SAMPLE), [])

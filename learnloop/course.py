@@ -6,6 +6,7 @@ from pathlib import Path
 from .model import LearnLoopError, ModuleDoc
 from .parser import extract_section_text, read_course
 from .renderer import build_course, validate_course
+from .scaffold import scaffold_course
 from .server import find_available_port, load_questions, serve_course
 
 __all__ = [
@@ -16,6 +17,7 @@ __all__ = [
     "validate_course",
     "make_context",
     "find_available_port",
+    "scaffold_course",
 ]
 
 

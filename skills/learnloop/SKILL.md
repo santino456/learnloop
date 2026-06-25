@@ -20,7 +20,7 @@ Think like an experienced teacher preparing a lesson: research first, check the 
 - **Answer learner question**: read `references/answering-loop.md`, run `learnloop context`, write an answer artifact, and update course source only if the answer should be reused.
 - **Small course edit**: inspect the target module, preserve section ids, make the narrow edit, then run `learnloop validate` and `learnloop build`.
 - **Course structure or template change**: read `references/course-format.md` before editing `course.yaml`, module frontmatter, containers, templates, or section ids.
-- **New or substantial course generation**: follow the Expert Teacher Workflow below. Read `docs/content-forms.md` first.
+- **New or substantial course generation**: start with `learnloop scaffold-course <slug> --target courses` unless the course already exists. Then follow the Expert Teacher Workflow below and read `docs/content-forms.md` first.
 - **Named entities, technical claims, commands, APIs, protocol fields, or version-sensitive facts**: verify them against a reliable source before adding them.
 - **Publication or reusable course**: also read `docs/evidence-and-sources.md` and `docs/course-quality.md`; optionally add a `.learnloop/` workspace to track sources and claims.
 
@@ -107,6 +107,7 @@ learnloop validate <course-dir>
 learnloop audit <course-dir>
 learnloop build <course-dir>
 learnloop context <course-dir> --question-id <id>
+learnloop scaffold-course <slug> --target courses
 learnloop start courses --port 8787
 ```
 

@@ -9,6 +9,7 @@ from .course import (
     build_course,
     init_course,
     make_context,
+    scaffold_course,
     serve_course,
     validate_course,
 )
@@ -30,6 +31,19 @@ def main(argv: list[str] | None = None) -> int:
     init_p.add_argument(
         "--target", default=".", help="Directory that will contain the course folder."
     )
+
+    scaffold_p = sub.add_parser(
+        "scaffold-course",
+        aliases=["scaffold"],
+        help="Create a source-grounded course generation workspace.",
+    )
+    scaffold_p.add_argument("course_slug")
+    scaffold_p.add_argument(
+        "--target", default=".", help="Directory that will contain the course folder."
+    )
+    scaffold_p.add_argument("--title", default=None, help="Course title.")
+    scaffold_p.add_argument("--topic", default=None, help="Topic or learning domain.")
+    scaffold_p.add_argument("--audience", default=None, help="Target learner.")
 
     build_p = sub.add_parser("build", help="Generate HTML into dist/.")
     build_p.add_argument("course_dir", nargs="?", default=".")
@@ -79,6 +93,15 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "init":
             created = init_course(Path(args.target), args.course_slug)
+            print(created)
+        elif args.command in {"scaffold-course", "scaffold"}:
+            created = scaffold_course(
+                Path(args.target),
+                args.course_slug,
+                title=args.title,
+                topic=args.topic,
+                audience=args.audience,
+            )
             print(created)
         elif args.command == "build":
             dist = build_course(Path(args.course_dir))

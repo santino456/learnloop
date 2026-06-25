@@ -9,6 +9,7 @@ from .model import Block, CourseDoc, LearnLoopError, ModuleDoc
 
 
 SECTION_RE = re.compile(r"^(#{2,3})\s+\[([a-zA-Z0-9_-]+)\]\s+(.+?)\s*$")
+HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.S)
 ORDERED_RE = re.compile(r"^\d+\.\s+(.+)$")
 TABLE_RE = re.compile(r"^\|(.+)\|\s*$")
@@ -325,9 +326,16 @@ def _parse_blocks(
             )
             continue
 
-        # Top-level H1 (rare; render as heading block)
-        if line.startswith("# "):
-            blocks.append(Block(type="heading", level=1, title=line[2:].strip()))
+        # Plain headings without question anchors.
+        heading_match = HEADING_RE.match(line)
+        if heading_match:
+            blocks.append(
+                Block(
+                    type="heading",
+                    level=len(heading_match.group(1)),
+                    title=heading_match.group(2).strip(),
+                )
+            )
             i += 1
             continue
 
@@ -373,7 +381,7 @@ def _parse_blocks(
                 lines[i].startswith(":::")
                 or lines[i].startswith("```")
                 or SECTION_RE.match(lines[i])
-                or lines[i].startswith("# ")
+                or HEADING_RE.match(lines[i])
                 or lines[i].startswith("> ")
                 or lines[i].startswith("- ")
                 or ORDERED_RE.match(lines[i])
@@ -438,9 +446,26 @@ def _parse_table(lines: list[str], start: int) -> tuple[Block, int] | None:
 
 
 def inline(text: str) -> str:
+    # Process markdown links first, protecting generated HTML from escaping.
+    links: list[str] = []
+
+    def link_repl(match: re.Match[str]) -> str:
+        link_text = html.escape(match.group(1))
+        url = html.escape(match.group(2))
+        links.append(
+            f'<a href="{url}" target="_blank" rel="noopener noreferrer">{link_text}</a>'
+        )
+        return f"\x00LINK{len(links) - 1}\x00"
+
+    text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link_repl, text)
+
     escaped = html.escape(text)
     escaped = re.sub(r"`([^`]+)`", r"<code>\1</code>", escaped)
     escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
+
+    for i, link_html in enumerate(links):
+        escaped = escaped.replace(f"\x00LINK{i}\x00", link_html)
+
     return escaped
 
 

@@ -36,7 +36,8 @@ def render_blocks(blocks: list[Block], template: Any | None = None) -> str:
                 rows += f"<tr>{cells}</tr>"
             out.append(f"<table><thead><tr>{headers}</tr></thead><tbody>{rows}</tbody></table>")
         elif block.type == "heading":
-            out.append(f"<h1>{html.escape(block.title or '')}</h1>")
+            level = min(max(block.level or 2, 1), 6)
+            out.append(f"<h{level}>{html.escape(block.title or '')}</h{level}>")
         elif block.type == "section":
             out.append(render_section(block, template))
         elif block.type == "exercise":

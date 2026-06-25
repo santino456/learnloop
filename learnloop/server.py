@@ -179,6 +179,10 @@ def make_handler(library: CourseLibrary, port: int) -> type[BaseHTTPRequestHandl
             if path == "/api/courses":
                 self.send_json([course_to_json(entry) for entry in library.entries()])
                 return
+            api_match = split_course_api_path(path)
+            if api_match and api_match[1] == "questions":
+                self.send_course_questions(api_match[0])
+                return
             if path == "/":
                 self.send_html(render_library_home(library))
                 return
@@ -473,24 +477,24 @@ def render_error_page(title: str, message: str) -> str:
 
 
 LIBRARY_CSS = """
-:root { color-scheme: light; --bg:#f7f2e8; --paper:#fffaf0; --ink:#2a211b; --muted:#6e6256; --line:#d8cdbc; --accent:#8c5e2e; --accent-strong:#a0442a; --soft:#f0e6d3; }
+:root { color-scheme: light; --bg:#f4f6f4; --paper:#fffefb; --ink:#1d2422; --muted:#66736f; --line:#d8e0dc; --accent:#0f766e; --accent-strong:#0e4f49; --soft:#e0f1ee; --shadow:0 10px 30px rgba(29,36,34,.06); }
 * { box-sizing: border-box; }
-body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; }
-.ll-home { width:min(980px, calc(100vw - 40px)); margin:0 auto; padding:42px 0 80px; }
+body { margin:0; background:linear-gradient(90deg, rgba(15,118,110,.04) 1px, transparent 1px), linear-gradient(180deg, rgba(49,95,168,.035), transparent 260px), var(--bg); background-size:64px 64px, auto, auto; color:var(--ink); font:16px/1.7 "PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+.ll-home { width:min(1040px, calc(100vw - 40px)); margin:0 auto; padding:48px 0 86px; }
 .ll-home header { border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:22px; }
-.ll-home header p { margin:0 0 6px; color:var(--accent); font:700 11px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:.12em; text-transform:uppercase; }
-.ll-home h1 { margin:0 0 8px; font-size:34px; line-height:1.2; }
+.ll-home header p { margin:0 0 6px; color:var(--accent); font:800 12px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace; text-transform:uppercase; }
+.ll-home h1 { margin:0 0 8px; font-size:38px; line-height:1.18; }
 .ll-home header span, .ll-home-card small, .ll-home-card p { color:var(--muted); }
 .ll-home-grid { display:grid; gap:12px; }
-.ll-home-card { display:flex; justify-content:space-between; gap:18px; align-items:center; background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:18px 20px; }
-.ll-home-card h2 { margin:6px 0 4px; font-size:20px; }
+.ll-home-card { display:flex; justify-content:space-between; gap:18px; align-items:center; background:rgba(255,254,251,.78); border:1px solid var(--line); border-radius:8px; padding:20px 22px; box-shadow:var(--shadow); }
+.ll-home-card h2 { margin:6px 0 4px; font-size:21px; line-height:1.35; }
 .ll-home-card p { margin:0 0 6px; }
-.ll-home-status { display:inline-flex; border:1px solid var(--line); background:var(--soft); color:var(--accent); border-radius:999px; padding:2px 8px; font:700 11px ui-monospace,SFMono-Regular,Menlo,monospace; }
-.ll-home-action { flex:none; color:#fff; background:var(--accent); text-decoration:none; border-radius:5px; padding:8px 12px; font:700 13px ui-monospace,SFMono-Regular,Menlo,monospace; }
+.ll-home-status { display:inline-flex; border:1px solid #baded7; background:var(--soft); color:var(--accent-strong); border-radius:999px; padding:2px 8px; font:800 11px ui-monospace,SFMono-Regular,Menlo,monospace; }
+.ll-home-action { flex:none; color:#fff; background:var(--accent); text-decoration:none; border-radius:5px; padding:9px 13px; font:750 13px "PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; }
 .ll-home-action:hover { background:var(--accent-strong); }
 .ll-home-error { color:var(--accent-strong); font-size:13px; }
 .ll-home-empty { background:var(--paper); border:1px dashed var(--line); border-radius:8px; padding:22px; color:var(--muted); }
-.ll-error { white-space:pre-wrap; background:#2a211b; color:#fffaf0; border-radius:8px; padding:18px; overflow:auto; }
+.ll-error { white-space:pre-wrap; background:#18211f; color:#f6fbf8; border-radius:8px; padding:18px; overflow:auto; }
 @media (max-width: 680px) { .ll-home-card { align-items:flex-start; flex-direction:column; } .ll-home-action { width:100%; text-align:center; } }
 """
 

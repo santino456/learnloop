@@ -13,6 +13,7 @@ HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.S)
 ORDERED_RE = re.compile(r"^\d+\.\s+(.+)$")
 TABLE_RE = re.compile(r"^\|(.+)\|\s*$")
+IMAGE_RE = re.compile(r"^!\[([^\]]*)\]\(([^)]+)\)\s*$")
 
 
 def read_course(course_dir: Path) -> CourseDoc:
@@ -222,6 +223,75 @@ def _split_answers(answer_text: str | None) -> list[str] | None:
     return parts if parts else None
 
 
+def _parse_key_values(lines: list[str]) -> dict[str, str]:
+    attrs: dict[str, str] = {}
+    for raw in lines:
+        if ":" not in raw:
+            continue
+        key, value = raw.split(":", 1)
+        key = key.strip()
+        if key:
+            attrs[key] = value.strip()
+    return attrs
+
+
+def _parse_gallery_items(lines: list[str]) -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
+    for raw in lines:
+        stripped = raw.strip()
+        if not stripped.startswith("- "):
+            continue
+        parts = [part.strip() for part in stripped[2:].split("|")]
+        if not parts or not parts[0]:
+            continue
+        items.append(
+            {
+                "src": parts[0],
+                "alt": parts[1] if len(parts) > 1 else "",
+                "caption": parts[2] if len(parts) > 2 else "",
+            }
+        )
+    return items
+
+
+def _parse_timeline_items(lines: list[str]) -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
+    for raw in lines:
+        stripped = raw.strip()
+        if not stripped.startswith("- "):
+            continue
+        parts = [part.strip() for part in stripped[2:].split("|", 1)]
+        if not parts or not parts[0]:
+            continue
+        items.append({"title": parts[0], "text": parts[1] if len(parts) > 1 else ""})
+    return items
+
+
+def _parse_flow_items(lines: list[str]) -> list[str]:
+    text = " ".join(line.strip() for line in lines if line.strip())
+    return [part.strip() for part in text.split("->") if part.strip()]
+
+
+def _parse_decision(inner: list[str]) -> Block:
+    task_lines, sections = split_container_content(inner)
+    task_blocks = parse_markdown("\n".join(task_lines))
+    choices: list[str] = []
+    for block in task_blocks:
+        if block.type != "list" or not block.items:
+            continue
+        for item in block.items:
+            text = re.sub(r"<[^>]+>", "", item).strip()
+            choices.append(text)
+    return Block(
+        type="decision",
+        blocks=task_blocks,
+        choices=choices or None,
+        answer="\n".join(sections.get("answer", [])).strip() or None,
+        explanation="\n".join(sections.get("explanation", [])).strip() or None,
+        perspective="\n".join(sections.get("perspective", [])).strip() or None,
+    )
+
+
 def _parse_blocks(
     lines: list[str],
     start: int,
@@ -280,6 +350,16 @@ def _parse_blocks(
                         pitfalls=pitfalls_text,
                     )
                 )
+            elif marker == "figure":
+                blocks.append(Block(type="figure", attrs=_parse_key_values(inner)))
+            elif marker == "gallery":
+                blocks.append(Block(type="gallery", media=_parse_gallery_items(inner)))
+            elif marker == "flow":
+                blocks.append(Block(type="flow", items=_parse_flow_items(inner)))
+            elif marker == "timeline":
+                blocks.append(Block(type="timeline", media=_parse_timeline_items(inner)))
+            elif marker == "decision":
+                blocks.append(_parse_decision(inner))
             else:
                 inner_blocks = parse_markdown("\n".join(inner))
                 blocks.append(Block(type=marker, blocks=inner_blocks))
@@ -345,6 +425,18 @@ def _parse_blocks(
             i += 1
             continue
 
+        # Markdown image blocks
+        image = IMAGE_RE.match(line)
+        if image:
+            blocks.append(
+                Block(
+                    type="figure",
+                    attrs={"alt": image.group(1).strip(), "src": image.group(2).strip()},
+                )
+            )
+            i += 1
+            continue
+
         # Unordered lists
         if line.startswith("- "):
             items: list[str] = []
@@ -383,6 +475,7 @@ def _parse_blocks(
                 or SECTION_RE.match(lines[i])
                 or HEADING_RE.match(lines[i])
                 or lines[i].startswith("> ")
+                or IMAGE_RE.match(lines[i])
                 or lines[i].startswith("- ")
                 or ORDERED_RE.match(lines[i])
                 or TABLE_RE.match(lines[i])

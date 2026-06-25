@@ -1,0 +1,51 @@
+sources:
+  - id: mcp-intro
+    type: official
+    title: "What is the Model Context Protocol?"
+    url: "https://modelcontextprotocol.io/docs/getting-started/intro"
+    status: read
+  - id: mcp-architecture
+    type: official
+    title: "Architecture overview"
+    url: "https://modelcontextprotocol.io/docs/learn/architecture"
+    status: read
+  - id: mcp-spec
+    type: official
+    title: "MCP Specification 2025-11-25"
+    url: "https://modelcontextprotocol.io/specification/2025-11-25"
+    status: read
+  - id: mcp-transports
+    type: official
+    title: "Transports"
+    url: "https://modelcontextprotocol.io/specification/2025-11-25/basic/transports"
+    status: read
+  - id: mcp-tools
+    type: official
+    title: "Tools"
+    url: "https://modelcontextprotocol.io/specification/2025-11-25/server/tools"
+    status: read
+  - id: mcp-resources
+    type: official
+    title: "Resources"
+    url: "https://modelcontextprotocol.io/specification/2025-06-18/server/resources"
+    status: read
+  - id: mcp-prompts
+    type: official
+    title: "Prompts"
+    url: "https://modelcontextprotocol.io/specification/2025-11-25/server/prompts"
+    status: read
+  - id: mcp-roots
+    type: official
+    title: "Roots"
+    url: "https://modelcontextprotocol.io/specification/2025-11-25/client/roots"
+    status: read
+  - id: mcp-sampling
+    type: official
+    title: "Sampling"
+    url: "https://modelcontextprotocol.io/specification/2025-11-25/client/sampling"
+    status: read
+  - id: mcp-elicitation
+    type: official
+    title: "Elicitation"
+    url: "https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation"
+    status: read

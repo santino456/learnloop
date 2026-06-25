@@ -33,7 +33,7 @@ Before drafting a new or substantial course, work through these steps in your re
 3. **Research and fact-check**: Identify the sources (official docs, source code, runnable output, papers, user context). For high-stakes claims, verify exact names, versions, commands, and protocol fields. Mark uncertainty instead of guessing.
 4. **Ask content-derived questions**: After you understand the material, identify 2–4 choices that actually change the course shape. The questions must come from the content, not a fixed questionnaire. If the user does not respond, fall back to a high-quality default that keeps the course complete but marks optional advanced sections.
 5. **Design the module plan**: Decide which modules are Tutorial, Reference, Practice, or Perspective, and why.
-6. **Draft**: Write only content supported by the design and evidence.
+6. **Draft**: Write only content supported by the design and evidence. Convert suitable material into semantic learning components instead of piling up paragraphs.
 7. **Self-review**: Check for unsupported claims, fake Reference, weak Practice, empty Perspective, private examples, and section id stability.
 8. **Build**: run `validate`, `build`, and optionally `audit`.
 
@@ -47,6 +47,20 @@ Do not write a long module before you understand the learner, the learning job, 
 - **Perspective** extracts judgment, taste, tradeoffs, quality signals, bad smells, or AI-use criteria. State the basis: verified claims, practice observations, author experience, or `needs-human-review`.
 
 If a form is not justified, omit it. Do not mirror sample modules just because they exist.
+
+## Semantic Component Rules
+
+Use HTML learning components when they make the lesson more direct:
+
+- `figure`: one image that explains evidence, architecture, UI state, or a visual mechanism. Always include meaningful `alt`.
+- `gallery`: compare two or more visual states, such as before/after or wrong/right.
+- `flow`: show a process, data path, request path, or causal chain.
+- `timeline`: show phases, lifecycle, ordering, or staged execution.
+- `decision`: train judgment. Include `--- perspective` or `--- answer`, and state the basis.
+
+Do not use components as decoration. If a block does not improve understanding,
+write a normal paragraph. Local images belong in the course `assets/` folder;
+remote images stay as links and are not downloaded.
 
 ## Source And Claim Rules
 

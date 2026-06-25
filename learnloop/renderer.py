@@ -28,6 +28,16 @@ def render_blocks(blocks: list[Block], template: Any | None = None) -> str:
             out.append(f'<pre><code class="language-{lang}">{code}</code></pre>')
         elif block.type == "callout":
             out.append(f'<div class="callout">{block.text}</div>')
+        elif block.type == "figure":
+            out.append(render_figure(block))
+        elif block.type == "gallery":
+            out.append(render_gallery(block))
+        elif block.type == "flow":
+            out.append(render_flow(block))
+        elif block.type == "timeline":
+            out.append(render_timeline(block))
+        elif block.type == "decision":
+            out.append(render_decision(block, template))
         elif block.type == "table":
             headers = "".join(f"<th>{inline(cell)}</th>" for cell in (block.headers or []))
             rows = ""
@@ -49,6 +59,110 @@ def render_blocks(blocks: list[Block], template: Any | None = None) -> str:
             inner = render_blocks(block.blocks or [], template)
             out.append(f'<div class="block-{html.escape(block.type)}">{inner}</div>')
     return "\n".join(out)
+
+
+def render_figure(block: Block) -> str:
+    attrs = block.attrs or {}
+    src = _media_src(attrs.get("src", ""))
+    alt = html.escape(attrs.get("alt", ""))
+    caption = attrs.get("caption", "")
+    source = attrs.get("source", "")
+    caption_parts = []
+    if caption:
+        caption_parts.append(f"<span>{inline(caption)}</span>")
+    if source:
+        caption_parts.append(f'<cite>{inline(source)}</cite>')
+    figcaption = (
+        f"<figcaption>{''.join(caption_parts)}</figcaption>" if caption_parts else ""
+    )
+    return (
+        '<figure class="ll-figure">'
+        f'<img src="{src}" alt="{alt}" loading="lazy">'
+        f"{figcaption}"
+        "</figure>"
+    )
+
+
+def render_gallery(block: Block) -> str:
+    figures = []
+    for item in block.media or []:
+        src = _media_src(item.get("src", ""))
+        alt = html.escape(item.get("alt", ""))
+        caption = item.get("caption", "")
+        caption_html = f"<figcaption>{inline(caption)}</figcaption>" if caption else ""
+        label = f"<strong>{inline(item.get('alt', ''))}</strong>" if item.get("alt") else ""
+        figures.append(
+            '<figure class="ll-gallery-item">'
+            f'<img src="{src}" alt="{alt}" loading="lazy">'
+            f"{label}{caption_html}"
+            "</figure>"
+        )
+    return f'<div class="ll-gallery">{"".join(figures)}</div>'
+
+
+def render_flow(block: Block) -> str:
+    items = "".join(f"<li><span>{inline(item)}</span></li>" for item in (block.items or []))
+    return f'<ol class="ll-flow">{items}</ol>'
+
+
+def render_timeline(block: Block) -> str:
+    items = []
+    for item in block.media or []:
+        title = inline(item.get("title", ""))
+        text = inline(item.get("text", ""))
+        body = f"<p>{text}</p>" if text else ""
+        items.append(f"<li><strong>{title}</strong>{body}</li>")
+    return f'<ol class="ll-timeline">{"".join(items)}</ol>'
+
+
+def render_decision(block: Block, template: Any | None = None) -> str:
+    prompt = render_blocks(block.blocks or [], template)
+    reveal_parts = []
+    if block.answer:
+        reveal_parts.append(
+            '<section class="decision-answer"><h4>参考答案</h4>'
+            f"{render_blocks(parse_markdown(block.answer), template)}</section>"
+        )
+    if block.perspective:
+        reveal_parts.append(
+            '<section class="decision-perspective"><h4>Perspective</h4>'
+            f"{render_blocks(parse_markdown(block.perspective), template)}</section>"
+        )
+    if block.explanation:
+        reveal_parts.append(
+            '<section class="decision-explanation"><h4>说明</h4>'
+            f"{render_blocks(parse_markdown(block.explanation), template)}</section>"
+        )
+    reveal = ""
+    if reveal_parts:
+        reveal = (
+            '<div class="decision-reveal" hidden>'
+            f"{''.join(reveal_parts)}"
+            "</div>"
+        )
+    return (
+        '<section class="ll-decision">'
+        '<div class="decision-prompt">'
+        f"{prompt}"
+        "</div>"
+        f"{reveal}"
+        '<button class="decision-toggle" type="button" aria-expanded="false">'
+        "显示判断视角</button>"
+        "</section>"
+    )
+
+
+def _media_src(src: str) -> str:
+    src = src.strip()
+    if src.startswith(("http://", "https://", "/", "data:")):
+        return html.escape(src)
+    if src.startswith("./assets/"):
+        src = src[len("./assets/") :]
+        return html.escape(f"course-assets/{src}")
+    if src.startswith("assets/"):
+        src = src[len("assets/") :]
+        return html.escape(f"course-assets/{src}")
+    return html.escape(src)
 
 
 def render_section(block: Block, template: Any | None = None) -> str:
@@ -420,6 +534,9 @@ def build_course(course_dir: Path) -> Path:
     if dist.exists():
         shutil.rmtree(dist)
     (dist / "assets").mkdir(parents=True)
+    course_assets = course.root / "assets"
+    if course_assets.exists():
+        shutil.copytree(course_assets, dist / "course-assets")
     base_css = template_root() / "base.css"
     if base_css.exists():
         shutil.copy(base_css, dist / "assets" / "base.css")
@@ -522,6 +639,7 @@ def validate_course(course_dir: Path) -> list[str]:
         errors.extend(
             f"{module.file}: {error}" for error in validate_template_support(template, block_types)
         )
+        errors.extend(validate_media_blocks(blocks, module.file))
         errors.extend(validate_perspective_basis(blocks, module.file))
 
         sections = collect_sections(blocks)
@@ -558,6 +676,33 @@ def validate_course(course_dir: Path) -> list[str]:
 
     errors.extend(validate_knowledge_state(course.root))
     return errors
+
+
+def validate_media_blocks(blocks: list[Block], module_file: str) -> list[str]:
+    errors: list[str] = []
+    for block in _walk_blocks(blocks):
+        if block.type == "figure":
+            attrs = block.attrs or {}
+            if not attrs.get("src", "").strip():
+                errors.append(f"{module_file}: figure image is missing src")
+            if not attrs.get("alt", "").strip():
+                errors.append(f"{module_file}: figure image is missing alt text")
+        elif block.type == "gallery":
+            for idx, item in enumerate(block.media or [], start=1):
+                if not item.get("src", "").strip():
+                    errors.append(f"{module_file}: gallery item {idx} is missing src")
+                if not item.get("alt", "").strip():
+                    errors.append(f"{module_file}: gallery item {idx} is missing alt text")
+    return errors
+
+
+def _walk_blocks(blocks: list[Block]) -> list[Block]:
+    out: list[Block] = []
+    for block in blocks:
+        out.append(block)
+        if block.blocks:
+            out.extend(_walk_blocks(block.blocks))
+    return out
 
 
 QUESTION_UI = """<template id="ask-template">

@@ -79,6 +79,7 @@ courses/acp-fundamentals/
 ├── modules/
 │   ├── 01.md
 │   └── ...
+├── assets/               # optional local images copied into dist/course-assets/
 ├── answers/
 ├── questions.jsonl
 ├── dist/                 # generated output
@@ -134,6 +135,49 @@ Confirm you can explain why a browser cannot spawn a local process.
 ```
 
 Both containers can contain any LearnLoop Markdown (paragraphs, lists, code blocks, etc.).
+
+Use semantic learning components when HTML can teach better than a flat paragraph.
+Local images live in the course `assets/` folder and are copied to
+`dist/course-assets/` during build. Remote `https://...` image URLs are kept as
+links; LearnLoop does not download or generate images.
+
+```markdown
+![KV Cache decode flow](assets/decode-flow.png)
+
+::: figure
+src: assets/decode-flow.png
+alt: KV Cache decode flow
+caption: Decode 阶段每次只追加一个 token 的 KV。
+source: 本地示意图
+:::
+
+::: flow
+用户输入 -> React UI -> FastAPI -> Agent Loop -> SSE -> 浏览器渲染
+:::
+
+::: timeline
+- Prefill | 一次性处理 prompt，生成初始 KV
+- Decode | 每步追加新 token 的 KV
+- Evict/Compact | 长上下文时管理显存压力
+:::
+
+::: decision
+Should this project use Docker now?
+
+- A. Yes, immediately
+- B. Not necessarily
+- C. Only after multiple services appear
+
+--- perspective
+依据：基于部署复杂度、隔离需求和当前团队维护成本。
+
+C 是更成熟的判断：先看服务数量和环境一致性问题是否真的出现。
+---
+:::
+```
+
+Images must include meaningful `alt` text. `learnloop audit` also checks that a
+`decision` block includes either `perspective` or `answer`.
 
 Perspective exercises add higher-level experience and judgment. They must state their basis or mark that human review is needed:
 

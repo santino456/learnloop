@@ -10,6 +10,7 @@ window.LearnLoopRuntime = (() => {
     initCopyButtons();
     initAskButtons();
     initDrawer();
+    initDecisionBlocks();
     initLibraryShell();
     loadQuestions();
   }
@@ -182,6 +183,26 @@ window.LearnLoopRuntime = (() => {
 
   function renderQuestion(question) {
     return `<div class="question-item"><p>${escapeHtml(question.question)}</p><small>${escapeHtml(question.status || "")} · ${escapeHtml((question.id || "").slice(0, 8))}</small></div>`;
+  }
+
+  function initDecisionBlocks() {
+    document.querySelectorAll(".ll-decision").forEach((decision) => {
+      const toggle = decision.querySelector(".decision-toggle");
+      const reveal = decision.querySelector(".decision-reveal");
+      if (!toggle || !reveal) return;
+      toggle.addEventListener("click", () => {
+        const isHidden = reveal.hasAttribute("hidden");
+        if (isHidden) {
+          reveal.removeAttribute("hidden");
+          toggle.setAttribute("aria-expanded", "true");
+          toggle.textContent = "收起判断视角";
+        } else {
+          reveal.setAttribute("hidden", "");
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.textContent = "显示判断视角";
+        }
+      });
+    });
   }
 
   function escapeHtml(value) {

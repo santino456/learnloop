@@ -60,3 +60,5 @@ class Block:
     perspective: str | None = None
     tradeoffs: str | None = None
     pitfalls: str | None = None
+    attrs: dict[str, str] | None = None
+    media: list[dict[str, str]] | None = None

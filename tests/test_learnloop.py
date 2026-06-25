@@ -510,6 +510,98 @@ class LearnLoopTests(unittest.TestCase):
         self.assertIn("<th>Role</th>", html)
         self.assertIn("<td>Agent</td>", html)
 
+    def test_markdown_image_renders_as_figure(self) -> None:
+        from learnloop.renderer import render_blocks
+
+        blocks = parse_markdown("![KV Cache decode flow](assets/decode-flow.png)")
+        self.assertEqual(blocks[0].type, "figure")
+        html = render_blocks(blocks)
+        self.assertIn('<figure class="ll-figure">', html)
+        self.assertIn('src="course-assets/decode-flow.png"', html)
+        self.assertIn('alt="KV Cache decode flow"', html)
+
+    def test_semantic_learning_components_render(self) -> None:
+        from learnloop.renderer import render_blocks
+
+        md = (
+            "::: figure\n"
+            "src: https://example.com/flow.png\n"
+            "alt: Remote flow\n"
+            "caption: A remote figure.\n"
+            "source: Official diagram\n"
+            ":::\n\n"
+            "::: gallery\n"
+            "- assets/before.png | Before | No cache.\n"
+            "- assets/after.png | After | Reuse KV.\n"
+            ":::\n\n"
+            "::: flow\n"
+            "Input -> Agent Loop -> Browser\n"
+            ":::\n\n"
+            "::: timeline\n"
+            "- Prefill | Build initial KV\n"
+            "- Decode | Append one token\n"
+            ":::\n\n"
+            "::: decision\n"
+            "Should this use Docker now?\n\n"
+            "- A. Yes\n"
+            "- B. Not necessarily\n\n"
+            "--- perspective\n"
+            "依据：基于本章部署复杂度。\n"
+            "---\n"
+            ":::\n"
+        )
+        html = render_blocks(parse_markdown(md))
+        self.assertIn('class="ll-figure"', html)
+        self.assertIn('src="https://example.com/flow.png"', html)
+        self.assertIn('class="ll-gallery"', html)
+        self.assertIn('course-assets/before.png', html)
+        self.assertIn('class="ll-flow"', html)
+        self.assertIn("Agent Loop", html)
+        self.assertIn('class="ll-timeline"', html)
+        self.assertIn("Prefill", html)
+        self.assertIn('class="ll-decision"', html)
+        self.assertIn("显示判断视角", html)
+
+    def test_course_assets_are_copied_and_rewritten(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "asset-course")
+            assets = created / "assets"
+            assets.mkdir()
+            (assets / "diagram.png").write_bytes(b"fake image")
+            module = created / "modules" / "01.md"
+            module.write_text(
+                module.read_text(encoding="utf-8")
+                + "\n![Local diagram](assets/diagram.png)\n",
+                encoding="utf-8",
+            )
+            dist = build_course(created)
+            html_text = (dist / "m1.html").read_text(encoding="utf-8")
+            self.assertTrue((dist / "course-assets" / "diagram.png").exists())
+            self.assertIn('src="course-assets/diagram.png"', html_text)
+
+    def test_missing_image_alt_fails_validation(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "alt-course")
+            module = created / "modules" / "01.md"
+            module.write_text(
+                module.read_text(encoding="utf-8") + "\n![](assets/no-alt.png)\n",
+                encoding="utf-8",
+            )
+            errors = validate_course(created)
+            self.assertTrue(any("missing alt text" in error for error in errors))
+
+    def test_decision_without_answer_or_perspective_fails_audit(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "decision-course")
+            module = created / "modules" / "01.md"
+            module.write_text(
+                module.read_text(encoding="utf-8")
+                + "\n::: decision\nShould we add Docker now?\n\n- A. Yes\n- B. No\n:::\n",
+                encoding="utf-8",
+            )
+            errors = audit_generation_readiness(created)
+            self.assertTrue(any("decision block must include perspective or answer" in error for error in errors))
+
     def test_plain_markdown_headings_render_by_level(self) -> None:
         from learnloop.renderer import render_blocks
 

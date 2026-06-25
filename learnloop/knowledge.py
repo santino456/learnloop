@@ -113,6 +113,10 @@ def _audit_learning_form_fit(course_dir: Path) -> list[str]:
             continue
 
         flat = _walk_blocks(blocks)
+        for block in flat:
+            if block.type == "decision" and not (block.perspective or block.answer):
+                errors.append(f"{module.file}: decision block must include perspective or answer")
+
         if template.name == "practice":
             practice_blocks = [block for block in flat if block.type in {"exercise", "checkpoint"}]
             if not practice_blocks:

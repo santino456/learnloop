@@ -6,6 +6,7 @@ Use this reference when creating, migrating, or repairing a LearnLoop course.
 
 - `course.yaml`: course metadata and ordered module list.
 - `modules/*.md`: editable course source.
+- `assets/`: optional local images copied into generated `dist/course-assets/`.
 - `questions.jsonl`: learner question log.
 - `answers/`: agent answer artifacts and follow-up material.
 - `raw/`: optional folder for original source artifacts such as papers, datasets, or official documents.
@@ -64,6 +65,17 @@ See the [React docs](https://react.dev) for details.
 
 Use them for source citations and cross-module references.
 
+Block images are rendered as figures. Local course images should live under
+`assets/`:
+
+```markdown
+![KV Cache decode flow](assets/decode-flow.png)
+```
+
+Images must include useful alt text. During build, `assets/decode-flow.png` is
+copied to `dist/course-assets/decode-flow.png` and the generated HTML points to
+`course-assets/decode-flow.png`. `https://...` image URLs are preserved.
+
 ### Container Syntax
 
 Use `::: exercise` and `::: checkpoint` containers for practice and self-check blocks. Containers can contain paragraphs, lists, code blocks, and callouts:
@@ -93,6 +105,52 @@ A mature implementation treats the bridge as the trust boundary, not decorative 
 ---
 :::
 ```
+
+### Semantic Learning Components
+
+Use components when they make the learning object clearer than another
+paragraph. Keep them source-grounded; do not invent diagrams or image sources.
+
+```markdown
+::: figure
+src: assets/decode-flow.png
+alt: KV Cache decode flow
+caption: Decode 阶段每次只追加一个 token 的 KV。
+source: 本地示意图
+:::
+
+::: gallery
+- assets/before.png | Before | 没有 cache 的重复计算
+- assets/after.png | After | 复用 KV 后的路径
+:::
+
+::: flow
+用户输入 -> React UI -> FastAPI -> Agent Loop -> SSE -> 浏览器渲染
+:::
+
+::: timeline
+- Prefill | 一次性处理 prompt，生成初始 KV
+- Decode | 每步追加新 token 的 KV
+- Evict/Compact | 长上下文时管理显存压力
+:::
+
+::: decision
+Should this project use Docker now?
+
+- A. Yes, immediately
+- B. Not necessarily
+- C. Only after multiple services appear
+
+--- perspective
+依据：基于部署复杂度、隔离需求和当前团队维护成本。
+
+C 是更成熟的判断：先看服务数量和环境一致性问题是否真的出现。
+---
+:::
+```
+
+`decision` must include `--- perspective` or `--- answer`; otherwise
+`learnloop audit` reports it.
 
 ## Knowledge State
 

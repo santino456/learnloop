@@ -1,0 +1,27 @@
+id: mcp-fundamentals
+title: "MCP Fundamentals"
+subtitle: "从架构、协议原语到安全判断，学会把 MCP 当作 AI 应用的上下文接口来设计。"
+audience: "已经会使用 AI 编程工具，想理解 MCP 为什么存在、怎么接入、何时该用的开发者。"
+default_port: 8787
+template: tutorial
+modules:
+  - id: m1
+    title: "MCP 解决的到底是什么问题"
+    file: "modules/01.md"
+    summary: "用 host/client/server 和 data/transport 两层模型建立第一张地图。"
+  - id: m2
+    title: "协议原语速查"
+    file: "modules/02.md"
+    summary: "把 tools、resources、prompts、roots、sampling、elicitation 的边界放到一张表里。"
+  - id: m3
+    title: "设计一个最小 MCP Server"
+    file: "modules/03.md"
+    summary: "从一个校园日程助手出发，练习选择 tool/resource/prompt。"
+  - id: m4
+    title: "传输、生命周期与调试"
+    file: "modules/04.md"
+    summary: "理解 initialize、capability negotiation、stdio、Streamable HTTP 和日志边界。"
+  - id: m5
+    title: "什么时候 MCP 是好选择"
+    file: "modules/05.md"
+    summary: "从工程判断、信任边界和 AI 使用品味看 MCP。"

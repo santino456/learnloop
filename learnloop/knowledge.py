@@ -32,48 +32,20 @@ def validate_knowledge_state(course_dir: Path) -> list[str]:
 
 
 def audit_generation_readiness(course_dir: Path) -> list[str]:
-    """Check whether an agent-generated course has enough process evidence.
+    """Lightweight content-form audit. Process artifacts are optional.
 
-    This is intentionally lightweight. It catches the common failure mode where
-    an agent jumps straight to a long module draft without source inventory,
-    architecture decisions, or evidence packs.
+    LearnLoop courses do not require a .learnloop/ workspace. If one exists,
+    we validate the knowledge state it contains. The main job of this audit is
+    to catch mismatches between the chosen template and the actual module
+    content (e.g., a Practice module with no exercises).
     """
     course_dir = course_dir.resolve()
     workspace = course_dir / ".learnloop"
     errors: list[str] = []
 
-    if not workspace.exists():
-        return ["missing .learnloop workspace for generated course"]
+    if workspace.exists():
+        errors.extend(validate_knowledge_state(course_dir))
 
-    source_inventory = workspace / "source_inventory.yaml"
-    if not source_inventory.exists():
-        errors.append("missing .learnloop/source_inventory.yaml")
-    elif "- id:" not in source_inventory.read_text(encoding="utf-8"):
-        errors.append("source_inventory.yaml must list at least one source with an id")
-
-    architecture = workspace / "course_architecture.md"
-    if not architecture.exists():
-        errors.append("missing .learnloop/course_architecture.md")
-    else:
-        text = architecture.read_text(encoding="utf-8").lower()
-        for phrase in ("learner goal", "content form decisions", "module plan"):
-            if phrase not in text:
-                errors.append(f"course_architecture.md missing section: {phrase}")
-
-    chapter_briefs = workspace / "chapter_briefs"
-    if not any(chapter_briefs.glob("*.md")):
-        errors.append("missing chapter brief in .learnloop/chapter_briefs/")
-
-    evidence_packs = workspace / "evidence_packs"
-    packs = list(evidence_packs.glob("*.md"))
-    if not packs:
-        errors.append("missing evidence pack in .learnloop/evidence_packs/")
-    for pack in packs:
-        text = pack.read_text(encoding="utf-8").lower()
-        if "## sources" not in text or "## evidence" not in text:
-            errors.append(f"{pack.relative_to(course_dir)} must include Sources and Evidence sections")
-
-    errors.extend(validate_knowledge_state(course_dir))
     errors.extend(_audit_reference_modules(course_dir))
     errors.extend(_audit_learning_form_fit(course_dir))
     return errors

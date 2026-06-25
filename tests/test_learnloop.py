@@ -38,17 +38,15 @@ class LearnLoopTests(unittest.TestCase):
     def test_sample_course_passes_generation_audit(self) -> None:
         self.assertEqual(audit_generation_readiness(SAMPLE), [])
 
-    def test_generation_audit_requires_process_artifacts(self) -> None:
+    def test_generation_audit_passes_without_learnloop_workspace(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            created = init_course(Path(tmp), "audit-course")
+            created = init_course(Path(tmp), "lightweight-course")
             errors = audit_generation_readiness(created)
-            self.assertTrue(any("source_inventory.yaml" in error for error in errors))
-            self.assertTrue(any("missing evidence pack" in error for error in errors))
+            self.assertEqual(errors, [])
 
     def test_generation_audit_rejects_practice_without_practice_blocks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "weak-practice-course")
-            make_minimal_audit_workspace(created)
             course_yaml = created / "course.yaml"
             course_yaml.write_text(
                 course_yaml.read_text(encoding="utf-8").replace(
@@ -62,7 +60,6 @@ class LearnLoopTests(unittest.TestCase):
     def test_generation_audit_rejects_perspective_without_perspective_exercise(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "weak-perspective-course")
-            make_minimal_audit_workspace(created)
             course_yaml = created / "course.yaml"
             course_yaml.write_text(
                 course_yaml.read_text(encoding="utf-8").replace(
@@ -290,7 +287,9 @@ class LearnLoopTests(unittest.TestCase):
     def test_verified_claim_without_source_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "claim-course")
-            claims = created / ".learnloop" / "claims.jsonl"
+            claims_dir = created / ".learnloop"
+            claims_dir.mkdir(parents=True)
+            claims = claims_dir / "claims.jsonl"
             claims.write_text(
                 json.dumps(
                     {
@@ -310,7 +309,9 @@ class LearnLoopTests(unittest.TestCase):
     def test_claim_source_id_must_exist_in_source_inventory(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "unknown-source-course")
-            source_inventory = created / ".learnloop" / "source_inventory.yaml"
+            workspace = created / ".learnloop"
+            workspace.mkdir(parents=True)
+            source_inventory = workspace / "source_inventory.yaml"
             source_inventory.write_text(
                 "sources:\n  - id: known-source\n    type: primary\n",
                 encoding="utf-8",
@@ -509,6 +510,16 @@ class LearnLoopTests(unittest.TestCase):
         self.assertIn("<th>Role</th>", html)
         self.assertIn("<td>Agent</td>", html)
 
+    def test_plain_markdown_headings_render_by_level(self) -> None:
+        from learnloop.renderer import render_blocks
+
+        blocks = parse_markdown("### 数据来源：Observations\n\n正文")
+        self.assertEqual(blocks[0].type, "heading")
+        self.assertEqual(blocks[0].level, 3)
+        html = render_blocks(blocks)
+        self.assertIn("<h3>数据来源：Observations</h3>", html)
+        self.assertNotIn("### 数据来源", html)
+
     def test_rendered_answer_is_hidden_by_default(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "answer-course")
@@ -564,40 +575,6 @@ def wait_for(url: str) -> None:
             last_error = exc
             time.sleep(0.1)
     raise AssertionError(f"server did not start: {last_error}")
-
-
-def make_minimal_audit_workspace(course_dir: Path) -> None:
-    workspace = course_dir / ".learnloop"
-    (workspace / "source_inventory.yaml").write_text(
-        "sources:\n  - id: user-goal\n    type: user-provided\n",
-        encoding="utf-8",
-    )
-    (workspace / "course_architecture.md").write_text(
-        """# Course Architecture
-
-## Learner Goal
-
-Learn the topic.
-
-## Module Plan
-
-| Module | Learning job | Content forms | Why |
-|--------|--------------|---------------|-----|
-| m1 | Start | tutorial | Establish the model. |
-
-## Content Form Decisions
-
-Use only forms justified by the module job.
-""",
-        encoding="utf-8",
-    )
-    (workspace / "chapter_briefs" / "m1.md").write_text(
-        "# m1\n\nBoundary and goal.\n", encoding="utf-8"
-    )
-    (workspace / "evidence_packs" / "m1.md").write_text(
-        "## Sources\n\n- user-goal\n\n## Evidence\n\n- Starter evidence.\n",
-        encoding="utf-8",
-    )
 
 
 if __name__ == "__main__":

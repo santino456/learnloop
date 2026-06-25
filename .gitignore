@@ -9,6 +9,7 @@ venv/
 *.log
 /tmp/
 /courses/.learnloop/
+/courses/*/dist/
 /build/
 /dist/
 *.egg-info/

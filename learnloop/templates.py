@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+import yaml
 
 from .model import CourseDoc, LearnLoopError, ModuleDoc
 
@@ -95,44 +95,11 @@ def validate_template_support(template: Template, blocks_used: set[str]) -> list
 
 
 def parse_simple_yaml(text: str) -> dict[str, Any]:
-    root: dict[str, Any] = {}
-    stack: list[tuple[int, dict[str, Any]]] = [(0, root)]
+    try:
+        data = yaml.safe_load(text) or {}
+    except yaml.YAMLError as exc:
+        raise LearnLoopError(f"Invalid template manifest: {exc}") from exc
+    if not isinstance(data, dict):
+        raise LearnLoopError("Template manifest must be a mapping")
+    return data
 
-    for raw in text.splitlines():
-        if not raw.strip() or raw.lstrip().startswith("#"):
-            continue
-        indent = len(raw) - len(raw.lstrip())
-        key, sep, value = raw.strip().partition(":")
-        key = key.strip()
-        value = value.strip()
-
-        while len(stack) > 1 and stack[-1][0] >= indent:
-            stack.pop()
-
-        parent = stack[-1][1]
-        if not value:
-            new_dict: dict[str, Any] = {}
-            parent[key] = new_dict
-            stack.append((indent, new_dict))
-        else:
-            parent[key] = parse_scalar(value)
-
-    return root
-
-
-def parse_scalar(value: str) -> Any:
-    value = value.strip()
-    if value.startswith("[") and value.endswith("]"):
-        inner = value[1:-1]
-        if not inner.strip():
-            return []
-        return [parse_scalar(part) for part in inner.split(",")]
-    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
-        return value[1:-1]
-    if value.lower() in {"true", "yes"}:
-        return True
-    if value.lower() in {"false", "no"}:
-        return False
-    if re.fullmatch(r"-?\d+", value):
-        return int(value)
-    return value

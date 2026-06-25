@@ -10,6 +10,9 @@ venv/
 /tmp/
 /courses/.learnloop/
 /courses/*/dist/
+**/.learnloop-build.lock/
+**/.learnloop-dist-tmp-*/
+**/.learnloop-dist-backup-*/
 /build/
 /dist/
 *.egg-info/

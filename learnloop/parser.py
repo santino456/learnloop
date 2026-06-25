@@ -4,6 +4,7 @@ import html
 import re
 from pathlib import Path
 from typing import Any
+import yaml
 
 from .model import Block, CourseDoc, LearnLoopError, ModuleDoc
 
@@ -62,33 +63,19 @@ def _required_yaml_field(item: dict[str, Any], field: str, context: str) -> str:
 
 
 def parse_course_yaml(text: str) -> dict[str, Any]:
-    data: dict[str, Any] = {}
-    modules: list[dict[str, Any]] = []
-    current: dict[str, Any] | None = None
-    in_modules = False
-
-    for raw in text.splitlines():
-        if not raw.strip() or raw.lstrip().startswith("#"):
-            continue
-        if raw.startswith("modules:"):
-            in_modules = True
-            data["modules"] = modules
-            continue
-        if in_modules:
-            if raw.startswith("  - "):
-                current = {}
-                modules.append(current)
-                key, value = raw[4:].split(":", 1)
-                current[key.strip()] = strip_yaml_value(value)
-            elif raw.startswith("    ") and current is not None:
-                key, value = raw.strip().split(":", 1)
-                current[key.strip()] = strip_yaml_value(value)
-            elif not raw.startswith(" "):
-                in_modules = False
-        if not in_modules and ":" in raw:
-            key, value = raw.split(":", 1)
-            data[key.strip()] = strip_yaml_value(value)
-
+    try:
+        data = yaml.safe_load(text) or {}
+    except yaml.YAMLError as exc:
+        raise LearnLoopError(f"Invalid course.yaml: {exc}") from exc
+    if not isinstance(data, dict):
+        raise LearnLoopError("course.yaml must be a mapping")
+    modules = data.get("modules", [])
+    if modules is None:
+        data["modules"] = []
+    elif not isinstance(modules, list):
+        raise LearnLoopError("course.yaml modules must be a list")
+    elif not all(isinstance(item, dict) for item in modules):
+        raise LearnLoopError("course.yaml modules entries must be mappings")
     return data
 
 
@@ -104,11 +91,13 @@ def parse_module(path: Path) -> tuple[dict[str, str], list[Block]]:
     match = FRONTMATTER_RE.match(text)
     if not match:
         return {}, parse_markdown(text)
-    frontmatter: dict[str, str] = {}
-    for line in match.group(1).splitlines():
-        if ":" in line:
-            key, value = line.split(":", 1)
-            frontmatter[key.strip()] = strip_yaml_value(value)
+    try:
+        loaded = yaml.safe_load(match.group(1)) or {}
+    except yaml.YAMLError as exc:
+        raise LearnLoopError(f"Invalid frontmatter in {path}: {exc}") from exc
+    if not isinstance(loaded, dict):
+        raise LearnLoopError(f"Frontmatter in {path} must be a mapping")
+    frontmatter = {str(key): str(value) for key, value in loaded.items()}
     return frontmatter, parse_markdown(match.group(2))
 
 

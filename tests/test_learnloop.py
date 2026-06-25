@@ -67,6 +67,49 @@ class LearnLoopTests(unittest.TestCase):
             with self.assertRaisesRegex(LearnLoopError, "missing required field 'file'"):
                 read_course(created)
 
+    def test_course_yaml_supports_colons_and_multiline_values(self) -> None:
+        from learnloop.parser import parse_module, read_course
+
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "yaml-rich-course")
+            (created / "course.yaml").write_text(
+                """id: yaml-rich-course
+title: "Agent Course: Foundations"
+subtitle: >
+  A course subtitle with a colon: and folded text.
+audience: "Developers"
+default_port: "8787"
+template: tutorial
+modules:
+  - id: m1
+    title: "Intro: Why this matters"
+    file: "modules/01.md"
+    summary: >
+      Summary with a colon: still one field.
+""",
+                encoding="utf-8",
+            )
+            module = created / "modules" / "01.md"
+            module.write_text(
+                """---
+id: m1
+title: "Intro: Module"
+summary: "Frontmatter summary: with colon"
+---
+
+## [m1-one] One
+
+Body.
+""",
+                encoding="utf-8",
+            )
+            course = read_course(created)
+            self.assertEqual(course.title, "Agent Course: Foundations")
+            self.assertIn("colon:", course.subtitle)
+            self.assertEqual(course.modules[0].title, "Intro: Why this matters")
+            frontmatter, _blocks = parse_module(module)
+            self.assertEqual(frontmatter["summary"], "Frontmatter summary: with colon")
+
     def test_scaffold_course_creates_generation_workspace(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = scaffold_course(
@@ -812,6 +855,38 @@ class LearnLoopTests(unittest.TestCase):
             html_text = (dist / "m1.html").read_text(encoding="utf-8")
             self.assertTrue((dist / "course-assets" / "diagram.png").exists())
             self.assertIn('src="course-assets/diagram.png"', html_text)
+
+    def test_build_course_does_not_create_learnloop_workspace_for_init_course(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "light-build-course")
+            build_course(created)
+            self.assertFalse((created / ".learnloop").exists())
+
+    def test_concurrent_builds_do_not_corrupt_dist(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "concurrent-build-course")
+            script = (
+                "from pathlib import Path\n"
+                "from learnloop.course import build_course\n"
+                f"build_course(Path({str(created)!r}))\n"
+            )
+            procs = [
+                subprocess.Popen(
+                    [sys.executable, "-c", script],
+                    cwd=str(ROOT),
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                )
+                for _ in range(2)
+            ]
+            outputs = [proc.communicate(timeout=10) for proc in procs]
+            for proc, (_stdout, stderr) in zip(procs, outputs):
+                self.assertEqual(proc.returncode, 0, stderr)
+            self.assertTrue((created / "dist" / "index.html").exists())
+            self.assertTrue((created / "dist" / "m1.html").exists())
+            leftovers = list(created.glob(".learnloop-dist-*")) + list(created.glob(".learnloop-build.lock"))
+            self.assertEqual(leftovers, [])
 
     def test_missing_image_alt_fails_validation(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import html
 import json
+import os
 import re
 import shutil
+import time
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -542,11 +545,42 @@ def render_index(course: CourseDoc, template: Any) -> str:
     return page
 
 
+BUILD_LOCK_TIMEOUT_SECONDS = 30
+BUILD_LOCK_STALE_SECONDS = 300
+
+
 def build_course(course_dir: Path) -> Path:
-    course = read_course(course_dir)
-    dist = course.root / "dist"
-    if dist.exists():
-        shutil.rmtree(dist)
+    course_root = course_dir.resolve()
+    with course_build_lock(course_root):
+        course = read_course(course_root)
+        dist = course.root / "dist"
+        build_id = f"{os.getpid()}-{int(time.time() * 1000)}"
+        staging = course.root / f".learnloop-dist-tmp-{build_id}"
+        backup = course.root / f".learnloop-dist-backup-{build_id}"
+        try:
+            if staging.exists():
+                shutil.rmtree(staging)
+            _build_course_into(course_dir, course, staging)
+            if backup.exists():
+                shutil.rmtree(backup)
+            if dist.exists():
+                dist.rename(backup)
+            staging.rename(dist)
+            if backup.exists():
+                shutil.rmtree(backup)
+        except Exception:
+            if staging.exists():
+                shutil.rmtree(staging)
+            if not dist.exists() and backup.exists():
+                backup.rename(dist)
+            raise
+        finally:
+            if backup.exists():
+                shutil.rmtree(backup)
+        return dist
+
+
+def _build_course_into(course_dir: Path, course: CourseDoc, dist: Path) -> None:
     (dist / "assets").mkdir(parents=True)
     course_assets = course.root / "assets"
     if course_assets.exists():
@@ -584,8 +618,6 @@ def build_course(course_dir: Path) -> Path:
         page = render_module_page(course, effective_module, blocks, template)
         (dist / module_output_name(effective_module)).write_text(page, encoding="utf-8")
 
-    return dist
-
 
 def _copy_template_assets(dist: Path, template: Any) -> None:
     assets_dir = dist / "assets" / template.name
@@ -598,6 +630,35 @@ def _copy_template_assets(dist: Path, template: Any) -> None:
 
 def module_output_name(module: ModuleDoc) -> str:
     return f"{module.id}.html"
+
+
+@contextmanager
+def course_build_lock(course_root: Path) -> Any:
+    lock_dir = course_root / ".learnloop-build.lock"
+    start = time.monotonic()
+    while True:
+        try:
+            lock_dir.mkdir()
+            (lock_dir / "owner.json").write_text(
+                json.dumps({"pid": os.getpid(), "started_at": time.time()}),
+                encoding="utf-8",
+            )
+            break
+        except FileExistsError:
+            try:
+                age = time.time() - lock_dir.stat().st_mtime
+            except OSError:
+                age = 0
+            if age > BUILD_LOCK_STALE_SECONDS:
+                shutil.rmtree(lock_dir, ignore_errors=True)
+                continue
+            if time.monotonic() - start > BUILD_LOCK_TIMEOUT_SECONDS:
+                raise LearnLoopError(f"Timed out waiting for build lock: {lock_dir}")
+            time.sleep(0.05)
+    try:
+        yield
+    finally:
+        shutil.rmtree(lock_dir, ignore_errors=True)
 
 
 def _module_template_label(course: CourseDoc, module: ModuleDoc) -> str:

@@ -1,10 +1,17 @@
 /* Tutorial — editorial reading */
 
 .checkpoint {
-  border-left-color: var(--accent-warm);
-  background: #fffbf0;
+  border-left-color: var(--accent-blue);
+  background: #fbfdff;
 }
-.checkpoint::before { content: "💡 反思"; color: var(--accent-warm); }
+.checkpoint::before {
+  content: "Reflection";
+  color: var(--accent-blue);
+}
 
-.exercise { border-left-color: var(--accent); }
-.exercise::before { content: "练习"; }
+.exercise {
+  border-left-color: var(--accent);
+  background: #fcfffd;
+}
+
+.exercise::before { content: "Try it"; }

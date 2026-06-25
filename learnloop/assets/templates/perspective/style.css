@@ -2,9 +2,9 @@
 
 /* Scenario narrative */
 .judgment-task {
-  background: #fffbf0;
+  background: var(--accent-blue-soft);
   border: 1px solid var(--line);
-  border-left: 4px solid var(--accent-warm);
+  border-left: 4px solid var(--accent-blue);
   border-radius: 0 var(--radius) var(--radius) 0;
   padding: 18px 22px;
   margin-bottom: 16px;
@@ -15,8 +15,7 @@
   font-family: var(--font-mono);
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--accent-warm);
+  color: var(--accent-blue);
   margin-bottom: 8px;
 }
 
@@ -34,7 +33,7 @@
   border-radius: var(--radius);
   font: 16px var(--font-body);
   line-height: 1.8;
-  background: #fff;
+  background: var(--paper);
   resize: vertical;
 }
 .judgment-reasoning:focus {
@@ -66,7 +65,7 @@
 }
 .judgment-section.perspective h4 { color: var(--accent); }
 .judgment-section.tradeoffs {
-  background: #fff7ed;
+  background: var(--accent-warm-soft);
   border-left: 4px solid var(--accent-warm);
 }
 .judgment-section.tradeoffs h4 { color: var(--accent-strong); }
@@ -84,4 +83,4 @@
 .exercise-compare:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
 
 .checkpoint { border-left-color: var(--success); }
-.checkpoint::before { content: "⚡ 自检"; }
+.checkpoint::before { content: "Check yourself"; }

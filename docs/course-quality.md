@@ -2,6 +2,23 @@
 
 LearnLoop is useful only when generated courses are more reliable and more learnable than a generic long-form answer. A good course should pass three checks: truth, structure, and learning value.
 
+The bar is not "valid Markdown that builds into HTML." The bar is: a careful
+learner can read the course, trust the important claims, see the structure, and
+practice the judgment or skill the topic actually requires.
+
+## Good Course Standard
+
+A reusable LearnLoop course should have:
+
+- a clear learner job, not a topic dump;
+- source-grounded claims for names, APIs, commands, versions, timelines, and protocol fields;
+- module boundaries that reduce cognitive load;
+- Reference only when it contains dense lookup value;
+- Practice that trains a checkable skill or decision;
+- Perspective that names real tradeoffs, quality signals, and basis;
+- HTML components that clarify mechanisms, comparisons, or judgment;
+- no private paths, private project names, or invented project history.
+
 ## Truth
 
 - Important factual claims are tied to sources, runnable output, source code, or explicit user confirmation.
@@ -28,6 +45,46 @@ For reusable or published courses, consider adding a `.learnloop/` workspace to 
 - Practice blocks train real skills or decisions.
 - Reference modules are dense enough to be worth scanning.
 - Perspective modules help the learner use AI and their own judgment better.
+
+## HTML Learning Value
+
+HTML should do more than make Markdown prettier.
+
+Use components when they change how fast or deeply the learner understands:
+
+- `figure`: architecture, UI state, data structure, visual evidence.
+- `gallery`: before/after, wrong/right, two competing designs.
+- `flow`: request path, lifecycle, causal chain, data movement.
+- `timeline`: phases, version evolution, staged execution, operational sequence.
+- `decision`: tradeoff training with a visible author perspective or answer.
+
+Do not add components as decoration. A component is weak if it repeats the
+previous paragraph without adding structure, comparison, or judgment.
+
+## Bad Smells
+
+Stop and revise when you see:
+
+- a long first module that says "overview" but teaches no concrete model;
+- Reference that only answers simple "what is X" questions;
+- Practice with no answer, feedback, or expected reasoning;
+- Perspective that sounds wise but has no basis;
+- exact names, dates, versions, or protocol fields written from memory;
+- generated claims about project age, adoption, maturity, or performance with no source;
+- components that look nice but do not reduce confusion;
+- repeated content across Tutorial, Reference, Practice, and Perspective.
+
+## Human Review Questions
+
+Before calling a course good, answer:
+
+1. What should the learner be able to do after this course?
+2. Which claims would be embarrassing if wrong?
+3. Which section would a learner most likely ask about?
+4. Which Reference table is actually worth returning to?
+5. Which Practice block changes learner behavior?
+6. Which Perspective block teaches judgment rather than opinion?
+7. Which component could be removed without losing learning value?
 
 ## Release Checklist
 

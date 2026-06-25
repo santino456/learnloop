@@ -9,7 +9,11 @@ license-files = ["LICENSE"]
 authors = [
   { name = "LearnLoop contributors" }
 ]
-dependencies = []
+dependencies = [
+  "pymupdf>=1.26",
+  "python-docx>=1.1",
+  "python-pptx>=1.0",
+]
 keywords = ["learning", "agents", "education", "local-first", "courseware"]
 classifiers = [
   "Development Status :: 3 - Alpha",

@@ -14,6 +14,7 @@ from .course import (
     validate_course,
 )
 from .knowledge import audit_generation_readiness
+from .ingest import ingest_material
 from .model import ModuleDoc
 from .parser import parse_module, read_course
 from .server import start_library, status_library, stop_library
@@ -84,6 +85,26 @@ def main(argv: list[str] | None = None) -> int:
     context_p.add_argument("course_dir", nargs="?", default=".")
     context_p.add_argument("--question-id", required=True)
 
+    ingest_p = sub.add_parser(
+        "ingest", help="Extract a source file into a structured LearnLoop material pack."
+    )
+    ingest_p.add_argument("source_file")
+    ingest_p.add_argument(
+        "--course",
+        default=".",
+        help="Course directory that will receive .learnloop/materials/ and assets/ output.",
+    )
+    ingest_p.add_argument(
+        "--backend",
+        default="auto",
+        help="Extraction backend. Base install supports auto, pymupdf, python-docx, python-pptx, plain-text.",
+    )
+    ingest_p.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Replace the existing material pack for this source.",
+    )
+
     templates_p = sub.add_parser(
         "templates", help="List available templates and selected course/module templates."
     )
@@ -130,6 +151,17 @@ def main(argv: list[str] | None = None) -> int:
             print("Course generation audit passed")
         elif args.command == "context":
             print(make_context(Path(args.course_dir), args.question_id))
+        elif args.command == "ingest":
+            result = ingest_material(
+                Path(args.source_file),
+                Path(args.course),
+                backend=args.backend,
+                overwrite=args.overwrite,
+            )
+            print(f"Material pack: {result.material_dir}")
+            print(f"Chunks: {result.chunks} -> {result.chunks_jsonl}")
+            if result.figures_md:
+                print(f"Figures: {result.figures} -> {result.figures_md}")
         elif args.command == "templates":
             list_templates_command(Path(args.course_dir))
     except LearnLoopError as exc:

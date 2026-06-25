@@ -21,6 +21,7 @@ Think like an experienced teacher preparing a lesson: research first, check the 
 - **Small course edit**: inspect the target module, preserve section ids, make the narrow edit, then run `learnloop validate` and `learnloop build`.
 - **Course structure or template change**: read `references/course-format.md` before editing `course.yaml`, module frontmatter, containers, templates, or section ids.
 - **New or substantial course generation**: start with `learnloop scaffold-course <slug> --target courses` unless the course already exists. Then follow the Expert Teacher Workflow below and read `docs/content-forms.md` first.
+- **Course from PDF/DOCX/PPTX/Markdown/text material**: put the original file in `raw/`, run `learnloop ingest <file> --course <course-dir>`, then use `.learnloop/materials/<source>/` as the reading substrate. Do not draft directly from memory or cite `raw/*.pdf` as an image.
 - **Named entities, technical claims, commands, APIs, protocol fields, or version-sensitive facts**: verify them against a reliable source before adding them.
 - **Publication or reusable course**: also read `docs/evidence-and-sources.md` and `docs/course-quality.md`; optionally add a `.learnloop/` workspace to track sources and claims.
 
@@ -31,11 +32,12 @@ Before drafting a new or substantial course, work through these steps in your re
 1. **Understand the learner**: Who are they? What do they already know? What specific confusion or goal brings them here?
 2. **Define the learning job**: What should the learner be able to understand or do after this module? One module, one job.
 3. **Research and fact-check**: Identify the sources (official docs, source code, runnable output, papers, user context). For high-stakes claims, verify exact names, versions, commands, and protocol fields. Mark uncertainty instead of guessing.
-4. **Ask content-derived questions**: After you understand the material, identify 2–4 choices that actually change the course shape. The questions must come from the content, not a fixed questionnaire. If the user does not respond, fall back to a high-quality default that keeps the course complete but marks optional advanced sections.
-5. **Design the module plan**: Decide which modules are Tutorial, Reference, Practice, or Perspective, and why.
-6. **Draft**: Write only content supported by the design and evidence. Convert suitable material into semantic learning components instead of piling up paragraphs.
-7. **Self-review**: Check for unsupported claims, fake Reference, weak Practice, empty Perspective, private examples, and section id stability.
-8. **Build**: run `validate`, `build`, and optionally `audit`.
+4. **Ingest local materials**: For PDFs, Word documents, slide decks, Markdown, or text files, run `learnloop ingest` and inspect `material.json`, `chunks.jsonl`, and any `figures.md` before drafting. Treat extracted figures as candidates that still need visual checking.
+5. **Ask content-derived questions**: After you understand the material, identify 2–4 choices that actually change the course shape. The questions must come from the content, not a fixed questionnaire. If the user does not respond, fall back to a high-quality default that keeps the course complete but marks optional advanced sections.
+6. **Design the module plan**: Decide which modules are Tutorial, Reference, Practice, or Perspective, and why.
+7. **Draft**: Write only content supported by the design and evidence. Convert suitable material into semantic learning components instead of piling up paragraphs.
+8. **Self-review**: Check for unsupported claims, fake Reference, weak Practice, empty Perspective, private examples, and section id stability.
+9. **Build**: run `validate`, `build`, and optionally `audit`.
 
 Do not write a long module before you understand the learner, the learning job, and the evidence.
 
@@ -66,6 +68,7 @@ remote images stay as links and are not downloaded.
 
 - Prefer official docs, source code, runnable output, papers, or user-provided current context.
 - When a course is built from an external paper or document, keep the original artifact in the course `raw/` folder and cite specific sections or figures in the modules.
+- Run `learnloop ingest` for local PDF/DOCX/PPTX/Markdown/text sources before writing reusable course content. Use the material pack as evidence, not the PDF filename alone.
 - Cite external sources with clickable Markdown links: `[source name](URL)`. Label local materials as `本地`. Do not write source notes as plain text without a link.
 - Verify exact names for institutions, products, projects, repositories, people, models, protocols, and organizations before writing them. Do not normalize names from memory.
 - Do not invent timelines, usage history, performance numbers, architecture motives, or project maturity. If the source does not prove it, mark it unverified or omit it.
@@ -108,6 +111,7 @@ learnloop audit <course-dir>
 learnloop build <course-dir>
 learnloop context <course-dir> --question-id <id>
 learnloop scaffold-course <slug> --target courses
+learnloop ingest <course-dir>/raw/<source-file> --course <course-dir>
 learnloop start courses --port 8787
 ```
 

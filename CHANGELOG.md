@@ -10,3 +10,4 @@
 - Add course quality, content-form, evidence, and release documentation.
 - Add GitHub issue and pull request templates for open-source use.
 - Simplify course generation workflow: `.learnloop/` workspace is now optional; `init` creates only essential files; `audit` no longer requires source inventory, chapter briefs, or evidence packs. Quality checks focus on content-form fit.
+- Add `learnloop ingest` for PDF/DOCX/PPTX/Markdown/text material packs, with PDF captioned-figure extraction into course assets.

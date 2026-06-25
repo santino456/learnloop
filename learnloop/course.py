@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from .model import LearnLoopError, ModuleDoc
+from .ingest import ingest_material
 from .parser import extract_section_text, read_course
 from .renderer import build_course, validate_course
 from .scaffold import scaffold_course
@@ -16,6 +17,7 @@ __all__ = [
     "serve_course",
     "validate_course",
     "make_context",
+    "ingest_material",
     "find_available_port",
     "scaffold_course",
 ]

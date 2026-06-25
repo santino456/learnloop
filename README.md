@@ -49,6 +49,19 @@ source tracking files, chapter briefs, evidence pack folders, `assets/`, and
 `raw/`. The scaffold is intentionally lightweight: it tells the Agent how to
 research, plan, draft, and validate without forcing a heavy workflow.
 
+If the course starts from a PDF, Word document, slide deck, Markdown file, or
+plain text file, put it in `raw/` and ingest it before asking an Agent to draft:
+
+```bash
+cp ~/Downloads/paper.pdf courses/mcp-fundamentals/raw/
+learnloop ingest courses/mcp-fundamentals/raw/paper.pdf --course courses/mcp-fundamentals
+```
+
+`ingest` creates a structured material pack under `.learnloop/materials/`.
+For PDFs, it also tries to extract captioned figures into `assets/` and writes
+ready-to-use `::: figure` snippets in `.learnloop/materials/<source>/figures.md`.
+Agents should cite the material pack instead of guessing from the PDF.
+
 To try the richer ACP sample course, run from a local checkout:
 
 ```bash
@@ -94,11 +107,12 @@ courses/acp-fundamentals/
 ├── modules/
 │   ├── 01.md
 │   └── ...
+├── raw/                  # optional original PDFs, docs, decks, notes
 ├── assets/               # optional local images copied into dist/course-assets/
 ├── answers/
 ├── questions.jsonl
 ├── dist/                 # generated output
-└── .learnloop/           # optional: sources, claims, conflicts for reusable courses
+└── .learnloop/           # optional: material packs, sources, claims, conflicts
 ```
 
 Edit `course.yaml` and `modules/*.md`; use `dist/` for generated HTML. Add `.learnloop/` only when you want explicit source tracking, claims, or conflict management for a reusable course.
@@ -234,6 +248,7 @@ learnloop scaffold-course my-course --target courses
 learnloop build courses/acp-fundamentals
 learnloop validate courses/acp-fundamentals
 learnloop audit courses/acp-fundamentals
+learnloop ingest courses/acp-fundamentals/raw/paper.pdf --course courses/acp-fundamentals
 learnloop context courses/acp-fundamentals --question-id <id>
 learnloop start courses --port 8787
 learnloop status courses

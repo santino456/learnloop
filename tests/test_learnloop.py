@@ -11,6 +11,7 @@ from pathlib import Path
 from urllib import request
 
 from learnloop.course import build_course, init_course, make_context, scaffold_course, validate_course
+from learnloop.ingest import ingest_material
 from learnloop.knowledge import audit_generation_readiness
 from learnloop.parser import parse_markdown
 from learnloop.server import find_available_port
@@ -56,6 +57,52 @@ class LearnLoopTests(unittest.TestCase):
             brief = (created / "generation_brief.md").read_text(encoding="utf-8")
             self.assertIn("Ask Better Questions", brief)
             self.assertIn("HTML Learning Components", brief)
+
+    def test_ingest_text_creates_material_pack(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = scaffold_course(Path(tmp), "material-course")
+            source = created / "raw" / "notes.md"
+            source.write_text("# Notes\n\nFirst fact.\n\nSecond fact.", encoding="utf-8")
+            result = ingest_material(source, created)
+            self.assertTrue(result.material_json.exists())
+            self.assertTrue(result.chunks_jsonl.exists())
+            material = json.loads(result.material_json.read_text(encoding="utf-8"))
+            self.assertEqual(material["stats"]["chunks"], 3)
+            self.assertEqual(material["source"]["filename"], "notes.md")
+            inventory = (created / ".learnloop" / "source_inventory.yaml").read_text(encoding="utf-8")
+            self.assertIn("id: notes", inventory)
+            self.assertIn("material: \".learnloop/materials/notes/material.json\"", inventory)
+
+    def test_ingest_pdf_extracts_captioned_figure(self) -> None:
+        try:
+            import fitz  # type: ignore
+        except ImportError:
+            self.skipTest("PyMuPDF is not installed")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            created = scaffold_course(Path(tmp), "pdf-material-course")
+            source = created / "raw" / "paper.pdf"
+            doc = fitz.open()
+            page = doc.new_page(width=420, height=540)
+            page.insert_text((72, 72), "A short paper about cache behavior.", fontsize=12)
+            page.draw_rect(fitz.Rect(100, 140, 320, 260), color=(0, 0, 0), fill=(0.9, 0.95, 1))
+            page.insert_text(
+                (72, 292),
+                "Figure 1: Cache decode flow uses stored keys and values.",
+                fontsize=11,
+            )
+            doc.save(source)
+            doc.close()
+
+            result = ingest_material(source, created)
+            self.assertEqual(result.figures, 1)
+            self.assertIsNotNone(result.figures_md)
+            figure_asset = created / "assets" / "paper-fig-1.png"
+            self.assertTrue(figure_asset.exists())
+            figures_md = result.figures_md.read_text(encoding="utf-8")
+            self.assertIn("::: figure", figures_md)
+            self.assertIn("src: assets/paper-fig-1.png", figures_md)
+            self.assertIn("Cache decode flow", figures_md)
 
     def test_sample_course_passes_generation_audit(self) -> None:
         self.assertEqual(audit_generation_readiness(SAMPLE), [])

@@ -55,6 +55,11 @@ UI refinements are being driven by screenshot feedback. The course homepage and 
   - Added `/api/courses`, `/course/<course_id>/...`, and course-scoped question APIs.
   - Added a lightweight course-switching sidebar to generated pages when opened through the library service.
 
+- **Material ingestion**
+  - Added `learnloop ingest` for PDF, DOCX, PPTX, Markdown, and text source files.
+  - Ingest output lives under `.learnloop/materials/<source>/` as `material.json`, `chunks.jsonl`, and optional figure metadata/snippets.
+  - PDF ingest extracts captioned figures into `assets/` and produces ready-to-use `::: figure` snippets.
+
 - **Content**
   - `modules/02.md` remains the dense reference module.
   - Index and all hardcoded UI strings translated to Chinese.

@@ -11,6 +11,7 @@ Use this reference when creating, migrating, or repairing a LearnLoop course.
 - `answers/`: agent answer artifacts and follow-up material.
 - `raw/`: optional folder for original source artifacts such as papers, datasets, or official documents.
 - `.learnloop/`: optional orchestration workspace for sources, claims, conflicts, chapter briefs, and evidence packs.
+- `.learnloop/materials/`: generated material packs from `learnloop ingest`.
 - `dist/`: generated HTML output.
 
 For new source-grounded courses, prefer:
@@ -92,6 +93,11 @@ Block images are rendered as figures. Local course images should live under
 Images must include useful alt text. During build, `assets/decode-flow.png` is
 copied to `dist/course-assets/decode-flow.png` and the generated HTML points to
 `course-assets/decode-flow.png`. `https://...` image URLs are preserved.
+
+For source PDFs and documents, do not point image components at `raw/*.pdf`.
+Run `learnloop ingest <raw-file> --course <course-dir>` first. PDF figure crops
+are written to `assets/`, and ready-to-use snippets are written to
+`.learnloop/materials/<source>/figures.md`.
 
 ### Container Syntax
 

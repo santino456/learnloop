@@ -59,6 +59,33 @@ courses/<course-slug>/
 
 This makes the source inspectable alongside the generated modules and keeps the provenance clear. Modules should still cite the specific section, table, or figure they rely on, rather than pointing vaguely at the artifact.
 
+## Material ingestion
+
+For PDFs, Word documents, slide decks, Markdown files, and plain text files, run
+`learnloop ingest` before drafting a reusable course:
+
+```bash
+learnloop ingest courses/<course-slug>/raw/paper.pdf --course courses/<course-slug>
+```
+
+The command writes a structured material pack:
+
+```text
+courses/<course-slug>/.learnloop/materials/<source>/
+  material.json
+  chunks.jsonl
+  figures.json      # when figures were found
+  figures.md        # ready-to-use LearnLoop figure snippets
+```
+
+For PDFs, LearnLoop uses page text and layout to find captioned figures, crops
+the figure region into `assets/`, and records the caption and page. This is a
+best-effort extraction step, not a source of truth. The Agent should still check
+the figure and caption before using it in a module.
+
+Do not reference `raw/*.pdf` as an image in course Markdown. Course images must
+come from `assets/...` or an explicit `https://...` image URL.
+
 ## When to add the full workspace
 
 Add `.learnloop/` only when:

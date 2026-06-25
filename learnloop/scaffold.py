@@ -148,6 +148,16 @@ Do not ask a fixed questionnaire. If the user does not answer, choose a conserva
 
 ## Stage 2: Source And Evidence
 
+If sources are local PDFs, Word documents, slide decks, Markdown, or text files,
+put them in `raw/` and run:
+
+```bash
+learnloop ingest raw/<source-file> --course .
+```
+
+Use `.learnloop/materials/<source>/chunks.jsonl` and any generated `figures.md`
+as the reading substrate. Do not cite `raw/*.pdf` as an image.
+
 Update `.learnloop/source_inventory.yaml` with each source you actually read.
 
 For each planned chapter, create an evidence pack in `.learnloop/evidence_packs/`:
@@ -294,7 +304,11 @@ LearnLoop copies them to `dist/course-assets/` during build.
         """# Raw Materials
 
 Put PDFs, source excerpts, datasets, notes, or other original materials here.
-Do not cite raw files as verified unless the Agent has actually read them.
+Run `learnloop ingest raw/<source-file> --course .` to create a structured
+material pack under `.learnloop/materials/`.
+
+Do not cite raw files as verified unless the Agent has actually read them, and
+do not reference `raw/*.pdf` as an image. Use extracted images from `assets/`.
 """,
         encoding="utf-8",
     )

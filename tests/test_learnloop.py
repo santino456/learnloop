@@ -12,6 +12,7 @@ from urllib.error import HTTPError
 from urllib import request
 
 from learnloop.course import LearnLoopError, build_course, init_course, make_context, scaffold_course, validate_course
+from learnloop.doctor import doctor_report
 from learnloop.ingest import ingest_material
 from learnloop.knowledge import audit_generation_readiness
 from learnloop.parser import parse_markdown
@@ -36,6 +37,39 @@ class LearnLoopTests(unittest.TestCase):
             created = init_course(Path(tmp), "demo-course")
             self.assertEqual(validate_course(created), [])
             self.assertTrue((created / "modules" / "01.md").exists())
+
+    def test_doctor_allows_missing_courses_root_with_next_steps(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            code, lines = doctor_report(Path(tmp) / "courses")
+            self.assertEqual(code, 0)
+            text = "\n".join(lines)
+            self.assertIn("WARN courses root does not exist", text)
+            self.assertIn("learnloop init demo --target courses", text)
+
+    def test_doctor_reports_valid_course_library(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "courses"
+            created = init_course(root, "doctor-course")
+            code, lines = doctor_report(root)
+            self.assertEqual(code, 0)
+            text = "\n".join(lines)
+            self.assertIn("OK templates:", text)
+            self.assertIn(f"OK doctor-course ({created.resolve()}): valid", text)
+
+    def test_doctor_fails_invalid_course_library(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "courses"
+            created = init_course(root, "bad-doctor-course")
+            module = created / "modules" / "01.md"
+            module.write_text(
+                module.read_text(encoding="utf-8") + "\n## [m1-purpose] Duplicate\n\nText.\n",
+                encoding="utf-8",
+            )
+            code, lines = doctor_report(root)
+            self.assertEqual(code, 1)
+            text = "\n".join(lines)
+            self.assertIn("validation failed", text)
+            self.assertIn("Duplicate section id", text)
 
     def test_read_course_reports_malformed_course_yaml(self) -> None:
         from learnloop.parser import read_course

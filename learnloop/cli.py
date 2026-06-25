@@ -13,6 +13,7 @@ from .course import (
     serve_course,
     validate_course,
 )
+from .doctor import print_doctor_report
 from .knowledge import audit_generation_readiness
 from .ingest import ingest_material
 from .model import ModuleDoc
@@ -110,6 +111,11 @@ def main(argv: list[str] | None = None) -> int:
     )
     templates_p.add_argument("course_dir", nargs="?", default=".")
 
+    doctor_p = sub.add_parser(
+        "doctor", help="Check the local LearnLoop install and course library."
+    )
+    doctor_p.add_argument("courses_root", nargs="?", default="courses")
+
     args = parser.parse_args(argv)
     try:
         if args.command == "init":
@@ -164,6 +170,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"Figures: {result.figures} -> {result.figures_md}")
         elif args.command == "templates":
             list_templates_command(Path(args.course_dir))
+        elif args.command == "doctor":
+            return print_doctor_report(Path(args.courses_root))
     except LearnLoopError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1

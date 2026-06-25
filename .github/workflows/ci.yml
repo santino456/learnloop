@@ -28,6 +28,9 @@ jobs:
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
 
+      - name: Check local install health
+        run: python -m learnloop doctor courses
+
       - name: Validate sample course
         run: python -m learnloop validate courses/acp-fundamentals
 
@@ -62,6 +65,7 @@ jobs:
           python -m venv /tmp/learnloop-wheel
           /tmp/learnloop-wheel/bin/python -m pip install dist/*.whl
           /tmp/learnloop-wheel/bin/learnloop init demo --target /tmp/learnloop-courses
+          /tmp/learnloop-wheel/bin/learnloop doctor /tmp/learnloop-courses
           /tmp/learnloop-wheel/bin/learnloop validate /tmp/learnloop-courses/demo
           /tmp/learnloop-wheel/bin/learnloop build /tmp/learnloop-courses/demo
           test -f /tmp/learnloop-courses/demo/dist/m1.html

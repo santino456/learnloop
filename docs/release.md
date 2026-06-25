@@ -6,6 +6,7 @@ Use this before tagging a public LearnLoop release.
 
 ```bash
 python3 -m unittest discover -s tests -v
+learnloop doctor courses
 learnloop validate courses/acp-fundamentals
 learnloop build courses/acp-fundamentals
 learnloop audit courses/acp-fundamentals

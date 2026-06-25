@@ -29,6 +29,7 @@ Create a local course library and start LearnLoop:
 ```bash
 mkdir -p courses
 learnloop init demo-course --target courses
+learnloop doctor courses
 learnloop start courses --port 8787
 ```
 
@@ -83,6 +84,7 @@ Each course is served as a resource on the same local service:
 Use `status` and `stop` for the background service:
 
 ```bash
+learnloop doctor courses
 learnloop status courses
 learnloop stop courses
 ```

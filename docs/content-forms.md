@@ -13,23 +13,30 @@ Good Tutorial content:
 - starts from a likely confusion;
 - introduces one idea at a time;
 - uses examples only when they reduce cognitive load;
-- marks uncertainty instead of sounding definitive without evidence.
+- marks uncertainty instead of sounding definitive without evidence;
+- links to Reference modules when the learner may want to go deeper.
 
 Do not use Tutorial as a dumping ground for every fact. Dense lookup material
 belongs in Reference.
 
 ## Reference
 
-Use Reference only when the learner needs to look things up repeatedly.
+Use Reference when the learner needs a source-grounded deep dive that they can read as a self-contained entry point, or look up repeatedly.
 
 Reference is justified by dense material such as:
 
 - APIs, fields, commands, formulas, symbols, source locations, or config keys;
 - comparison tables, version-sensitive details, edge cases, and failure modes;
-- concise facts that are easier to scan than to read as prose.
+- explanations drawn from official docs, papers, or authoritative articles;
+- curated links that replace the need to hunt through primary sources.
+
+Every external claim in a Reference module should be backed by a source. Use
+Markdown links `[source name](URL)` so the source is both cited and clickable.
+For local materials, label them explicitly as `本地`.
 
 Do not create Reference for simple explanations, summaries, or "what is X"
-content. If it does not need tables or grouped facts, it is probably Tutorial.
+content that you could only write from memory. If it does not cite primary
+sources or provide dense lookup value, it is probably Tutorial.
 
 ## Practice
 

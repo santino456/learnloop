@@ -1,70 +1,70 @@
 # Evidence And Sources
 
-LearnLoop does not need a heavy citation manager, but reusable courses need a
-minimum evidence trail. The goal is simple: a learner or agent should be able
-to tell which important claims are verified, inferred, conflicting, or waiting
-for human review.
+LearnLoop expects content to be trustworthy, but it does not force every course through a heavy citation workflow. The default workflow is light: the agent behaves like a careful teacher and marks uncertainty where it matters.
 
-## Source Inventory
+## Default: agent-driven fact checking
 
-Record sources in `.learnloop/source_inventory.yaml`:
+When generating or updating a course, the agent should:
 
-```yaml
-sources:
-  - id: official-docs
-    type: official
-    title: "Project documentation"
-    location: "https://example.com/docs"
-    trust: primary-source
-    read_status: complete
-```
+1. **Identify high-stakes claims** — exact commands, API names, protocol fields, version numbers, institution names, performance numbers, timelines.
+2. **Check those claims against reliable sources** — official docs, source code, runnable output, papers, or the user's own current context.
+3. **Mark uncertainty** — use phrasing like "据官方文档..." or "这一点还需要验证" instead of presenting guesses as settled facts.
+4. **Separate judgment from fact** — Perspective content must state its basis (experience, observations, or `needs-human-review`).
 
-Use stable `id` values. Claims that use `source_id` must reference one of these
-ids.
+For most personal courses, this is enough.
 
-## Claims Ledger
+## Optional: persistent knowledge state
 
-Record important technical or reusable claims in `.learnloop/claims.jsonl`:
+If you are building a reusable or published course, you can add a `.learnloop/` workspace to track evidence more explicitly:
 
-```json
-{"id":"claim-001","claim":"The generated HTML preserves section ids.","module_id":"m1","section_id":"m1-purpose","status":"verified","source_id":"local-source","checked_at":"2026-06-23"}
-```
+- `source_inventory.yaml` — list of sources used.
+- `claims.jsonl` — important claims with status (`verified`, `unverified`, `conflicting`, `needs-human-review`, `agent-inference`).
+- `conflicts.jsonl` — sources that disagree.
 
-Allowed statuses:
+These files are validated when present, but they are **not required**.
 
-- `verified`: supported by a reliable source, source code, runnable output, or
-  user confirmation.
-- `unverified`: not yet supported.
-- `conflicting`: sources disagree.
-- `needs-human-review`: depends on human taste, judgment, or private context.
-- `agent-inference`: generated inference only.
+### In-course source notes
 
-`verified` claims must include `source_id` or `source`. Prefer `source_id`
-because `learnloop validate` can check it against `source_inventory.yaml`.
+For normal prose, do not clutter every sentence. Add a source note when a claim is important, surprising, version-sensitive, or likely to be reused.
 
-## In-Course Source Notes
-
-For normal prose, do not clutter every sentence. Add source notes when a claim
-is important, surprising, version-sensitive, or likely to be reused:
+Reference modules must cite external sources with clickable Markdown links:
 
 ```markdown
-> Source note: claim-001, source `local-source`.
+> 来源：[React 官方文档 — Thinking in React](https://react.dev/learn/thinking-in-react)。
+```
+
+For local materials, label them explicitly:
+
+```markdown
+> 来源：本地 m7《部署与运维：从本机到线上》。
 ```
 
 For Perspective content, cite the basis in words:
 
 ```markdown
-依据：基于 claim-001 和本章练习观察；最终产品判断仍需 needs-human-review。
+依据：基于本章已验证的 browser sandbox 约束。
 ```
 
-## Conflicts
+## Source artifacts in `raw/`
 
-If sources disagree, write the conflict to `.learnloop/conflicts.jsonl` instead
-of silently choosing the convenient answer:
+When a course is built from an external source such as a paper, dataset, or official document, keep the original artifact in a `raw/` folder inside the course directory:
 
-```json
-{"id":"conflict-001","summary":"Two sources describe different protocol versions.","status":"open","sources":["docs-a","docs-b"]}
+```text
+courses/<course-slug>/
+  raw/
+    lifescibench_preprint.pdf
+  course.yaml
+  modules/
 ```
 
-Then either resolve it with a stronger source or mark the course text as
-unverified.
+This makes the source inspectable alongside the generated modules and keeps the provenance clear. Modules should still cite the specific section, table, or figure they rely on, rather than pointing vaguely at the artifact.
+
+## When to add the full workspace
+
+Add `.learnloop/` only when:
+
+- The course will be shared or published.
+- Multiple agents or people will edit it over time.
+- The topic has conflicting sources that need to be tracked.
+
+For a quick personal course, skip it.

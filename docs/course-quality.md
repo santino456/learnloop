@@ -1,18 +1,14 @@
 # Course Quality
 
-LearnLoop is useful only when generated courses are more reliable and more
-learnable than a generic long-form answer. A good course should pass three
-checks: truth, structure, and learning value.
+LearnLoop is useful only when generated courses are more reliable and more learnable than a generic long-form answer. A good course should pass three checks: truth, structure, and learning value.
 
 ## Truth
 
-- Important factual claims are tied to sources, runnable output, source code,
-  or explicit user confirmation.
-- Unverified details are marked as unverified instead of written as settled
-  facts.
-- Conflicting sources are recorded and resolved by the main agent or a human.
-- Perspective content states its basis and does not pretend to be a universal
-  answer.
+- Important factual claims are tied to sources, runnable output, source code, or explicit user confirmation.
+- Unverified details are marked as unverified instead of written as settled facts.
+- Perspective content states its basis and does not pretend to be a universal answer.
+
+For reusable or published courses, consider adding a `.learnloop/` workspace to track sources, claims, and conflicts explicitly. For personal courses, agent-driven fact checking is enough.
 
 ## Structure
 
@@ -27,8 +23,7 @@ checks: truth, structure, and learning value.
 
 ## Learning Value
 
-- The course starts from the learner's likely confusion, not from the source
-  material's table of contents.
+- The course starts from the learner's likely confusion, not from the source material's table of contents.
 - Each module has one job.
 - Practice blocks train real skills or decisions.
 - Reference modules are dense enough to be worth scanning.

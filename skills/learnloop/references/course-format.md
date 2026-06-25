@@ -8,6 +8,7 @@ Use this reference when creating, migrating, or repairing a LearnLoop course.
 - `modules/*.md`: editable course source.
 - `questions.jsonl`: learner question log.
 - `answers/`: agent answer artifacts and follow-up material.
+- `raw/`: optional folder for original source artifacts such as papers, datasets, or official documents.
 - `.learnloop/`: optional orchestration workspace for sources, claims, conflicts, chapter briefs, and evidence packs.
 - `dist/`: generated HTML output.
 
@@ -54,6 +55,14 @@ Questionable sections use this heading syntax:
 ```
 
 Section ids must be unique across the course. Do not rename them after learners have submitted questions unless you also migrate `questions.jsonl`.
+
+Markdown links are supported and rendered as clickable anchors:
+
+```markdown
+See the [React docs](https://react.dev) for details.
+```
+
+Use them for source citations and cross-module references.
 
 ### Container Syntax
 

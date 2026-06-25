@@ -1,6 +1,6 @@
 # Content Verification
 
-Use this reference before adding technical claims, commands, APIs, protocol fields, version numbers, or runnable code.
+Use this reference before adding named entities, technical claims, commands, APIs, protocol fields, version numbers, timelines, or runnable code.
 
 ## Verification Order
 
@@ -9,9 +9,31 @@ Use this reference before adding technical claims, commands, APIs, protocol fiel
 3. For fast-moving technology, check current official documentation or release notes.
 4. If a detail cannot be verified, mark it clearly in the course.
 
+## Entity Facts
+
+Verify exact names before writing them. This includes institutions, companies,
+projects, repositories, people, models, protocols, frameworks, products, and
+organizations.
+
+Use the strongest available source:
+
+- official website or official documentation;
+- local project files provided by the user;
+- source code or package metadata;
+- explicit user confirmation.
+
+Do not translate, rename, abbreviate, or "correct" an entity from memory. If a
+course uses a nickname, introduce it only after the verified full name.
+
+Examples:
+
+- Write `深圳理工大学` only after checking an official or user-provided source.
+- Do not write `深圳理工学院` unless a reliable source or the user explicitly
+  confirms that exact name.
+
 ## Claim Status
 
-Use `.learnloop/claims.jsonl` for important facts introduced during course generation:
+For important facts introduced during course generation, mark the status in the prose or, for reusable courses, in `.learnloop/claims.jsonl`:
 
 - `verified`: supported by official docs, source code, runnable output, or user confirmation.
 - `unverified`: not supported yet.

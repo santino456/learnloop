@@ -42,4 +42,4 @@ section_id: "<section id>"
 
 Answer the learner first. Only update the course source when the answer reveals a durable explanation, missing prerequisite, misleading wording, or useful example.
 
-If an answer adds a new technical fact, add or update `.learnloop/claims.jsonl`, or mark the fact as unverified in the course text.
+If an answer adds a new technical fact, mark its status in the course text (for example, "据官方文档..." or "这一点还需要验证"). Add or update `.learnloop/claims.jsonl` only if the course maintains a formal knowledge-state workspace.

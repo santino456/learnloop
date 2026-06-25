@@ -1,6 +1,6 @@
 ---
 name: learnloop
-description: Work with LearnLoop local-first adaptive learning courses. Use when creating or updating LearnLoop course source, generating trustworthy AI-assisted tutorials, choosing Tutorial/Reference/Practice/Perspective content forms, validating course claims and sources, answering saved learner questions from questions.jsonl, or improving modules based on learner confusion.
+description: Work with LearnLoop local-first adaptive learning courses. Use when creating or updating LearnLoop course source, generating trustworthy AI-assisted tutorials, choosing Tutorial/Reference/Practice/Perspective content forms, answering saved learner questions from questions.jsonl, or improving modules based on learner confusion.
 ---
 
 # LearnLoop
@@ -13,31 +13,36 @@ sources + learner goal -> Markdown/YAML course -> local HTML -> questions -> age
 
 Your first job is **epistemic control**, not fast drafting. A fluent lesson is not good enough unless the learner goal, sources, evidence, content forms, and validation state are clear.
 
+Think like an experienced teacher preparing a lesson: research first, check the facts, decide what form the material should take, then write. Do not jump straight to a long module draft.
+
 ## Task Router
 
 - **Answer learner question**: read `references/answering-loop.md`, run `learnloop context`, write an answer artifact, and update course source only if the answer should be reused.
 - **Small course edit**: inspect the target module, preserve section ids, make the narrow edit, then run `learnloop validate` and `learnloop build`.
-- **New or substantial course generation**: follow the stage gates below before writing `modules/*.md`.
-- **Publication or reusable course**: also read `docs/content-forms.md`, `docs/evidence-and-sources.md`, `docs/course-quality.md`, and `references/content-verification.md`; run `learnloop audit`.
+- **Course structure or template change**: read `references/course-format.md` before editing `course.yaml`, module frontmatter, containers, templates, or section ids.
+- **New or substantial course generation**: follow the Expert Teacher Workflow below. Read `docs/content-forms.md` first.
+- **Named entities, technical claims, commands, APIs, protocol fields, or version-sensitive facts**: verify them against a reliable source before adding them.
+- **Publication or reusable course**: also read `docs/evidence-and-sources.md` and `docs/course-quality.md`; optionally add a `.learnloop/` workspace to track sources and claims.
 
-## Stage Gates
+## Expert Teacher Workflow
 
-Before drafting a new or substantial course, produce these notes. For quick personal work they may stay in the response; for reusable technical courses persist them in `.learnloop/`.
+Before drafting a new or substantial course, work through these steps in your reasoning. You do not need to write long planning documents unless the user asks for them or the course will be published.
 
-1. **Intent**: learner goal, background, desired outcome, exclusions.
-2. **Research**: sources used or needed; reliability tier; missing sources.
-3. **Evidence**: supported facts, useful examples, weak/conflicting points.
-4. **Design**: module plan and why each content form is justified.
-5. **Draft**: write only content supported by the design and evidence.
-6. **Review**: check unsupported claims, fake Reference, weak Practice, empty Perspective, private examples, and section id stability.
-7. **Build**: run validate/build/audit as appropriate.
+1. **Understand the learner**: Who are they? What do they already know? What specific confusion or goal brings them here?
+2. **Define the learning job**: What should the learner be able to understand or do after this module? One module, one job.
+3. **Research and fact-check**: Identify the sources (official docs, source code, runnable output, papers, user context). For high-stakes claims, verify exact names, versions, commands, and protocol fields. Mark uncertainty instead of guessing.
+4. **Ask content-derived questions**: After you understand the material, identify 2–4 choices that actually change the course shape. The questions must come from the content, not a fixed questionnaire. If the user does not respond, fall back to a high-quality default that keeps the course complete but marks optional advanced sections.
+5. **Design the module plan**: Decide which modules are Tutorial, Reference, Practice, or Perspective, and why.
+6. **Draft**: Write only content supported by the design and evidence.
+7. **Self-review**: Check for unsupported claims, fake Reference, weak Practice, empty Perspective, private examples, and section id stability.
+8. **Build**: run `validate`, `build`, and optionally `audit`.
 
-Do not write a long module before Intent, Research, Evidence, and Design exist.
+Do not write a long module before you understand the learner, the learning job, and the evidence.
 
 ## Content Form Rules
 
-- **Tutorial** explains concepts and mental models.
-- **Reference** is only for dense reusable lookup facts: APIs, fields, commands, formulas, comparison tables, edge cases, failure modes, or source locations.
+- **Tutorial** explains concepts and mental models. Start from a likely confusion; introduce one idea at a time; mark uncertainty instead of sounding definitive without evidence. Link to Reference when the learner may want to go deeper.
+- **Reference** is a source-grounded deep dive: cite official docs, papers, or authoritative articles with clickable Markdown links `[source name](URL)`. Label local materials as `本地`. Do not write Reference from memory alone.
 - **Practice** trains a checkable action, calculation, debugging move, implementation step, or decision. Include answer, feedback, or expected reasoning.
 - **Perspective** extracts judgment, taste, tradeoffs, quality signals, bad smells, or AI-use criteria. State the basis: verified claims, practice observations, author experience, or `needs-human-review`.
 
@@ -46,11 +51,29 @@ If a form is not justified, omit it. Do not mirror sample modules just because t
 ## Source And Claim Rules
 
 - Prefer official docs, source code, runnable output, papers, or user-provided current context.
-- Important technical facts should enter `.learnloop/claims.jsonl` when the course is reusable.
-- `verified` requires `source_id` or `source`.
-- `agent-inference` is never a final verified fact.
-- Conflicts go to `.learnloop/conflicts.jsonl`; do not silently choose the convenient version.
+- When a course is built from an external paper or document, keep the original artifact in the course `raw/` folder and cite specific sections or figures in the modules.
+- Cite external sources with clickable Markdown links: `[source name](URL)`. Label local materials as `本地`. Do not write source notes as plain text without a link.
+- Verify exact names for institutions, products, projects, repositories, people, models, protocols, and organizations before writing them. Do not normalize names from memory.
+- Do not invent timelines, usage history, performance numbers, architecture motives, or project maturity. If the source does not prove it, mark it unverified or omit it.
+- For reusable courses, track important claims in `.learnloop/claims.jsonl`. For personal courses, simply mark uncertainty in the prose.
+- Conflicts between sources should be noted; do not silently choose the convenient version.
 - Use fictitious public examples unless the user explicitly asks for private context.
+
+## Optional `.learnloop/` Workspace
+
+A `.learnloop/` workspace is **optional**. Use it only when:
+
+- The course will be shared or published.
+- Multiple agents or people will edit it.
+- The topic has conflicting sources that need tracking.
+
+When used, it may contain:
+
+- `source_inventory.yaml` — sources consulted.
+- `claims.jsonl` — important claims with verification status.
+- `conflicts.jsonl` — unresolved disagreements between sources.
+
+For personal or quick courses, skip the workspace and rely on agent-driven fact checking.
 
 ## Subagents
 
@@ -81,7 +104,8 @@ Use `python3 -m learnloop ...` only when the package is not installed.
 - Read `references/orchestration.md` before generating or substantially rewriting course content.
 - Read `references/answering-loop.md` before answering learner questions.
 - Read `references/content-verification.md` before adding technical claims, commands, APIs, or protocol fields.
-- Read `docs/content-forms.md`, `docs/evidence-and-sources.md`, and `docs/course-quality.md` before preparing a course for reuse or publication.
+- Read `docs/content-forms.md` before choosing templates.
+- Read `docs/evidence-and-sources.md` and `docs/course-quality.md` before preparing a course for reuse or publication.
 
 ## Guardrails
 
@@ -90,3 +114,4 @@ Use `python3 -m learnloop ...` only when the package is not installed.
 - Do not treat fluent generated text as verified knowledge.
 - Prefer small course updates over broad rewrites.
 - Mark unverifiable technical details instead of presenting them as confirmed.
+- Do not require a `.learnloop/` workspace for every course.

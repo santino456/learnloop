@@ -1,35 +1,24 @@
 # LearnLoop Orchestration
 
-Use this reference when turning raw material or a learner goal into course content. Keep the process lightweight, but do not skip the thinking. The goal is not to create many intermediate files; the goal is to make the agent choose the right learning form and avoid unsupported generated lessons.
+Use this reference when turning raw material or a learner goal into course content. Keep the process lightweight: the agent should think like an experienced teacher, not fill out a long planning document.
 
-## Minimal Stage Notes
+## Pre-Draft Thinking
 
-Before drafting, write short notes for:
+Before drafting, reason through:
 
-```text
-Intent:
-- learner goal:
-- background:
-- desired outcome:
-- exclusions:
+- **Learner**: Who are they? What do they already know? What specific confusion or goal brings them here?
+- **Learning job**: What should the learner be able to understand or do after this module? One module, one job.
+- **Sources**: Which official docs, source code, runnable output, papers, or user context support the content?
+- **High-stakes claims**: Exact commands, API names, protocol fields, version numbers, institution names. Verify these before writing.
+- **Design**: Module plan, content-form decisions, and why each form is justified.
 
-Research:
-- sources used:
-- sources still needed:
-- reliability notes:
+For small personal courses, these notes can stay in the conversation. For formal or reusable courses, you may persist them under `.learnloop/`.
 
-Evidence:
-- key supported facts:
-- weak or unverified points:
-- examples worth teaching:
+Ask the user 2–4 focused questions before a substantial course, but only after you have read the sources and understood the material. The questions should be derived from the content itself, not from a standard questionnaire. Good questions surface choices that genuinely change the course: which prerequisite to assume, which angle to emphasize, which tradeoff to foreground, or which audience the examples should speak to.
 
-Design:
-- module plan:
-- content form decisions:
-- why Reference is or is not needed:
-```
+If the user does not respond, do not stall. Fall back to a high-quality default: produce a complete course, keep the core path accessible, and mark advanced or skippable sections explicitly.
 
-For small personal courses, these notes can stay in the conversation. For formal or reusable courses, persist them under `.learnloop/`.
+Before drafting, make an entity pass: list exact institution, project, repository, product, protocol, model, and person names that will appear in the course, and attach the source or user confirmation that fixes each name. Do not write a course around a guessed name.
 
 ## Content Form Rubric
 
@@ -43,22 +32,27 @@ A good Tutorial:
 
 - starts from the learner's likely confusion;
 - builds one clear mental model;
+- explains the real mechanism, not just labels and high-level praise;
 - uses examples or diagrams when they reduce cognitive load;
 - avoids dense lookup tables unless the learner must repeatedly consult them;
-- marks technical uncertainty instead of overclaiming.
+- marks technical uncertainty instead of overclaiming;
+- links to Reference modules when the learner may want to go deeper.
+
+Do not dump every fact into Tutorial. If a topic is better covered as a source-grounded lookup surface, move it to Reference and link from Tutorial.
 
 ### Reference
 
-Use Reference only for dense reusable lookup material.
+Use Reference only for dense reusable lookup material that is grounded in primary sources.
 
 Reference is justified when the content has several of:
 
 - APIs, fields, methods, commands, formulas, symbols, source locations, or configuration keys;
 - comparison tables, boundary conditions, edge cases, failure modes, or version-sensitive facts;
+- explanations drawn from official docs, papers, or authoritative articles;
 - facts the learner will likely revisit while doing work;
 - enough source-backed detail that a normal explanation would become hard to scan.
 
-Do not create Reference for simple explanations, summaries, or "what is X" material. If it is not dense enough to be a useful lookup surface, keep it in Tutorial.
+Do not create Reference for simple explanations, summaries, or "what is X" content that you can only write from memory. Every external claim in Reference should be cited with a clickable Markdown link `[source name](URL)`. Label local materials as `本地`.
 
 A good Reference:
 
@@ -114,9 +108,9 @@ Flag unsupported claims and content-form mismatches.
 
 The main agent owns final merges and may perform all stages alone for small courses.
 
-## Persistent Files
+## Optional Persistent Files
 
-Use `.learnloop/` when the course is technical, reusable, high-risk, or likely to be maintained:
+Use `.learnloop/` only when the course is technical, reusable, high-risk, or likely to be maintained:
 
 - `source_inventory.yaml`: source list and reliability notes.
 - `course_architecture.md`: learner goal, module plan, and content-form decisions.

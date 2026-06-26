@@ -25,6 +25,9 @@ jobs:
       - name: Install package
         run: python -m pip install -e .
 
+      - name: Check CLI version
+        run: python -m learnloop --version
+
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
 
@@ -64,7 +67,9 @@ jobs:
         run: |
           python -m venv /tmp/learnloop-wheel
           /tmp/learnloop-wheel/bin/python -m pip install dist/*.whl
+          /tmp/learnloop-wheel/bin/learnloop --version
           /tmp/learnloop-wheel/bin/learnloop init demo --target /tmp/learnloop-courses
+          /tmp/learnloop-wheel/bin/learnloop templates /tmp/learnloop-courses/demo
           /tmp/learnloop-wheel/bin/learnloop doctor /tmp/learnloop-courses
           /tmp/learnloop-wheel/bin/learnloop validate /tmp/learnloop-courses/demo
           /tmp/learnloop-wheel/bin/learnloop build /tmp/learnloop-courses/demo

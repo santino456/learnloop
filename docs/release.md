@@ -6,6 +6,7 @@ Use this before tagging a public LearnLoop release.
 
 ```bash
 python3 -m unittest discover -s tests -v
+learnloop --version
 learnloop doctor courses
 learnloop validate courses/acp-fundamentals
 learnloop build courses/acp-fundamentals
@@ -19,9 +20,12 @@ Smoke test the wheel:
 tmp=$(mktemp -d)
 python3 -m venv "$tmp/venv"
 "$tmp/venv/bin/python" -m pip install dist/*.whl
+"$tmp/venv/bin/learnloop" --version
 "$tmp/venv/bin/learnloop" init demo --target "$tmp/courses"
 "$tmp/venv/bin/learnloop" validate "$tmp/courses/demo"
 "$tmp/venv/bin/learnloop" build "$tmp/courses/demo"
+"$tmp/venv/bin/learnloop" templates "$tmp/courses/demo"
+"$tmp/venv/bin/learnloop" doctor "$tmp/courses"
 ```
 
 ## Public-Readiness Checks

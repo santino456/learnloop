@@ -16,3 +16,4 @@
 - Add source-line diagnostics for course validation errors such as duplicate section ids, missing media alt text, malformed tables, and unclosed containers/code blocks.
 - Add `learnloop doctor` for read-only install, template, and course-library health checks.
 - Add `concept`, `compare`, and `evidence` learning blocks plus Course Blueprint scaffolding for more intentional HTML learning packages.
+- Polish release packaging with CLI `--version`, updated project metadata, and stricter wheel smoke checks.

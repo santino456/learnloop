@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from . import __version__
 from .course import (
     LearnLoopError,
     build_course,
@@ -24,7 +25,13 @@ from .templates import list_templates, select_template
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="learnloop", description="Local-first adaptive learning loops."
+        prog="learnloop",
+        description="Local-first AI course compiler and learning package format.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"learnloop {__version__}",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

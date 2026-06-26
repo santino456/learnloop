@@ -7,6 +7,10 @@ comparisons, evidence, practice, and learner questions stay tied to the exact
 course sections that produced them. An agent can then answer the question,
 generate follow-up material, and help update the course source.
 
+What you get is a Git-friendly course folder: Markdown/YAML source, local assets,
+generated HTML, section-bound learner questions, and enough structure for another
+agent to keep improving the course instead of rewriting it from scratch.
+
 ## Why It Exists
 
 Static learning material is easy to save but bad at remembering where a learner got stuck. Chat is flexible but often loses the structure of the course.

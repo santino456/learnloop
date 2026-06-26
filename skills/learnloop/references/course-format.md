@@ -24,7 +24,6 @@ This creates the required course files plus:
 
 - `generation_brief.md`: Agent-facing course generation route.
 - `.learnloop/course_blueprint.md`: learner job, module jobs, section actions, evidence, and components.
-- `.learnloop/course_architecture.md`: compatibility copy of the blueprint for older workflows.
 - `.learnloop/chapter_briefs/`: one brief per planned chapter.
 - `.learnloop/evidence_packs/`: source-grounded evidence before drafting.
 - `assets/`: local images used by semantic components.
@@ -209,7 +208,6 @@ For small personal learning notes, stage-gate notes can stay in the conversation
 
 - `source_inventory.yaml`
 - `course_blueprint.md`
-- `course_architecture.md`
 - `chapter_briefs/*.md`
 - `evidence_packs/*.md`
 - `claims.jsonl`

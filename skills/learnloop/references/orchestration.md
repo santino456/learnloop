@@ -113,7 +113,7 @@ The main agent owns final merges and may perform all stages alone for small cour
 Use `.learnloop/` only when the course is technical, reusable, high-risk, or likely to be maintained:
 
 - `source_inventory.yaml`: source list and reliability notes.
-- `course_architecture.md`: learner goal, module plan, and content-form decisions.
+- `course_blueprint.md`: learner goal, module plan, section actions, evidence, and components.
 - `chapter_briefs/*.md`: chapter boundaries when the course is large.
 - `evidence_packs/*.md`: source-grounded evidence for technical chapters.
 - `claims.jsonl`: key claims and status.

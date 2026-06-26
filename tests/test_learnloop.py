@@ -160,7 +160,6 @@ Body.
             self.assertTrue((created / "generation_brief.md").exists())
             self.assertTrue((created / ".learnloop" / "source_inventory.yaml").exists())
             self.assertTrue((created / ".learnloop" / "course_blueprint.md").exists())
-            self.assertTrue((created / ".learnloop" / "course_architecture.md").exists())
             self.assertTrue((created / ".learnloop" / "chapter_briefs" / "m1.md").exists())
             self.assertTrue((created / ".learnloop" / "evidence_packs" / "README.md").exists())
             brief = (created / "generation_brief.md").read_text(encoding="utf-8")

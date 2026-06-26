@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 - Unreleased
+## 0.1.0 - 2026-06-26
 
 - Add local course library service with `learnloop start`, `status`, and `stop`.
 - Serve multiple courses from one local port under `/course/<course_id>/`.

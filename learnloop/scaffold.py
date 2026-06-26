@@ -293,10 +293,6 @@ Use this before writing each section:
         blueprint,
         encoding="utf-8",
     )
-    (course_dir / ".learnloop" / "course_architecture.md").write_text(
-        blueprint.replace("# Course Blueprint", "# Course Architecture"),
-        encoding="utf-8",
-    )
 
 
 def _write_chapter_brief(course_dir: Path) -> None:

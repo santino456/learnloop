@@ -299,15 +299,8 @@ learnloop build courses/acp-fundamentals
 learnloop audit courses/acp-fundamentals
 ```
 
-## Current Status
+## Scope
 
-- ACP sample course migrated to Markdown/YAML source.
-- Template-capable rendering pipeline with course- and module-level template selection.
-- Perspective template for judgment, taste, and higher-level learning experience.
-- Lightweight knowledge-state validation for verified claims and Perspective basis.
-- Single local library service manages all courses under one port.
-- Generated pages read course-local `config.js`, so questions use the correct course API.
-- LearnLoop skill is normalized for agent-guided course generation and question answering.
-- `.learnloop/` workspace is now optional; the default workflow relies on agent-driven fact checking.
-
-Not included in the first version: accounts, cloud sync, multi-user spaces, hosted marketplaces, or a long-running cloud agent service.
+LearnLoop is a local single-user tool. It intentionally does not include
+accounts, cloud sync, multi-user spaces, hosted marketplaces, or a long-running
+cloud agent service.

@@ -47,43 +47,27 @@ Do not write a long module before you understand the learner, the learning job, 
 Every section should ask the learner to do one thing: understand, compare,
 verify, practice, or judge. If a section only asks the learner to read, redesign it.
 
-## Content Form Rules
+## Content Form Decision
 
-- **Tutorial** explains concepts and mental models. Start from a likely confusion; introduce one idea at a time; mark uncertainty instead of sounding definitive without evidence. Link to Reference when the learner may want to go deeper.
-- **Reference** is a source-grounded deep dive: cite official docs, papers, or authoritative articles with clickable Markdown links `[source name](URL)`. Label local materials as `本地`. Do not write Reference from memory alone.
-- **Practice** trains a checkable action, calculation, debugging move, implementation step, or decision. Include answer, feedback, or expected reasoning.
-- **Perspective** extracts judgment, taste, tradeoffs, quality signals, bad smells, or AI-use criteria. State the basis: verified claims, practice observations, author experience, or `needs-human-review`.
+Choose Tutorial, Reference, Practice, and Perspective because the learner needs
+that form, not because a sample course used it. If the choice is unclear, read
+`docs/content-forms.md` and write down the learning job before drafting. Omit a
+form when it has no real job.
 
-If a form is not justified, omit it. Do not mirror sample modules just because they exist.
+## Semantic Components
 
-## Semantic Component Rules
-
-Use HTML learning components when they make the lesson more direct:
-
-- `concept`: name a mental model the learner should keep in working memory.
-- `compare`: distinguish two plausible choices, states, designs, or failure modes.
-- `evidence`: make the support for an important claim visible.
-- `figure`: one image that explains evidence, architecture, UI state, or a visual mechanism. Always include meaningful `alt`.
-- `gallery`: compare two or more visual states, such as before/after or wrong/right.
-- `flow`: show a process, data path, request path, or causal chain.
-- `timeline`: show phases, lifecycle, ordering, or staged execution.
-- `decision`: train judgment. Include `--- perspective` or `--- answer`, and state the basis.
-
-Do not use components as decoration. If a block does not improve understanding,
-write a normal paragraph. Local images belong in the course `assets/` folder;
-remote images stay as links and are not downloaded.
+Use components only when they reduce confusion, expose evidence, train a move,
+or make a judgment visible. Do not add components as decoration. Local images
+belong in `assets/`; remote images stay as links and are not downloaded. For
+exact syntax, read `references/course-format.md`.
 
 ## Source And Claim Rules
 
-- Prefer official docs, source code, runnable output, papers, or user-provided current context.
-- When a course is built from an external paper or document, keep the original artifact in the course `raw/` folder and cite specific sections or figures in the modules.
-- Run `learnloop ingest` for local PDF/DOCX/PPTX/Markdown/text sources before writing reusable course content. Use the material pack as evidence, not the PDF filename alone.
-- Cite external sources with clickable Markdown links: `[source name](URL)`. Label local materials as `本地`. Do not write source notes as plain text without a link.
-- Verify exact names for institutions, products, projects, repositories, people, models, protocols, and organizations before writing them. Do not normalize names from memory.
-- Do not invent timelines, usage history, performance numbers, architecture motives, or project maturity. If the source does not prove it, mark it unverified or omit it.
-- For reusable courses, track important claims in `.learnloop/claims.jsonl`. For personal courses, simply mark uncertainty in the prose.
-- Conflicts between sources should be noted; do not silently choose the convenient version.
-- Use fictitious public examples unless the user explicitly asks for private context.
+Truth beats fluency. Verify exact names, version-sensitive facts, commands,
+protocol fields, timelines, performance numbers, and project maturity before
+writing them. If the source does not prove a claim, mark it unverified or omit
+it. Read `references/content-verification.md` for the verification standard and
+`docs/evidence-and-sources.md` when preparing a reusable course.
 
 ## Optional `.learnloop/` Workspace
 

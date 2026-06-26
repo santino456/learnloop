@@ -58,12 +58,6 @@ For Perspective content, write the basis directly:
 
 ## Public Examples
 
-Use fictitious project names and safe paths for publishable courses.
-
-Recommended sample:
-
-- Project: `CampusGuide`
-- Path: `/workspace/campus-guide/README.md`
-- Description: a fictional campus Q&A assistant
-
-Do not include personal usernames, private repository names, local home paths, or private organization details in public sample content.
+Use fictitious project names and safe paths for publishable courses. Do not
+include personal usernames, private repository names, local home paths, or
+private organization details in public sample content.

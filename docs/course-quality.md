@@ -17,7 +17,22 @@ A reusable LearnLoop course should have:
 - Practice that trains a checkable skill or decision;
 - Perspective that names real tradeoffs, quality signals, and basis;
 - HTML components that clarify mechanisms, comparisons, or judgment;
+- section-level learning actions: understand, compare, verify, practice, or judge;
 - no private paths, private project names, or invented project history.
+
+## Product Position
+
+LearnLoop is not a full learning platform and not a prettier Markdown renderer.
+It is an AI course compiler and portable learning package format.
+
+That means the source should describe a learning experience, not just prose:
+
+- `concept` captures the mental model.
+- `compare` captures the distinction.
+- `evidence` captures why a claim is trustworthy.
+- `exercise` and `checkpoint` capture practice.
+- `decision` captures judgment.
+- learner questions capture the loop back into the source.
 
 ## Truth
 
@@ -42,6 +57,7 @@ For reusable or published courses, consider adding a `.learnloop/` workspace to 
 
 - The course starts from the learner's likely confusion, not from the source material's table of contents.
 - Each module has one job.
+- Each section has one learning action: understand, compare, verify, practice, or judge.
 - Practice blocks train real skills or decisions.
 - Reference modules are dense enough to be worth scanning.
 - Perspective modules help the learner use AI and their own judgment better.
@@ -52,6 +68,9 @@ HTML should do more than make Markdown prettier.
 
 Use components when they change how fast or deeply the learner understands:
 
+- `concept`: the named mental model the learner should remember.
+- `compare`: the distinction between two plausible choices, states, or designs.
+- `evidence`: a visible source-grounded support block for an important claim.
 - `figure`: architecture, UI state, data structure, visual evidence.
 - `gallery`: before/after, wrong/right, two competing designs.
 - `flow`: request path, lifecycle, causal chain, data movement.
@@ -66,6 +85,7 @@ previous paragraph without adding structure, comparison, or judgment.
 Stop and revise when you see:
 
 - a long first module that says "overview" but teaches no concrete model;
+- a section with no learning action beyond "read this";
 - Reference that only answers simple "what is X" questions;
 - Practice with no answer, feedback, or expected reasoning;
 - Perspective that sounds wise but has no basis;

@@ -39,6 +39,12 @@ def render_blocks(blocks: list[Block], template: Any | None = None) -> str:
             out.append(render_flow(block))
         elif block.type == "timeline":
             out.append(render_timeline(block))
+        elif block.type == "concept":
+            out.append(render_concept(block, template))
+        elif block.type == "compare":
+            out.append(render_compare(block))
+        elif block.type == "evidence":
+            out.append(render_evidence(block, template))
         elif block.type == "decision":
             out.append(render_decision(block, template))
         elif block.type == "table":
@@ -116,6 +122,72 @@ def render_timeline(block: Block) -> str:
         body = f"<p>{text}</p>" if text else ""
         items.append(f"<li><strong>{title}</strong>{body}</li>")
     return f'<ol class="ll-timeline">{"".join(items)}</ol>'
+
+
+def render_concept(block: Block, template: Any | None = None) -> str:
+    attrs = block.attrs or {}
+    title = inline(attrs.get("title", "Key concept"))
+    why = attrs.get("why", "")
+    body = render_blocks(block.blocks or [], template)
+    why_html = f'<p class="concept-why">{inline(why)}</p>' if why else ""
+    return (
+        '<section class="ll-concept">'
+        '<span class="learning-block-label">Concept</span>'
+        f"<h4>{title}</h4>"
+        f"{why_html}"
+        f'<div class="concept-body">{body}</div>'
+        "</section>"
+    )
+
+
+def render_compare(block: Block) -> str:
+    attrs = block.attrs or {}
+    left = inline(attrs.get("left", "Option A"))
+    right = inline(attrs.get("right", "Option B"))
+    rows = []
+    for item in block.media or []:
+        rows.append(
+            "<tr>"
+            f"<th>{inline(item.get('label', ''))}</th>"
+            f"<td>{inline(item.get('left', ''))}</td>"
+            f"<td>{inline(item.get('right', ''))}</td>"
+            "</tr>"
+        )
+    return (
+        '<section class="ll-compare">'
+        '<span class="learning-block-label">Compare</span>'
+        "<table>"
+        f"<thead><tr><th>Dimension</th><th>{left}</th><th>{right}</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody>"
+        "</table>"
+        "</section>"
+    )
+
+
+def render_evidence(block: Block, template: Any | None = None) -> str:
+    attrs = block.attrs or {}
+    claim = attrs.get("claim", "")
+    source = attrs.get("source", "")
+    status = attrs.get("status", "")
+    basis = attrs.get("basis", "")
+    body = render_blocks(block.blocks or [], template)
+    meta = []
+    if status:
+        meta.append(f"<span>{inline(status)}</span>")
+    if source:
+        meta.append(f"<span>{inline(source)}</span>")
+    claim_html = f"<p><strong>{inline(claim)}</strong></p>" if claim else ""
+    basis_html = f'<p class="evidence-basis">{inline(basis)}</p>' if basis else ""
+    footer = f'<footer>{"".join(meta)}</footer>' if meta else ""
+    return (
+        '<aside class="ll-evidence">'
+        '<span class="learning-block-label">Evidence</span>'
+        f"{claim_html}"
+        f"{basis_html}"
+        f"{body}"
+        f"{footer}"
+        "</aside>"
+    )
 
 
 def render_decision(block: Block, template: Any | None = None) -> str:
@@ -715,6 +787,7 @@ def validate_course(course_dir: Path) -> list[str]:
             f"{module.file}: {error}" for error in validate_template_support(template, block_types)
         )
         errors.extend(validate_media_blocks(blocks, module.file, course.root))
+        errors.extend(validate_learning_blocks(blocks, module.file))
         errors.extend(validate_perspective_basis(blocks, module.file))
 
         sections = collect_sections(blocks)
@@ -785,6 +858,34 @@ def validate_media_blocks(
                 if not item.get("alt", "").strip():
                     errors.append(f"{location}: gallery item {idx} is missing alt text")
                 errors.extend(_validate_media_src(src, location, label, course_root))
+    return errors
+
+
+def validate_learning_blocks(blocks: list[Block], module_file: str) -> list[str]:
+    errors: list[str] = []
+    for block in _walk_blocks(blocks):
+        location = _source_label(block.source, module_file)
+        attrs = block.attrs or {}
+        if block.type == "concept":
+            if not attrs.get("title", "").strip():
+                errors.append(f"{location}: concept block is missing title")
+            if not (block.blocks or attrs.get("why", "").strip()):
+                errors.append(f"{location}: concept block needs body text or why")
+        elif block.type == "compare":
+            if not attrs.get("left", "").strip() or not attrs.get("right", "").strip():
+                errors.append(f"{location}: compare block needs left and right labels")
+            if not block.media:
+                errors.append(f"{location}: compare block needs at least one comparison row")
+        elif block.type == "evidence":
+            if not attrs.get("claim", "").strip():
+                errors.append(f"{location}: evidence block is missing claim")
+            if not attrs.get("source", "").strip():
+                errors.append(f"{location}: evidence block is missing source")
+            status = attrs.get("status", "").strip()
+            if not status:
+                errors.append(f"{location}: evidence block is missing status")
+            elif status not in {"verified", "unverified", "needs-human-review", "agent-inference"}:
+                errors.append(f"{location}: unsupported evidence status: {status}")
     return errors
 
 

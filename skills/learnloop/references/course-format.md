@@ -23,7 +23,8 @@ learnloop scaffold-course my-course --target courses
 This creates the required course files plus:
 
 - `generation_brief.md`: Agent-facing course generation route.
-- `.learnloop/course_architecture.md`: module form and boundary plan.
+- `.learnloop/course_blueprint.md`: learner job, module jobs, section actions, evidence, and components.
+- `.learnloop/course_architecture.md`: compatibility copy of the blueprint for older workflows.
 - `.learnloop/chapter_briefs/`: one brief per planned chapter.
 - `.learnloop/evidence_packs/`: source-grounded evidence before drafting.
 - `assets/`: local images used by semantic components.
@@ -135,6 +136,28 @@ Use components when they make the learning object clearer than another
 paragraph. Keep them source-grounded; do not invent diagrams or image sources.
 
 ```markdown
+::: concept
+title: KV Cache
+why: Decode becomes cheap only if old keys and values are reused.
+
+The cache is the stored attention state from prior tokens.
+:::
+
+::: compare
+left: No cache
+right: KV cache
+
+- Decode cost | Recompute old tokens | Append only the new token
+- Memory use | Lower | Higher
+:::
+
+::: evidence
+claim: Decode appends one token at a time.
+source: [Local notes](raw/notes.md)
+status: verified
+basis: 本地材料 chunk 2.
+:::
+
 ::: figure
 src: assets/decode-flow.png
 alt: KV Cache decode flow
@@ -172,6 +195,11 @@ C 是更成熟的判断：先看服务数量和环境一致性问题是否真的
 :::
 ```
 
+`concept` needs `title` and either `why` or body text. `compare` needs `left`,
+`right`, and at least one `- dimension | left | right` row. `evidence` needs
+`claim`, `source`, and `status` (`verified`, `unverified`,
+`needs-human-review`, or `agent-inference`).
+
 `decision` must include `--- perspective` or `--- answer`; otherwise
 `learnloop audit` reports it.
 
@@ -180,6 +208,7 @@ C 是更成熟的判断：先看服务数量和环境一致性问题是否真的
 For small personal learning notes, stage-gate notes can stay in the conversation. When generating formal, technical, reusable, or high-risk content, keep orchestration files in `.learnloop/`:
 
 - `source_inventory.yaml`
+- `course_blueprint.md`
 - `course_architecture.md`
 - `chapter_briefs/*.md`
 - `evidence_packs/*.md`

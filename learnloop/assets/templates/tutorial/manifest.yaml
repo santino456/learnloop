@@ -2,7 +2,7 @@ name: tutorial
 version: 1
 renderer: semantic-html-v1
 supports:
-  blocks: [paragraph, list, code, callout, heading, section, exercise, checkpoint, table, figure, gallery, flow, timeline, decision]
+  blocks: [paragraph, list, code, callout, heading, section, exercise, checkpoint, table, concept, compare, evidence, figure, gallery, flow, timeline, decision]
 requires:
   section_ids: true
   question_buttons: true

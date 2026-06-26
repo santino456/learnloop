@@ -291,6 +291,40 @@ def _parse_flow_items(lines: list[str]) -> list[str]:
     return [part.strip() for part in text.split("->") if part.strip()]
 
 
+def _split_leading_attrs(lines: list[str]) -> tuple[dict[str, str], list[str]]:
+    attrs: dict[str, str] = {}
+    body_start = 0
+    for idx, raw in enumerate(lines):
+        stripped = raw.strip()
+        if not stripped:
+            body_start = idx + 1
+            break
+        if ":" not in raw:
+            body_start = idx
+            break
+        key, value = raw.split(":", 1)
+        key = key.strip()
+        if not key:
+            body_start = idx
+            break
+        attrs[key] = value.strip()
+        body_start = idx + 1
+    return attrs, lines[body_start:]
+
+
+def _parse_compare_items(lines: list[str]) -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
+    for raw in lines:
+        stripped = raw.strip()
+        if not stripped.startswith("- "):
+            continue
+        parts = [part.strip() for part in stripped[2:].split("|")]
+        if len(parts) < 3:
+            continue
+        items.append({"label": parts[0], "left": parts[1], "right": parts[2]})
+    return items
+
+
 def _parse_decision(
     inner: list[str], source: str | None = None, line_offset: int = 0
 ) -> Block:
@@ -415,6 +449,48 @@ def _parse_blocks(
                         type="timeline",
                         source=_source(source, line_offset + container_start + 1),
                         media=_parse_timeline_items(inner),
+                    )
+                )
+            elif marker == "concept":
+                attrs, body_lines = _split_leading_attrs(inner)
+                blocks.append(
+                    Block(
+                        type="concept",
+                        source=_source(source, line_offset + container_start + 1),
+                        attrs=attrs,
+                        blocks=parse_markdown(
+                            "\n".join(body_lines),
+                            source=source,
+                            line_offset=inner_line_offset + len(inner) - len(body_lines),
+                        )
+                        if body_lines
+                        else None,
+                    )
+                )
+            elif marker == "compare":
+                attrs, body_lines = _split_leading_attrs(inner)
+                blocks.append(
+                    Block(
+                        type="compare",
+                        source=_source(source, line_offset + container_start + 1),
+                        attrs=attrs,
+                        media=_parse_compare_items(body_lines),
+                    )
+                )
+            elif marker == "evidence":
+                attrs, body_lines = _split_leading_attrs(inner)
+                blocks.append(
+                    Block(
+                        type="evidence",
+                        source=_source(source, line_offset + container_start + 1),
+                        attrs=attrs,
+                        blocks=parse_markdown(
+                            "\n".join(body_lines),
+                            source=source,
+                            line_offset=inner_line_offset + len(inner) - len(body_lines),
+                        )
+                        if body_lines
+                        else None,
                     )
                 )
             elif marker == "decision":

@@ -35,7 +35,7 @@ def scaffold_course(
     _write_starter_module(course_dir, title, topic)
     _write_generation_brief(course_dir, title, topic, audience)
     _write_source_inventory(course_dir)
-    _write_course_architecture(course_dir, title)
+    _write_course_blueprint(course_dir, title)
     _write_chapter_brief(course_dir)
     _write_readmes(course_dir)
     return course_dir
@@ -171,7 +171,10 @@ Important claims can go into `.learnloop/claims.jsonl`. Verified claims need a s
 
 ## Stage 3: Course Shape
 
-Use `.learnloop/course_architecture.md` and `.learnloop/chapter_briefs/` before editing `modules/*.md`.
+Use `.learnloop/course_blueprint.md` and `.learnloop/chapter_briefs/` before editing `modules/*.md`.
+
+The blueprint is not bureaucracy. It is the learning design contract: learner job,
+module jobs, section-level learning actions, required evidence, and components.
 
 Content form rules:
 
@@ -186,6 +189,9 @@ If a form is not justified, omit it.
 
 Use components only when they improve learning:
 
+- `concept`: the mental model the learner must keep.
+- `compare`: distinctions, alternatives, wrong/right, before/after.
+- `evidence`: visible support for an important factual claim.
 - `figure`: architecture, UI state, mechanism, visual evidence.
 - `gallery`: before/after or wrong/right comparison.
 - `flow`: data path, request path, lifecycle, causal chain.
@@ -233,29 +239,62 @@ def _write_source_inventory(course_dir: Path) -> None:
     )
 
 
-def _write_course_architecture(course_dir: Path, title: str) -> None:
-    (course_dir / ".learnloop" / "course_architecture.md").write_text(
-        f"""# Course Architecture: {title}
+def _write_course_blueprint(course_dir: Path, title: str) -> None:
+    blueprint = f"""# Course Blueprint: {title}
 
 ## Course Promise
 
 Write one sentence describing what the learner can do after the course.
 
+## Learner Job
+
+Describe the learner's real job, not just the topic.
+
+```text
+When the learner finishes this course, they can ...
+```
+
+## Experience Standard
+
+Each section should ask the learner to do one thing:
+
+- understand a mechanism;
+- compare two choices;
+- verify a claim from evidence;
+- practice a move;
+- make a judgment.
+
+If a section only asks the learner to read a paragraph, redesign it.
+
 ## Proposed Modules
 
-| Module | Form | Learning job | Sources | Components |
-|--------|------|--------------|---------|------------|
-| m1 | Tutorial | Establish the first mental model | TBD | flow/figure if useful |
-| m2 | Reference | Provide dense lookup value if justified | TBD | table/figure |
-| m3 | Practice | Train a checkable skill | TBD | exercise/decision |
-| m4 | Perspective | Extract judgment and tradeoffs | TBD | decision |
+| Module | Form | Learner action | Sources | Components |
+|--------|------|----------------|---------|------------|
+| m1 | Tutorial | Understand the first mental model | TBD | concept/flow |
+| m2 | Reference | Look up dense facts without hunting | TBD | evidence/table |
+| m3 | Practice | Perform or debug a checkable step | TBD | exercise/checkpoint |
+| m4 | Perspective | Make a better judgment under tradeoffs | TBD | compare/decision |
+
+## Section Blueprint
+
+Use this before writing each section:
+
+| Section id | Learner action | Evidence needed | Component |
+|------------|----------------|-----------------|-----------|
+| m1-example | Understand / compare / verify / practice / judge | TBD | concept / compare / evidence / flow / decision |
 
 ## Open Questions
 
 - What should be excluded from the first version?
 - Which facts are version-sensitive?
 - Which examples need human confirmation?
-""",
+"""
+    (course_dir / ".learnloop" / "course_blueprint.md").write_text(
+        blueprint,
+        encoding="utf-8",
+    )
+    (course_dir / ".learnloop" / "course_architecture.md").write_text(
+        blueprint.replace("# Course Blueprint", "# Course Architecture"),
         encoding="utf-8",
     )
 
@@ -279,6 +318,7 @@ One chapter, one learning job. Define it here before drafting.
 - Stable section ids using `m1-...`.
 - Clear content form choice.
 - Claims backed by evidence or marked unverified.
+- At least one section-level learner action.
 - Components only when they improve understanding.
 
 ## Review Checklist

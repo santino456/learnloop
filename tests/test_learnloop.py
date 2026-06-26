@@ -159,12 +159,18 @@ Body.
             self.assertTrue((dist / "m1.html").exists())
             self.assertTrue((created / "generation_brief.md").exists())
             self.assertTrue((created / ".learnloop" / "source_inventory.yaml").exists())
+            self.assertTrue((created / ".learnloop" / "course_blueprint.md").exists())
             self.assertTrue((created / ".learnloop" / "course_architecture.md").exists())
             self.assertTrue((created / ".learnloop" / "chapter_briefs" / "m1.md").exists())
             self.assertTrue((created / ".learnloop" / "evidence_packs" / "README.md").exists())
             brief = (created / "generation_brief.md").read_text(encoding="utf-8")
             self.assertIn("Ask Better Questions", brief)
             self.assertIn("HTML Learning Components", brief)
+            blueprint = (created / ".learnloop" / "course_blueprint.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn("Learner Job", blueprint)
+            self.assertIn("concept/flow", blueprint)
 
     def test_ingest_text_creates_material_pack(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -887,6 +893,23 @@ Body.
             "- Prefill | Build initial KV\n"
             "- Decode | Append one token\n"
             ":::\n\n"
+            "::: concept\n"
+            "title: KV Cache\n"
+            "why: Decode becomes cheap only if old keys and values are reused.\n\n"
+            "The cache is the stored attention state from prior tokens.\n"
+            ":::\n\n"
+            "::: compare\n"
+            "left: No cache\n"
+            "right: KV cache\n\n"
+            "- Decode cost | Recompute old tokens | Append the new token\n"
+            "- Memory use | Lower | Higher\n"
+            ":::\n\n"
+            "::: evidence\n"
+            "claim: Decode appends one token at a time.\n"
+            "source: [Local notes](raw/notes.md)\n"
+            "status: verified\n"
+            "basis: 本地材料 chunk 2.\n"
+            ":::\n\n"
             "::: decision\n"
             "Should this use Docker now?\n\n"
             "- A. Yes\n"
@@ -905,8 +928,31 @@ Body.
         self.assertIn("Agent Loop", html)
         self.assertIn('class="ll-timeline"', html)
         self.assertIn("Prefill", html)
+        self.assertIn('class="ll-concept"', html)
+        self.assertIn("KV Cache", html)
+        self.assertIn('class="ll-compare"', html)
+        self.assertIn("No cache", html)
+        self.assertIn('class="ll-evidence"', html)
+        self.assertIn("Local notes", html)
         self.assertIn('class="ll-decision"', html)
         self.assertIn("显示判断视角", html)
+
+    def test_learning_blocks_validate_required_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "learning-block-course")
+            module = created / "modules" / "01.md"
+            module.write_text(
+                module.read_text(encoding="utf-8")
+                + "\n::: concept\nwhy: Missing title.\n:::\n"
+                + "\n::: compare\nleft: A\n\n- Cost | Low | High\n:::\n"
+                + "\n::: evidence\nclaim: A factual claim.\nstatus: verified\n:::\n",
+                encoding="utf-8",
+            )
+            errors = validate_course(created)
+            text = "\n".join(errors)
+            self.assertIn("concept block is missing title", text)
+            self.assertIn("compare block needs left and right labels", text)
+            self.assertIn("evidence block is missing source", text)
 
     def test_course_assets_are_copied_and_rewritten(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

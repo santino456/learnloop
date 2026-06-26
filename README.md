@@ -1,8 +1,11 @@
 # LearnLoop
 
-LearnLoop is a local-first adaptive learning loop for technical topics.
+LearnLoop is a local-first AI course compiler and learning package format for technical topics.
 
-It turns course material into a small local workspace where every learner question is saved with the exact course, module, and section context that produced it. An agent can then answer the question, generate follow-up material, and help update the course source.
+It turns course material into a portable HTML learning package where concepts,
+comparisons, evidence, practice, and learner questions stay tied to the exact
+course sections that produced them. An agent can then answer the question,
+generate follow-up material, and help update the course source.
 
 ## Why It Exists
 
@@ -10,11 +13,12 @@ Static learning material is easy to save but bad at remembering where a learner 
 
 LearnLoop connects the two:
 
-1. Write course source in Markdown and `course.yaml`.
-2. Build static HTML pages using a chosen template.
-3. Ask questions beside the exact section that caused confusion.
-4. Store those questions in `questions.jsonl`.
-5. Use `learnloop context` and the LearnLoop skill to answer and improve the course.
+1. Design a Course Blueprint before drafting.
+2. Write course source in Markdown and `course.yaml`.
+3. Use semantic learning blocks to make HTML teach better than flat Markdown.
+4. Ask questions beside the exact section that caused confusion.
+5. Store those questions in `questions.jsonl`.
+6. Use `learnloop context` and the LearnLoop skill to answer and improve the course.
 
 ## Quick Start
 
@@ -46,7 +50,7 @@ learnloop scaffold-course mcp-fundamentals --target courses \
 ```
 
 This creates a valid starter course plus `generation_brief.md`, `.learnloop/`
-source tracking files, chapter briefs, evidence pack folders, `assets/`, and
+source tracking files, a Course Blueprint, chapter briefs, evidence pack folders, `assets/`, and
 `raw/`. The scaffold is intentionally lightweight: it tells the Agent how to
 research, plan, draft, and validate without forcing a heavy workflow.
 
@@ -173,6 +177,28 @@ Local images live in the course `assets/` folder and are copied to
 links; LearnLoop does not download or generate images.
 
 ```markdown
+::: concept
+title: KV Cache
+why: Decode becomes cheap only if old keys and values are reused.
+
+The cache is the stored attention state from prior tokens.
+:::
+
+::: compare
+left: No cache
+right: KV cache
+
+- Decode cost | Recompute old tokens | Append only the new token
+- Memory use | Lower | Higher
+:::
+
+::: evidence
+claim: Decode appends one token at a time.
+source: [Local notes](raw/notes.md)
+status: verified
+basis: 本地材料 chunk 2.
+:::
+
 ![KV Cache decode flow](assets/decode-flow.png)
 
 ::: figure

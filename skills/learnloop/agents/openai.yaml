@@ -1,4 +1,4 @@
 interface:
   display_name: "LearnLoop"
-  short_description: "Generate and maintain verified local learning courses"
-  default_prompt: "Use the learnloop skill to create or improve a course. First understand the learner and their learning job, research and verify high-stakes claims, choose only justified Tutorial/Reference/Practice/Perspective forms, then draft, self-review, validate, build, and optionally audit. Keep .learnloop/ optional unless the course will be reused or published."
+  short_description: "Compile source-grounded material into local interactive learning packages"
+  default_prompt: "Use the learnloop skill to create or improve a course. First define the learner job and Course Blueprint, research and verify high-stakes claims, choose justified Tutorial/Reference/Practice/Perspective forms, use semantic blocks for concepts, comparisons, evidence, practice, and judgment, then draft, self-review, validate, build, and optionally audit."

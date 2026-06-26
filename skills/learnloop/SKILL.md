@@ -5,13 +5,16 @@ description: Work with LearnLoop local-first adaptive learning courses. Use when
 
 # LearnLoop
 
-LearnLoop turns raw material into a local, verifiable learning loop:
+LearnLoop is a local-first AI course compiler and learning package format. It
+turns raw material into a local, verifiable learning loop:
 
 ```text
 sources + learner goal -> Markdown/YAML course -> local HTML -> questions -> agent context -> improved source
 ```
 
-Your first job is **epistemic control**, not fast drafting. A fluent lesson is not good enough unless the learner goal, sources, evidence, content forms, and validation state are clear.
+Your first job is **learning design and epistemic control**, not fast drafting.
+A fluent lesson is not good enough unless the learner goal, section-level
+learning actions, sources, evidence, content forms, and validation state are clear.
 
 Think like an experienced teacher preparing a lesson: research first, check the facts, decide what form the material should take, then write. Do not jump straight to a long module draft.
 
@@ -34,12 +37,15 @@ Before drafting a new or substantial course, work through these steps in your re
 3. **Research and fact-check**: Identify the sources (official docs, source code, runnable output, papers, user context). For high-stakes claims, verify exact names, versions, commands, and protocol fields. Mark uncertainty instead of guessing.
 4. **Ingest local materials**: For PDFs, Word documents, slide decks, Markdown, or text files, run `learnloop ingest` and inspect `material.json`, `chunks.jsonl`, and any `figures.md` before drafting. Treat extracted figures as candidates that still need visual checking.
 5. **Ask content-derived questions**: After you understand the material, identify 2–4 choices that actually change the course shape. The questions must come from the content, not a fixed questionnaire. If the user does not respond, fall back to a high-quality default that keeps the course complete but marks optional advanced sections.
-6. **Design the module plan**: Decide which modules are Tutorial, Reference, Practice, or Perspective, and why.
-7. **Draft**: Write only content supported by the design and evidence. Convert suitable material into semantic learning components instead of piling up paragraphs.
-8. **Self-review**: Check for unsupported claims, fake Reference, weak Practice, empty Perspective, private examples, and section id stability.
-9. **Build**: run `validate`, `build`, and optionally `audit`.
+6. **Write the Course Blueprint**: Decide the learner job, module jobs, section-level learning actions, evidence needs, and components before editing modules. Use `.learnloop/course_blueprint.md` when present.
+7. **Design the module plan**: Decide which modules are Tutorial, Reference, Practice, or Perspective, and why.
+8. **Draft**: Write only content supported by the design and evidence. Convert suitable material into semantic learning components instead of piling up paragraphs.
+9. **Self-review**: Check for unsupported claims, fake Reference, weak Practice, empty Perspective, private examples, and section id stability.
+10. **Build**: run `validate`, `build`, and optionally `audit`.
 
 Do not write a long module before you understand the learner, the learning job, and the evidence.
+Every section should ask the learner to do one thing: understand, compare,
+verify, practice, or judge. If a section only asks the learner to read, redesign it.
 
 ## Content Form Rules
 
@@ -54,6 +60,9 @@ If a form is not justified, omit it. Do not mirror sample modules just because t
 
 Use HTML learning components when they make the lesson more direct:
 
+- `concept`: name a mental model the learner should keep in working memory.
+- `compare`: distinguish two plausible choices, states, designs, or failure modes.
+- `evidence`: make the support for an important claim visible.
 - `figure`: one image that explains evidence, architecture, UI state, or a visual mechanism. Always include meaningful `alt`.
 - `gallery`: compare two or more visual states, such as before/after or wrong/right.
 - `flow`: show a process, data path, request path, or causal chain.

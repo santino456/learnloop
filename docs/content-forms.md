@@ -12,7 +12,9 @@ Good Tutorial content:
 
 - starts from a likely confusion;
 - introduces one idea at a time;
+- uses `concept` blocks for mental models the learner must keep in working memory;
 - uses examples only when they reduce cognitive load;
+- turns distinctions into `compare` blocks when learners often confuse two choices;
 - turns mechanisms into `figure`, `flow`, or `timeline` components when a visual
   sequence would reduce mental load;
 - marks uncertainty instead of sounding definitive without evidence;
@@ -30,6 +32,7 @@ Reference is justified by dense material such as:
 - APIs, fields, commands, formulas, symbols, source locations, or config keys;
 - comparison tables, version-sensitive details, edge cases, and failure modes;
 - explanations drawn from official docs, papers, or authoritative articles;
+- `evidence` blocks for claims that would be embarrassing or harmful if wrong;
 - curated links that replace the need to hunt through primary sources.
 
 Every external claim in a Reference module should be backed by a source. Use
@@ -56,7 +59,8 @@ Practice should include answers, feedback, or expected reasoning. Avoid trivia
 unless recall is the actual learning goal.
 
 Use `decision` blocks when the learner is practicing a design choice or
-operational judgment. Use ordinary `exercise` blocks for checkable recall,
+operational judgment. Use `compare` blocks before the decision when the learner
+must distinguish two plausible options. Use ordinary `exercise` blocks for checkable recall,
 debugging, implementation, or calculation.
 
 ## Perspective
@@ -78,4 +82,6 @@ standard answer.
 
 Use `decision` blocks for Perspective when there is a concrete fork in the road:
 several plausible choices, a rationale, and a reusable judgment the learner can
-practice. If there is no real choice, write a concise paragraph instead.
+practice. Use `compare` when the lesson is mainly about taste: what a mature
+answer does differently from a weak answer. If there is no real choice, write a
+concise paragraph instead.

@@ -435,6 +435,7 @@ Body.
                 wait_for(f"http://localhost:{port}/healthz")
                 health = json.loads(request.urlopen(f"http://localhost:{port}/healthz", timeout=5).read().decode())
                 self.assertEqual(health["courses"], 2)
+                self.assertEqual(health["course_count"], 2)
                 courses = json.loads(request.urlopen(f"http://localhost:{port}/api/courses", timeout=5).read().decode())
                 self.assertEqual({course["id"] for course in courses}, {"first-course", "second-course"})
                 first_html = request.urlopen(f"http://localhost:{port}/course/first-course/m1.html", timeout=5).read().decode()

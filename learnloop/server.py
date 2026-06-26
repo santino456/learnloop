@@ -181,6 +181,7 @@ def make_handler(library: CourseLibrary, port: int) -> type[BaseHTTPRequestHandl
                         "root": str(library.root),
                         "port": port,
                         "courses": len(library.entries()),
+                        "course_count": len(library.entries()),
                     }
                 )
                 return

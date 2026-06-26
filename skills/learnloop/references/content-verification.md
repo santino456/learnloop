@@ -25,11 +25,10 @@ Use the strongest available source:
 Do not translate, rename, abbreviate, or "correct" an entity from memory. If a
 course uses a nickname, introduce it only after the verified full name.
 
-Examples:
-
-- Write `深圳理工大学` only after checking an official or user-provided source.
-- Do not write `深圳理工学院` unless a reliable source or the user explicitly
-  confirms that exact name.
+For institutions and organizations, copy the exact name from the strongest
+source you have and keep a source note nearby. If two names look similar, do
+not guess which one is correct; mark the claim `needs-human-review` until the
+user or an official source resolves it.
 
 ## Claim Status
 

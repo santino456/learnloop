@@ -27,7 +27,7 @@ sources:
   - id: mcp-resources
     type: official
     title: "Resources"
-    url: "https://modelcontextprotocol.io/specification/2025-06-18/server/resources"
+    url: "https://modelcontextprotocol.io/specification/2025-11-25/server/resources"
     status: read
   - id: mcp-prompts
     type: official

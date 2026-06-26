@@ -5,9 +5,9 @@ Describe the change and why it belongs in LearnLoop.
 ## Checks
 
 - [ ] `python3 -m unittest discover -s tests -v`
-- [ ] `learnloop validate courses/acp-fundamentals`
-- [ ] `learnloop build courses/acp-fundamentals`
-- [ ] `learnloop audit courses/acp-fundamentals`
+- [ ] `learnloop validate courses/mcp-fundamentals`
+- [ ] `learnloop build courses/mcp-fundamentals`
+- [ ] `learnloop audit courses/mcp-fundamentals`
 
 ## Course Quality
 

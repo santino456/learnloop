@@ -35,16 +35,16 @@ jobs:
         run: python -m learnloop doctor courses
 
       - name: Validate sample course
-        run: python -m learnloop validate courses/acp-fundamentals
+        run: python -m learnloop validate courses/mcp-fundamentals
 
       - name: Build sample course
-        run: python -m learnloop build courses/acp-fundamentals
+        run: python -m learnloop build courses/mcp-fundamentals
 
       - name: Audit sample course
-        run: python -m learnloop audit courses/acp-fundamentals
+        run: python -m learnloop audit courses/mcp-fundamentals
 
       - name: Check CLI entrypoint
-        run: learnloop templates courses/acp-fundamentals
+        run: learnloop templates courses/mcp-fundamentals
 
   package:
     runs-on: ubuntu-latest

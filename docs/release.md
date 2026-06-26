@@ -8,9 +8,9 @@ Use this before tagging a public LearnLoop release.
 python3 -m unittest discover -s tests -v
 learnloop --version
 learnloop doctor courses
-learnloop validate courses/acp-fundamentals
-learnloop build courses/acp-fundamentals
-learnloop audit courses/acp-fundamentals
+learnloop validate courses/mcp-fundamentals
+learnloop build courses/mcp-fundamentals
+learnloop audit courses/mcp-fundamentals
 python3 -m build
 ```
 
@@ -32,7 +32,7 @@ python3 -m venv "$tmp/venv"
 
 - README quick start works for a fresh user.
 - CI is green on `main`.
-- ACP sample has no private paths or internal project names.
+- MCP sample has current source links and no private paths or internal project names.
 - `docs/content-forms.md`, `docs/evidence-and-sources.md`, and
   `docs/course-quality.md` match the current skill behavior.
 - `CHANGELOG.md` has an entry for the release.
@@ -51,4 +51,4 @@ Create a GitHub release from the tag and summarize:
 - template-based rendering;
 - question loop;
 - quality and evidence gates;
-- ACP flagship sample.
+- MCP flagship sample.

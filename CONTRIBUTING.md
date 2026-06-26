@@ -13,9 +13,9 @@ Run the checks before opening a pull request:
 
 ```bash
 python3 -m unittest discover -s tests -v
-python3 -m learnloop validate courses/acp-fundamentals
-python3 -m learnloop build courses/acp-fundamentals
-python3 -m learnloop audit courses/acp-fundamentals
+python3 -m learnloop validate courses/mcp-fundamentals
+python3 -m learnloop build courses/mcp-fundamentals
+python3 -m learnloop audit courses/mcp-fundamentals
 ```
 
 If you change the LearnLoop skill inside Codex and have the system skill

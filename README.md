@@ -71,7 +71,7 @@ For PDFs, it also tries to extract captioned figures into `assets/` and writes
 ready-to-use `::: figure` snippets in `.learnloop/materials/<source>/figures.md`.
 Agents should cite the material pack instead of guessing from the PDF.
 
-To try the richer ACP sample course, run from a local checkout:
+To try the flagship MCP sample course, run from a local checkout:
 
 ```bash
 git clone https://github.com/santino456/learnloop.git
@@ -80,11 +80,12 @@ python3 -m pip install -e .
 learnloop start courses --port 8787
 ```
 
-The sample is documented in [courses/acp-fundamentals](courses/acp-fundamentals/README.md).
+The sample is documented in [courses/mcp-fundamentals](courses/mcp-fundamentals/README.md).
 
 Each course is served as a resource on the same local service:
 
 ```text
+/course/mcp-fundamentals/
 /course/acp-fundamentals/
 /course/kv-cache/
 ```
@@ -112,7 +113,7 @@ curl http://127.0.0.1:8787/healthz
 ## Course Layout
 
 ```text
-courses/acp-fundamentals/
+courses/mcp-fundamentals/
 ├── course.yaml
 ├── modules/
 │   ├── 01.md
@@ -153,7 +154,7 @@ Built-in templates are packaged with LearnLoop:
 List templates and see which template each module uses:
 
 ```bash
-learnloop templates courses/acp-fundamentals
+learnloop templates courses/mcp-fundamentals
 ```
 
 See [Content Forms](docs/content-forms.md) for when to use Tutorial,
@@ -277,16 +278,16 @@ See [Course Quality](docs/course-quality.md) for the release checklist and quali
 ```bash
 learnloop init my-course
 learnloop scaffold-course my-course --target courses
-learnloop build courses/acp-fundamentals
-learnloop validate courses/acp-fundamentals
-learnloop audit courses/acp-fundamentals
-learnloop ingest courses/acp-fundamentals/raw/paper.pdf --course courses/acp-fundamentals
-learnloop context courses/acp-fundamentals --question-id <id>
+learnloop build courses/mcp-fundamentals
+learnloop validate courses/mcp-fundamentals
+learnloop audit courses/mcp-fundamentals
+learnloop ingest courses/mcp-fundamentals/raw/paper.pdf --course courses/mcp-fundamentals
+learnloop context courses/mcp-fundamentals --question-id <id>
 learnloop start courses --port 8787
 learnloop status courses
 learnloop stop courses
 learnloop serve courses --port 8787
-learnloop templates courses/acp-fundamentals
+learnloop templates courses/mcp-fundamentals
 ```
 
 ## Development
@@ -294,9 +295,9 @@ learnloop templates courses/acp-fundamentals
 ```bash
 python3 -m pip install -e .
 python3 -m unittest discover -s tests -v
-learnloop validate courses/acp-fundamentals
-learnloop build courses/acp-fundamentals
-learnloop audit courses/acp-fundamentals
+learnloop validate courses/mcp-fundamentals
+learnloop build courses/mcp-fundamentals
+learnloop audit courses/mcp-fundamentals
 ```
 
 ## Scope

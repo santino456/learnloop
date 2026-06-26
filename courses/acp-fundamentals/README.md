@@ -1,6 +1,8 @@
 # ACP Fundamentals
 
-This is the flagship LearnLoop sample course for v0.1.
+This is an additional LearnLoop sample course. The main public showcase is
+`courses/mcp-fundamentals`, because MCP is broader and easier for new users to
+recognize.
 
 It demonstrates the full local learning loop:
 

@@ -23,10 +23,10 @@ Think like an experienced teacher preparing a lesson: research first, check the 
 - **Answer learner question**: read `references/answering-loop.md`, run `learnloop context`, write an answer artifact, and update course source only if the answer should be reused.
 - **Small course edit**: inspect the target module, preserve section ids, make the narrow edit, then run `learnloop validate` and `learnloop build`.
 - **Course structure or template change**: read `references/course-format.md` before editing `course.yaml`, module frontmatter, containers, templates, or section ids.
-- **New or substantial course generation**: start with `learnloop scaffold-course <slug> --target courses` unless the course already exists. Then follow the Expert Teacher Workflow below and read `docs/content-forms.md` first.
+- **New or substantial course generation**: start with `learnloop scaffold-course <slug> --target courses` unless the course already exists. Then follow the Expert Teacher Workflow below and read `references/orchestration.md` first.
 - **Course from PDF/DOCX/PPTX/Markdown/text material**: put the original file in `raw/`, run `learnloop ingest <file> --course <course-dir>`, then use `.learnloop/materials/<source>/` as the reading substrate. Do not draft directly from memory or cite `raw/*.pdf` as an image.
 - **Named entities, technical claims, commands, APIs, protocol fields, or version-sensitive facts**: verify them against a reliable source before adding them.
-- **Publication or reusable course**: also read `docs/evidence-and-sources.md` and `docs/course-quality.md`; optionally add a `.learnloop/` workspace to track sources and claims.
+- **Publication or reusable course**: also read `references/content-verification.md`; optionally add a `.learnloop/` workspace to track sources and claims.
 
 ## Expert Teacher Workflow
 
@@ -51,7 +51,7 @@ verify, practice, or judge. If a section only asks the learner to read, redesign
 
 Choose Tutorial, Reference, Practice, and Perspective because the learner needs
 that form, not because a sample course used it. If the choice is unclear, read
-`docs/content-forms.md` and write down the learning job before drafting. Omit a
+`references/orchestration.md` and write down the learning job before drafting. Omit a
 form when it has no real job.
 
 ## Semantic Components
@@ -67,7 +67,7 @@ Truth beats fluency. Verify exact names, version-sensitive facts, commands,
 protocol fields, timelines, performance numbers, and project maturity before
 writing them. If the source does not prove a claim, mark it unverified or omit
 it. Read `references/content-verification.md` for the verification standard and
-`docs/evidence-and-sources.md` when preparing a reusable course.
+when preparing a reusable course.
 
 ## Optional `.learnloop/` Workspace
 
@@ -116,8 +116,6 @@ Use `python3 -m learnloop ...` only when the package is not installed.
 - Read `references/orchestration.md` before generating or substantially rewriting course content.
 - Read `references/answering-loop.md` before answering learner questions.
 - Read `references/content-verification.md` before adding technical claims, commands, APIs, or protocol fields.
-- Read `docs/content-forms.md` before choosing templates.
-- Read `docs/evidence-and-sources.md` and `docs/course-quality.md` before preparing a course for reuse or publication.
 
 ## Guardrails
 

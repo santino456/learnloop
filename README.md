@@ -11,6 +11,12 @@ What you get is a Git-friendly course folder: Markdown/YAML source, local assets
 generated HTML, section-bound learner questions, and enough structure for another
 agent to keep improving the course instead of rewriting it from scratch.
 
+## For AI assistants
+
+If you are creating or updating a LearnLoop course, read
+`skills/learnloop/SKILL.md` first. It defines the Expert Teacher Workflow,
+content-form choices, source-verification rules, and the answering loop.
+
 ## Why It Exists
 
 Static learning material is easy to save but bad at remembering where a learner got stuck. Chat is flexible but often loses the structure of the course.
@@ -157,9 +163,6 @@ List templates and see which template each module uses:
 learnloop templates courses/mcp-fundamentals
 ```
 
-See [Content Forms](docs/content-forms.md) for when to use Tutorial,
-Reference, Practice, and Perspective.
-
 ## Container Syntax
 
 Mark practice blocks inside a module with `::: exercise` and `::: checkpoint` containers:
@@ -269,9 +272,6 @@ The agent should think like an experienced teacher:
 6. Run `learnloop validate`, `learnloop build`, and optionally `learnloop audit`.
 
 For reusable or published courses, you can add a `.learnloop/` workspace to track sources, claims, and conflicts explicitly. For personal courses, agent-driven fact checking is enough.
-
-See [Evidence And Sources](docs/evidence-and-sources.md) for optional source tracking.
-See [Course Quality](docs/course-quality.md) for the release checklist and quality bar.
 
 ## CLI
 

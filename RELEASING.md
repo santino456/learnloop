@@ -33,8 +33,7 @@ python3 -m venv "$tmp/venv"
 - README quick start works for a fresh user.
 - CI is green on `main`.
 - MCP sample has current source links and no private paths or internal project names.
-- `docs/content-forms.md`, `docs/evidence-and-sources.md`, and
-  `docs/course-quality.md` match the current skill behavior.
+- `skills/learnloop/SKILL.md` and its references match the current CLI behavior.
 - `CHANGELOG.md` has an entry for the release.
 
 ## Tag
@@ -48,7 +47,5 @@ Create a GitHub release from the tag and summarize:
 
 - local course library server;
 - installable CLI;
-- template-based rendering;
-- question loop;
-- quality and evidence gates;
-- MCP flagship sample.
+- course compiler and template rendering;
+- question loop and agent context.

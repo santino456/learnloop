@@ -14,6 +14,22 @@ ATTR_RE = re.compile(r"^([A-Za-z0-9_-]+)\s*:\s*(.*)$")
 BOLD_RE = re.compile(r"^\*\*(.+?)\*\*\s*$")
 LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 
+# Bare LaTeX subscripts/superscripts that are not already inside $...$.
+_MATH_GREEK_AND_SYMBOLS = "θαβγδεζηικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ∞≤≥≠≈⊕"
+_INLINE_MATH_RE = re.compile(
+    r"(?<![A-Za-z0-9$])"
+    r"([A-Za-z][̀-ͯ]*"
+    r"(?:[_^](?:\{[^}]+\}|[A-Za-z0-9" + _MATH_GREEK_AND_SYMBOLS + r"]+))?"
+    r"(?:\([^)]*\))?)"
+    r"(?![$])",
+)
+_STANDALONE_MATH_RE = re.compile(
+    r"^([ \t]*)"
+    r"([A-Za-z0-9_̀-ͯ^\\\\{}()., \t" + _MATH_GREEK_AND_SYMBOLS + r"+\-*/=]+)"
+    r"([ \t]*)$",
+    re.M,
+)
+
 
 def _placeholder(kind: str, lang: str) -> str:
     phrases = {
@@ -168,6 +184,48 @@ def _fix_container_inner(marker: str, inner: list[str]) -> list[str]:
     return inner
 
 
+def _is_math_token(token: str) -> bool:
+    return any(
+        c in token
+        for c in ("_", "^", "\\\\", "{", "}", "(", ")") + tuple(_MATH_GREEK_AND_SYMBOLS)
+    )
+
+
+def _wrap_bare_math(text: str) -> tuple[str, bool]:
+    """Wrap bare LaTeX-like math fragments in $...$ / $$...$$."""
+    original = text
+
+    def wrap_standalone(match: re.Match[str]) -> str:
+        prefix, body, suffix = match.groups()
+        if "$" in body or not _is_math_token(body):
+            return match.group(0)
+        return f"{prefix}$${body}$${suffix}"
+
+    text = _STANDALONE_MATH_RE.sub(wrap_standalone, text)
+
+    # Hide display-math blocks so the inline pass doesn't corrupt them.
+    displays: list[str] = []
+
+    def display_repl(match: re.Match[str]) -> str:
+        displays.append(match.group(0))
+        return f"\x00DISP{len(displays) - 1}\x00"
+
+    text = re.sub(r"\$\$[\s\S]+?\$\$", display_repl, text)
+
+    def wrap_inline(match: re.Match[str]) -> str:
+        token = match.group(1)
+        if not _is_math_token(token):
+            return token
+        return f"${token}$"
+
+    text = _INLINE_MATH_RE.sub(wrap_inline, text)
+
+    for i, display in enumerate(displays):
+        text = text.replace(f"\x00DISP{i}\x00", display)
+
+    return text, text != original
+
+
 def fix_module_text(text: str) -> tuple[str, list[str]]:
     """Return fixed module text and a list of human-readable changes."""
     lines = text.splitlines()
@@ -191,6 +249,11 @@ def fix_module_text(text: str) -> tuple[str, list[str]]:
     result = "\n".join(lines)
     if text.endswith("\n") and not result.endswith("\n"):
         result += "\n"
+
+    result, math_changed = _wrap_bare_math(result)
+    if math_changed:
+        notes.append("wrapped bare math expressions in $...$ / $$...$$")
+
     return result, notes
 
 

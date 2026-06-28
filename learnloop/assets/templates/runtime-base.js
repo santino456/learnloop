@@ -12,6 +12,7 @@ window.LearnLoopRuntime = (() => {
     initDrawer();
     initDecisionBlocks();
     initLibraryShell();
+    initMath();
     loadQuestions();
   }
 
@@ -219,6 +220,22 @@ window.LearnLoopRuntime = (() => {
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  function initMath() {
+    const hasMath = document.querySelector(".math") !== null;
+    if (!hasMath) return;
+    window.MathJax = {
+      tex: {
+        inlineMath: [["$", "$"], ["\\(", "\\)"]],
+        displayMath: [["$$", "$$"], ["\\[", "\\]"]],
+      },
+      svg: { fontCache: "global" },
+    };
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+    script.async = true;
+    document.head.appendChild(script);
   }
 
   return { init, loadQuestions, openAsk, escapeHtml };

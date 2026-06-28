@@ -6,7 +6,7 @@
     "type": "pdf"
   },
   "backend": "pymupdf",
-  "generated_at": "2026-06-27T16:57:20.145999+00:00",
+  "generated_at": "2026-06-28T07:38:46.519956+00:00",
   "outputs": {
     "chunks_jsonl": "chunks.jsonl",
     "figures_json": "figures.json",

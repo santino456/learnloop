@@ -10,9 +10,9 @@
       "asset": "assets/qwen-agentworld-fig-1.png",
       "bbox": [
         56.47,
-        436.92,
+        454.92,
         550.78,
-        715.34
+        714.57
       ],
       "method": "caption-nearby-crop"
     },
@@ -26,9 +26,9 @@
       "asset": "assets/qwen-agentworld-fig-2.png",
       "bbox": [
         47.01,
-        46.91,
+        64.91,
         548.56,
-        378.38
+        377.99
       ],
       "method": "caption-nearby-crop"
     },
@@ -42,9 +42,9 @@
       "asset": "assets/qwen-agentworld-fig-3.png",
       "bbox": [
         46.87,
-        46.86,
+        64.86,
         548.42,
-        470.66
+        464.62
       ],
       "method": "caption-nearby-crop"
     },
@@ -58,9 +58,9 @@
       "asset": "assets/qwen-agentworld-fig-4.png",
       "bbox": [
         46.87,
-        46.87,
+        64.87,
         548.36,
-        463.3
+        445.3
       ],
       "method": "caption-nearby-crop"
     },
@@ -73,12 +73,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-1.png",
       "bbox": [
-        46.87,
-        344.22,
-        548.4,
-        520.38
+        64.87,
+        100.62,
+        528.26,
+        192.82
       ],
-      "method": "caption-nearby-crop"
+      "method": "caption-nearby-crop",
+      "table_markdown": "| Domain | Action |  |  | Observation | Core Capabi |\n| --- | --- | --- | --- | --- | --- |\n|  |  |  |  |  |  |\n| MCP | JSON T | ool Call |  | Tool response (file content, DB, etc.) | Factual world |\n| Search | Web Se | arch / | Web Extractor | Conversation history (query + results) | Factual world |\n| SWE | Read / | Edit / B | ash / ... | Tool output (flie content + diffs) | Code executi |\n| Terminal | Bash C | omman | ds / Keystrokes | Terminal output (stdout + shell prompt) | Long-context |\n| Android | Touch | / Swipe | / Type / ... | UI view hierarchy + app state | Visual state r |\n| Web | Click / | Type / | Navigate / ... | Accessibility tree + browser state | Visual state r |\n| OS | Mouse | / Keyb | oard | Accessibility tree + window/app state | Visual state r |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-fig-5",
@@ -90,9 +91,9 @@
       "asset": "assets/qwen-agentworld-fig-5.png",
       "bbox": [
         46.87,
-        344.22,
+        362.22,
         548.4,
-        502.8
+        502.38
       ],
       "method": "caption-nearby-crop"
     },
@@ -105,12 +106,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-2.png",
       "bbox": [
-        24.0,
-        275.86,
-        571.28,
-        841.89
+        176.96,
+        280.33,
+        418.32,
+        391.09
       ],
-      "method": "caption-nearby-crop"
+      "method": "caption-nearby-crop",
+      "table_markdown": "| Domain | SFT RL | Train Avg. | tokens Avg. | turns |\n| --- | --- | --- | --- | --- |\n|  |  |  |  |  |\n| MCP | 179 | 4,156 | 62,702 | 28.9 |\n| Search | 1,042 | 20,004 | 18,873 | 6.2 |\n| Terminal | 1,580 | 34,125 | 5,805 | 12.0 |\n| SWE | 249 | 8,181 | 36,734 | 24.7 |\n| Android | 1,337 | 11,498 | 30,064 | 19.3 |\n| Web | 1,605 | 8,716 | 19,417 | 10.2 |\n| OS | 1,102 | 5,628 | 25,439 | 12.4 |\n|  |  |  |  |  |\n| Total | 7,094 | 92,308 | 19,443 | 13.4 |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-table-3",
@@ -121,12 +123,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-3.png",
       "bbox": [
-        24.0,
-        274.47,
-        571.28,
-        841.89
+        121.22,
+        278.94,
+        474.06,
+        374.73
       ],
-      "method": "caption-nearby-crop"
+      "method": "caption-nearby-crop",
+      "table_markdown": "| Category | Statistical sign | atur | e | Intuition | Keep |\n| --- | --- | --- | --- | --- | --- |\n|  |  |  |  |  |  |\n| retrieval | Nov ≥60%, R | > 1 |  | read_file →contents | 100% |\n| expansion | OL ≥50%, No | v ≥ | 50%, R > 1.5 | fetch →page + metadata | 100% |\n| action | Nov ≥50%, R | ≤1 | or short | send_email →“sent” | 100% |\n| transform | Nov < 50%, R | < 1 |  | long input →status word | 50% |\n| boilerplate | OL ≥50%, No | v < | 50% | API echo | 10% |\n| echo | OL ≥70%, No | v < | 30% | think(x) →{thought:x} | 5% |\n| other | uncategorized |  |  | — | 100% |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-table-4",
@@ -137,12 +140,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-4.png",
       "bbox": [
-        24.0,
-        107.27,
-        571.28,
-        692.6
+        163.71,
+        111.75,
+        431.57,
+        222.51
       ],
-      "method": "caption-nearby-crop"
+      "method": "caption-nearby-crop",
+      "table_markdown": "| Domain | Candidates Retai | n rate Final | SFT Avg. | turns |\n| --- | --- | --- | --- | --- |\n|  |  |  |  |  |\n| MCP | 261 | 68.6% | 179 | 24.3 |\n| Search | 1,466 | 71.1% | 1,042 | 3.3 |\n| Terminal | 1,826 | 86.5% | 1,580 | 5.9 |\n| SWE | 402 | 61.9% | 249 | 26.9 |\n| Android | 1,975 | 67.7% | 1,337 | 15.9 |\n| Web | 2,697 | 59.5% | 1,605 | 3.0 |\n| OS | 1,623 | 67.9% | 1,102 | 5.4 |\n|  |  |  |  |  |\n| Total | 10,250 | 69.2% | 7,094 | 8.5 |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-fig-6",
@@ -154,9 +158,9 @@
       "asset": "assets/qwen-agentworld-fig-6.png",
       "bbox": [
         46.87,
-        46.87,
+        64.87,
         548.41,
-        314.57
+        314.15
       ],
       "method": "caption-nearby-crop"
     },
@@ -170,9 +174,9 @@
       "asset": "assets/qwen-agentworld-fig-7.png",
       "bbox": [
         46.87,
-        46.87,
+        64.87,
         548.41,
-        234.84
+        234.42
       ],
       "method": "caption-nearby-crop"
     },
@@ -185,13 +189,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-5.png",
       "bbox": [
-        46.87,
-        315.56,
-        548.43,
-        533.01
+        89.51,
+        106.22,
+        505.47,
+        330.49
       ],
       "method": "caption-nearby-crop",
-      "table_markdown": "|  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- |\n|  |  |  |  |  | +14.2 |  |\n|  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |"
+      "table_markdown": "|  |  |  |  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n|  | Model |  |  |  |  |  |  |  | Avg. |\n|  |  | MCP | Search | Term. | SWE | Android | Web | OS |  |\n|  |  |  |  |  |  |  |  |  |  |\n|  | Claude Opus 4.8 | 54.93 | 35.14 | 59.18 | 64.10 | 61.50 | 54.66 | 66.62 | 56.59 |\n| ier | Claude Opus 4.6 | 69.90 | 29.30 | 57.51 | 64.55 | 61.74 | 51.42 | 70.20 | 57.80 |\n| ront | Claude Sonnet 4.6 | 70.00 | 28.79 | 56.98 | 64.52 | 58.03 | 50.78 | 63.17 | 56.04 |\n| F | GPT-5.4 | 70.10 | 37.26 | 53.69 | 66.29 | 60.00 | 51.80 | 68.58 | 58.25 |\n|  |  |  |  |  |  |  |  |  |  |\n|  | Gemini 3.1 Pro | 59.07 | 30.21 | 52.47 | 59.07 | 61.40 | 52.83 | 66.92 | 54.57 |\n|  |  |  |  |  |  |  |  |  |  |\n| ight | DeepSeek-V4-Pro | 63.27 | 27.61 | 51.26 | 59.44 | 55.17 | 50.32 | 63.70 | 52.97 |\n| we | Kimi K2.6 | 65.23 | 27.48 | 52.54 | 58.77 | 58.93 | 50.20 | 60.80 | 53.42 |\n| pen- | GLM-5.1 | 67.60 | 22.46 | 47.32 | 52.07 | 59.10 | 51.50 | 59.13 | 51.31 |\n| O | MiniMax-M2.7 | 55.82 | 27.30 | 41.62 | 37.44 | 52.40 | 50.52 | 57.73 | 46.12 |\n|  |  |  |  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |  |\n| n | Qwen3.6-35B-A3B | 42.96 | 18.78 | 43.81 | 40.71 | 51.88 | 46.53 | 55.48 | 42.88 |\n| Qwe | Qwen3.6-Plus | 55.28 | 21.94 | 50.58 | 59.08 | 57.65 | 50.78 | 60.33 | 50.81 |\n|  | Qwen3.6-Max-Preview | 67.01 | 24.71 | 50.86 | 57.11 | 57.74 | 48.58 | 60.95 | 52.42 |\n|  |  |  |  |  |  |  |  |  |  |\n|  | Qwen3.5-35B-A3B | 57.87 | 25.98 | 46.13 | 47.58 | 53.18 | 47.10 | 56.27 | 47.73 |\n| Ours | Qwen-AgentWorld-35B-A3B | 64.79 | 36.69 | 53.96 | 65.63 | 58.17 | 49.55 | 65.92 | 56.39 |\n|  | Qwen3.5-397B-A17B | 68.31 | 30.81 | 55.30 | 64.44 | 54.90 | 48.55 | 60.85 | 54.74 |\n|  | Qwen-AgentWorld-397B-A17B | 68.24 | 37.82 | 57.73 | 68.49 | 60.20 | 50.98 | 67.89 | 58.71 |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-fig-8",
@@ -203,9 +207,9 @@
       "asset": "assets/qwen-agentworld-fig-8.png",
       "bbox": [
         46.87,
-        315.56,
+        333.56,
         548.43,
-        515.49
+        515.01
       ],
       "method": "caption-nearby-crop"
     },
@@ -218,12 +222,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-6.png",
       "bbox": [
-        24.0,
-        142.96,
-        571.28,
-        728.28
+        126.34,
+        147.43,
+        468.94,
+        218.34
       ],
-      "method": "caption-nearby-crop"
+      "method": "caption-nearby-crop",
+      "table_markdown": "| el | Claw-Eval | QwenClawBench |\n| --- | --- | --- |\n|  |  |  |\n| n3.5-35B-A3B | 65.4 | 47.9 |\n| Sim RL (w/ Qwen3.6-Plus) | 66.7 | 47.8 |\n| Sim RL (w/ Qwen-AgentWorld-397B-A17B) | 69.7 | 55.0 |\n|  |  |  |\n| ∆ | +4.3 | +7.1 |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-table-7",
@@ -234,12 +239,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-7.png",
       "bbox": [
-        24.0,
-        225.36,
-        571.28,
-        810.68
+        64.87,
+        230.57,
+        530.42,
+        301.68
       ],
-      "method": "caption-nearby-crop"
+      "method": "caption-nearby-crop",
+      "table_markdown": "|  | Tool |  |  |  | MCPMar | k |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n| odel | Decathlon | Filesys. | GitHub | Postgres | Notion | Playwright | WebArena | Avg. |\n|  |  |  |  |  |  |  |  |  |\n| wen3.5-35B-A3B-SFT | 32.4 | 16.7 | 17.4 | 28.6 | 25.0 | 0.0 | 33.3 | 21.5 |\n| Sim RL (w/ Qwen-AgentWorld-397B-A17B) | 31.5 | 16.7 | 17.4 | 42.9 | 32.1 | 0.0 | 28.6 | 24.6 |\n| Sim RL (w/ Qwen-AgentWorld-397B-A17B controlled) | 36.1 | 30.0 | 17.4 | 47.6 | 42.9 | 0.0 | 38.1 | 33.8 |\n|  |  |  |  |  |  |  |  |  |\n| ∆ | +3.7 | +13.3 | +0.0 | +19.0 | +17.9 | +0.0 | +4.8 | +12.3 |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-table-8",
@@ -250,13 +256,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-8.png",
       "bbox": [
-        46.87,
-        234.01,
-        549.34,
-        581.91
+        154.62,
+        119.65,
+        438.14,
+        205.43
       ],
       "method": "caption-nearby-crop",
-      "table_markdown": "|  |  |  |  | R |  | eal RL |\n| --- | --- | --- | --- | --- | --- | --- |\n|  |  |  |  |  | R | eal RL |\n|  |  |  |  | S | S | im RL |\n|  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |"
+      "table_markdown": "| n3.5-35B-A3B-SFT | 34.02 | 13.72 |\n| --- | --- | --- |\n| Sim RL (w/ Qwen-AgentWorld controlled) | 50.31 | 24.21 |\n|  |  |  |\n| ∆ | +16.29 | +10.49 |\n|  |  |  |\n| n3.5-397B-A17B-SFT | 70.11 | 45.69 |\n| Sim RL (w/ Qwen-AgentWorld controlled) | 73.98 | 51.74 |\n|  |  |  |\n| ∆ | +3.87 | +6.05 |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-fig-9",
@@ -268,9 +274,9 @@
       "asset": "assets/qwen-agentworld-fig-9.png",
       "bbox": [
         46.87,
-        234.01,
+        252.01,
         549.34,
-        580.29
+        563.91
       ],
       "method": "caption-nearby-crop"
     },
@@ -283,12 +289,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-9.png",
       "bbox": [
-        46.87,
-        70.09,
-        548.42,
-        243.68
+        64.56,
+        67.59,
+        532.16,
+        466.38
       ],
-      "method": "caption-nearby-crop"
+      "method": "caption-nearby-crop",
+      "table_markdown": "| 6.2 Applicatio | n II: Agent Foun | dation Mode | l |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- |\n|  |  |  |  |  |  |  |\n| Takeaways |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |\n| LWM trainin | g unifies the world | model and t | he agent, instil | ling next-state pred | iction as an | internalized |\n| reasoning cap | ability: |  |  |  |  |  |\n| • Radical cro | ss-task generalizat | ion. Single-tur | n, non-agentic | LWM RL warm-up w | ith no tool c | alls transfers |\n| to multi-tu | rn, tool-calling age | ntic tasks acros | s seven bench | marks of five domain | s. |  |\n|  |  |  |  |  |  |  |\n| • Domain g | eneralization. Gain | s emerge on t | wo completely | out-of-distribution | domains en | tirely absent |\n| from LWM | training (+11.3 on | Claw-Eval, + | 9.7 on QwenCl | awBench, and +9.0 | on BFCL v4) | , confirming |\n| transferabl | e capabilities rather | than domain- | specific shortc | uts. |  |  |\n|  |  |  |  |  |  |  |\n| • Next-state | prediction as meta | -reasoning pa | ttern. LWM tr | aining teaches the ag | ent to ment | ally simulate |\n| environme | nt responses before | acting, which | generalizes ac | ross task formats an | d domains. |  |\n|  |  |  |  |  |  |  |\n| In Application I | the agent and w | orld model a | re separate m | odels. Here we un | ify them: t | he same model |\n| that selects actio | ns (agent) also pr | edicts enviro | nment states ( | world model). The | underlyin | g mechanism is |\n| that LWM traini | ng enables the ag | ent to menta | lly simulate t | he consequences o | f a candidat | e action before |\n| committing, eff | ectively using wo | rld modeling | as an interna | l planning step th | at improve | s action quality. |\n| This aligns with | the unified world | -model–acto | r architecture | envisioned by LeC | un et al. (20 | 22) and echoes |\n| the World Actio | n Model paradig | m emerging | in vision-lan | guage-action resea | rch (Ye et a | l., 2026b). |\n|  |  |  |  |  |  |  |\n| LWM RL warm- | up familiarizes th | e agent with | how environ | ment states evolve | in response | to user actions: |\n| how different t | ool calls and sear | ch queries y | ield differen | t responses, which | tools are | more effective, |\n| and how state t | ransitions propa | gate across tu | rns. This am | ounts to learning | next-state | prediction as a |\n| meta-reasoning | pattern, in which | the agent int | ernally simu | lates what will hap | pen before | deciding what |\n| to do. We valid | ate this effect by | running LW | M RL on Qwe | n3.5-35B-A3B-SFT | , which is | fundamentally |\n| a single-turn t | ask that involves | reasoning | with no tool | calls or multi-tur | n interacti | on (predicting |\n| the next enviro | nment state given | a user actio | n). After war | m-up, we evaluat | e the same | model directly |\n| on multi-turn, t | ool-calling agent | ic tasks acro | ss seven ben | chmarks without a | ny additio | nal fine-tuning, |\n| including three | out-of-domain be | nchmarks ab | sent from LW | M training. All be | nchmarks u | se a maximum |\n| sequence lengt | h of 256k tokens. | Claw-Eval, | QwenClawB | ench, SWE-Bench | Verified, a | nd SWE-Bench |\n| Pro scores are a | veraged over 3 i | ndependent | rollouts; Ter | minal-Bench 2.0 sc | ores are a | veraged over 5 |\n| runs; BFCL v4 | uses a single roll | out. SWE-Be | nch Verified | and SWE-Bench P | ro are eva | luated with an |\n| internal agent s | caffold (bash and | file-edit tools | ); we correct | several problemati | c tasks in t | he public set of |\n| SWE-Bench Pro | and evaluate all | baselines on | the refined b | enchmark. Termi | nal-Bench 2 | .0 is evaluated |\n| under the Term | inus-2 harness wi | th a 3-hour ti | meout and 8 | CPU / 32 GB RAM | . |  |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-fig-10",
@@ -300,9 +307,9 @@
       "asset": "assets/qwen-agentworld-fig-10.png",
       "bbox": [
         318.99,
-        93.16,
+        111.16,
         548.41,
-        277.04
+        276.62
       ],
       "method": "caption-nearby-crop"
     },
@@ -316,9 +323,9 @@
       "asset": "assets/qwen-agentworld-fig-11.png",
       "bbox": [
         46.87,
-        46.86,
+        64.86,
         548.42,
-        440.26
+        435.62
       ],
       "method": "caption-nearby-crop"
     },
@@ -332,9 +339,9 @@
       "asset": "assets/qwen-agentworld-fig-12.png",
       "bbox": [
         46.87,
-        46.87,
+        64.87,
         548.33,
-        346.15
+        345.51
       ],
       "method": "caption-nearby-crop"
     },
@@ -348,9 +355,9 @@
       "asset": "assets/qwen-agentworld-fig-13.png",
       "bbox": [
         46.87,
-        46.87,
+        64.87,
         548.43,
-        443.93
+        443.53
       ],
       "method": "caption-nearby-crop"
     },
@@ -364,9 +371,9 @@
       "asset": "assets/qwen-agentworld-fig-14.png",
       "bbox": [
         46.87,
-        350.55,
+        368.55,
         548.36,
-        616.81
+        598.81
       ],
       "method": "caption-nearby-crop"
     },
@@ -380,9 +387,9 @@
       "asset": "assets/qwen-agentworld-fig-15.png",
       "bbox": [
         46.87,
-        480.21,
+        498.21,
         548.36,
-        698.13
+        680.13
       ],
       "method": "caption-nearby-crop"
     },
@@ -396,9 +403,9 @@
       "asset": "assets/qwen-agentworld-fig-16.png",
       "bbox": [
         239.62,
-        120.1,
+        138.1,
         546.14,
-        303.04
+        302.62
       ],
       "method": "caption-nearby-crop"
     },
@@ -411,12 +418,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-10.png",
       "bbox": [
-        24.0,
-        107.27,
-        571.28,
-        692.6
+        87.24,
+        117.28,
+        504.3,
+        333.37
       ],
-      "method": "caption-nearby-crop"
+      "method": "caption-nearby-crop",
+      "table_markdown": "|  |  |  |  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n|  | Model |  |  |  |  |  |  |  | Avg. |\n|  |  | MCP | Search | Term. | SWE | Android | Web | OS |  |\n|  |  |  |  |  |  |  |  |  |  |\n| r | Claude Opus 4.6 | 76.90 | 77.55 | 68.60 | 54.40 | 80.06 | 75.71 | 61.81 | 70.72 |\n| ntie | Claude Sonnet 4.6 | 76.43 | 71.90 | 64.43 | 55.27 | 75.23 | 77.16 | 52.57 | 67.57 |\n| Fro | GPT-5.4 | 82.90 | 66.95 | 68.13 | 62.37 | 81.08 | 81.61 | 67.46 | 72.93 |\n|  | Gemini 3.1 Pro | 68.77 | 61.45 | 62.33 | 53.47 | 76.73 | 75.32 | 65.50 | 66.22 |\n|  |  |  |  |  |  |  |  |  |  |\n| ight | DeepSeek-V4-Pro | 69.90 | 56.85 | 57.40 | 44.50 | 76.36 | 72.83 | 61.28 | 62.73 |\n| we | Kimi K2.6 | 70.30 | 69.40 | 55.53 | 45.20 | 61.90 | 75.63 | 62.49 | 62.92 |\n| pen- | GLM-5.1 | 72.53 | 71.70 | 55.47 | 41.77 | 67.98 | 72.06 | 55.98 | 62.50 |\n| O | MiniMax-M2.7 | 55.03 | 44.30 | 32.40 | 25.17 | 71.87 | 70.36 | 49.39 | 49.79 |\n|  |  |  |  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |  |\n| n | Qwen3.6-35B-A3B | 49.50 | 47.00 | 41.30 | 35.07 | 59.79 | 67.83 | 44.03 | 49.22 |\n| Qwe | Qwen3.6-Plus | 67.57 | 67.90 | 58.43 | 47.57 | 63.81 | 69.85 | 54.29 | 61.35 |\n|  | Qwen3.6-Max-Preview | 73.40 | 64.05 | 59.37 | 45.03 | 60.19 | 67.02 | 50.47 | 59.93 |\n|  |  |  |  |  |  |  |  |  |  |\n|  | Qwen3.5-35B-A3B | 57.80 | 40.70 | 36.83 | 28.50 | 61.10 | 68.49 | 44.07 | 48.21 |\n| Ours | Qwen-AgentWorld-35B-A3B | 60.47 | 44.90 | 54.53 | 48.73 | 62.34 | 72.37 | 57.61 | 57.28 |\n|  | Qwen3.5-397B-A17B | 67.33 | 63.50 | 51.80 | 44.17 | 69.25 | 70.22 | 54.03 | 60.04 |\n|  | Qwen-AgentWorld-397B-A17B | 72.37 | 58.95 | 62.63 | 60.33 | 76.79 | 80.74 | 58.01 | 67.12 |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-table-11",
@@ -427,12 +435,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-11.png",
       "bbox": [
-        24.0,
-        107.27,
-        571.28,
-        692.6
+        64.87,
+        111.72,
+        506.32,
+        536.25
       ],
-      "method": "caption-nearby-crop"
+      "method": "caption-nearby-crop",
+      "table_markdown": "|  |  |  | MCP |  |  | Term. |  | Sear | ch |  | SWE |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n|  | Model |  |  |  |  |  |  |  |  |  |  |  | Avg |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n|  |  | Ctrl | Err | LC | Ctrl | Err | LC | Ctrl | LC | Ctrl | Err | LC |  |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n| r | Claude Opus 4.6 | 72.3 | 78.4 | 80.0 | 68.7 | 81.0 | 56.1 | 74.2 | 80.9 | 52.8 | 59.6 | 50.8 | 69.4 |\n| ntie | Claude Sonnet 4.6 | 74.3 | 77.0 | 78.0 | 63.9 | 77.0 | 52.4 | 72.0 | 71.8 | 57.5 | 59.1 | 49.2 | 67.0 |\n| Fro | GPT-5.4 | 76.2 | 84.5 | 88.0 | 62.0 | 88.7 | 53.7 | 70.5 | 63.4 | 59.8 | 65.4 | 61.9 | 70.1 |\n|  | Gemini 3.1 Pro | 59.6 | 71.7 | 75.0 | 60.0 | 77.0 | 50.0 | 61.8 | 61.1 | 52.0 | 58.4 | 50.0 | 61.5 |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n| ight | DeepSeek-V4-Pro | 63.4 | 72.3 | 74.0 | 50.6 | 74.0 | 47.6 | 54.9 | 58.8 | 52.0 | 52.9 | 28.6 | 57.2 |\n| we | Kimi K2.6 | 65.3 | 71.6 | 74.0 | 49.4 | 73.3 | 43.9 | 66.3 | 72.5 | 43.3 | 55.8 | 36.5 | 60.1 |\n| pen- | GLM-5.1 | 67.3 | 74.3 | 76.0 | 49.4 | 74.3 | 42.7 | 70.1 | 73.3 | 42.5 | 49.5 | 33.3 | 60.4 |\n| O | MiniMax-M2.7 | 39.6 | 63.5 | 62.0 | 30.1 | 50.0 | 17.1 | 41.7 | 46.9 | 29.1 | 27.4 | 19.0 | 39.2 |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n| n | Qwen3.6-35B-A3B | 37.6 | 66.9 | 44.0 | 37.3 | 61.0 | 25.6 | 45.1 | 48.9 | 41.7 | 36.5 | 27.0 | 43.2 |\n| Qwe | Qwen3.6-Plus | 60.4 | 70.3 | 72.0 | 51.8 | 74.7 | 48.8 | 63.3 | 72.5 | 52.0 | 55.8 | 34.9 | 60.4 |\n|  | Qwen3.6-Max-Preview | 69.3 | 70.9 | 80.0 | 54.8 | 75.7 | 47.6 | 60.2 | 67.9 | 44.1 | 57.7 | 33.3 | 60.5 |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n|  | Qwen3.5-35B-A3B | 54.5 | 64.9 | 54.0 | 32.5 | 50.0 | 28.0 | 33.3 | 48.1 | 34.6 | 30.3 | 20.6 | 41.0 |\n| Ours | Qwen-AgentWorld-35B-A3B | 52.5 | 68.9 | 60.0 | 50.0 | 67.3 | 46.3 | 37.1 | 52.7 | 48.0 | 60.1 | 38.1 | 52.2 |\n|  | Qwen3.5-397B-A17B | 60.4 | 73.6 | 68.0 | 47.0 | 65.7 | 42.7 | 59.8 | 67.2 | 44.1 | 56.7 | 31.7 | 56.7 |\n|  | Qwen-AgentWorld-397B-A17B | 63.4 | 75.7 | 78.0 | 59.0 | 77.7 | 51.2 | 56.1 | 61.8 | 61.4 | 62.5 | 57.1 | 63.6 |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n| Table 12 | : Rule-based evaluation on | GU | I dom | ains: | acc | uracy | (%, | ↑) on | thre | e su | b-cap | abilit | ies. |\n| controlla | bility; Err: error handling; LC | : lon | g-con | text c | onsi | stency | . The | high | est a | nd se | cond | -best | scor |\n| shown i | n bold and underlined, respe | ctive | ly. |  |  |  |  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n|  |  |  | A | ndroi | d |  | Web |  |  | O | S |  |  |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n|  | Model |  |  |  |  |  |  |  |  |  |  |  | Avg |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n|  |  |  | Ctrl | Err | LC | Ctrl | Err | LC | Ct | rl | Err | LC |  |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n| r | Claude Opus 4.6 |  | 80.9 | 79.4 | 79.7 | 82.8 | 60.0 | 84. | 3 70 | .9 5 | 9.0 5 | 2.0 | 72.1 |\n| ntie | Claude Sonnet 4.6 |  | 77.9 | 69.8 | 76.0 | 81.7 | 68.0 | 81. | 8 60 | .9 4 | 9.0 4 | 5.1 | 67.8 |\n| Fro | GPT-5.4 |  | 77.4 | 82.5 | 83.9 | 79.6 | 80.0 | 85. | 2 71 | .2 7 | 2.0 5 | 4.6 | 76.3 |\n|  | Gemini 3.1 Pro |  | 72.6 | 87.3 | 74.2 | 79.0 | 68.0 | 79. | 0 60 | .4 8 | 0.5 5 | 0.0 | 72.3 |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n| ight | DeepSeek-V4-Pro |  | 73.2 | 85.7 | 73.6 | 78.3 | 62.0 | 78. | 2 68 | .3 6 | 1.0 5 | 0.8 | 70.1 |\n| we | Kimi K2.6 |  | 63.9 | 58.7 | 61.9 | 79.1 | 69.0 | 78. | 8 71 | .2 6 | 0.0 5 | 2.8 | 66.2 |\n| pen- | GLM-5.1 |  | 68.0 | 65.1 | 69.9 | 78.5 | 64.0 | 73. | 7 62 | .6 5 | 3.0 5 | 0.4 | 65.0 |\n| O | MiniMax-M2.7 |  | 66.9 | 77.8 | 73.1 | 68.5 | 73.0 | 69. | 6 51 | .6 5 | 1.0 4 | 3.5 | 63.9 |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |  |  |  |  |  |\n| n | Qwen3.6-35B-A3B |  | 56.7 | 66.7 | 58.6 | 72.4 | 60.0 | 71. | 1 50 | .1 3 | 8.0 4 | 4.0 | 57.5 |\n| Qwe | Qwen3.6-Plus |  | 62.3 | 69.8 | 61.6 | 69.2 | 66.0 | 74. | 4 58 | .3 5 | 5.0 4 | 7.0 | 62.6 |\n|  | Qwen3 6-Max-Preview |  | 60 1 | 68 3 | 55 2 | 68 6 | 58 0 | 74 | 5 47 | 7 5 | 3 0 5 | 0 9 | 59 6 |"
     },
     {
       "id": "qwen-agentworld:qwen-agentworld-table-12",
@@ -443,12 +452,13 @@
       "kind": "table",
       "asset": "assets/qwen-agentworld-table-12.png",
       "bbox": [
-        24.0,
-        364.84,
-        571.28,
-        841.89
+        87.22,
+        369.78,
+        507.74,
+        601.86
       ],
-      "method": "caption-nearby-crop"
+      "method": "caption-nearby-crop",
+      "table_markdown": "|  |  | Android |  | Web |  |  | OS |  |  |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n|  |  |  |  |  |  |  |  |  |  |\n|  | Model |  |  |  |  |  |  |  | Avg. |\n|  |  |  |  |  |  |  |  |  |  |\n|  | Ctrl | Err LC | Ctrl | Err | LC | Ctrl | Err | LC |  |\n|  |  |  |  |  |  |  |  |  |  |\n| r | Claude Opus 4.6 80. | 9 79.4 79.7 | 82.8 | 60.0 | 84.3 | 70.9 | 59.0 | 52.0 | 72.1 |\n| ntie | Claude Sonnet 4.6 77. | 9 69.8 76.0 | 81.7 | 68.0 | 81.8 | 60.9 | 49.0 | 45.1 | 67.8 |\n| Fro | GPT-5.4 77. | 4 82.5 83.9 | 79.6 | 80.0 | 85.2 | 71.2 | 72.0 | 54.6 | 76.3 |\n|  | Gemini 3.1 Pro 72. | 6 87.3 74.2 | 79.0 | 68.0 | 79.0 | 60.4 | 80.5 | 50.0 | 72.3 |\n|  |  |  |  |  |  |  |  |  |  |\n| ight | DeepSeek-V4-Pro 73. | 2 85.7 73.6 | 78.3 | 62.0 | 78.2 | 68.3 | 61.0 | 50.8 | 70.1 |\n| we | Kimi K2.6 63. | 9 58.7 61.9 | 79.1 | 69.0 | 78.8 | 71.2 | 60.0 | 52.8 | 66.2 |\n| pen- | GLM-5.1 68. | 0 65.1 69.9 | 78.5 | 64.0 | 73.7 | 62.6 | 53.0 | 50.4 | 65.0 |\n| O | MiniMax-M2.7 66. | 9 77.8 73.1 | 68.5 | 73.0 | 69.6 | 51.6 | 51.0 | 43.5 | 63.9 |\n|  |  |  |  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |  |  |  |\n| n | Qwen3.6-35B-A3B 56. | 7 66.7 58.6 | 72.4 | 60.0 | 71.1 | 50.1 | 38.0 | 44.0 | 57.5 |\n| Qwe | Qwen3.6-Plus 62. | 3 69.8 61.6 | 69.2 | 66.0 | 74.4 | 58.3 | 55.0 | 47.0 | 62.6 |\n|  | Qwen3.6-Max-Preview 60. | 1 68.3 55.2 | 68.6 | 58.0 | 74.5 | 47.7 | 53.0 | 50.9 | 59.6 |\n|  |  |  |  |  |  |  |  |  |  |\n|  | Qwen3.5-35B-A3B 57. | 2 66.0 60.1 | 74.3 | 63.6 | 67.6 | 47.7 | 41.4 | 43.1 | 57.9 |\n| Ours | Qwen-AgentWorld-35B-A3B 53. | 0 95.2 51.4 | 66.2 | 84.3 | 66.6 | 60.1 | 53.0 | 60.9 | 65.6 |\n|  | Qwen3.5-397B-A17B 67. | 4 65.1 73.8 | 71.0 | 68.0 | 71.7 | 58.9 | 54.0 | 46.5 | 64.0 |\n|  | Qwen-AgentWorld-397B-A17B 81. | 3 88.7 64.9 | 75.8 | 84.5 | 82.0 | 56.5 | 60.0 | 57.2 | 72.3 |"
     }
   ]
 }

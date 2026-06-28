@@ -15,6 +15,59 @@ FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n(.*)\Z", re.S)
 ORDERED_RE = re.compile(r"^\d+\.\s+(.+)$")
 TABLE_RE = re.compile(r"^\|(.+)\|\s*$")
 IMAGE_RE = re.compile(r"^!\[([^\]]*)\]\(([^)]+)\)\s*$")
+INLINE_MATH_RE = re.compile(r"(?<!\$)\$([^\$\n]+?)\$(?!\$)")
+BLOCK_MATH_RE = re.compile(r"\$\$([\s\S]+?)\$\$")
+ARXIV_SOURCE_RE = re.compile(
+    r"\[([^\]]+)\]\((https?://arxiv\.org/abs/(\d+\.\d+)(?:v\d+)?)\)"
+    r"(?:(?:\s*,\s*|\s+)§\s*([\d.]+))?"
+    r"(?:(?:\s*,\s*|\s+)Appendix\s+([A-Z](?:\.\d+)?))?",
+    re.I,
+)
+
+
+def _arxiv_anchor(section: str) -> str:
+    parts = section.split(".")
+    if len(parts) == 1:
+        return f"S{parts[0]}"
+    return f"S{parts[0]}.SS{parts[1]}"
+
+
+def _arxiv_appendix_anchor(section: str) -> str:
+    letter, *rest = section.split(".")
+    n = ord(letter.upper()) - ord("A") + 1
+    if rest:
+        return f"A{n}.SS{rest[0]}"
+    return f"A{n}"
+
+
+def _rewrite_arxiv_sources(text: str) -> tuple[str, list[str]]:
+    snippets: list[str] = []
+
+    def repl(match: re.Match[str]) -> str:
+        link_text = html.escape(match.group(1))
+        arxiv_id = match.group(3)
+        section = match.group(4)
+        appendix = match.group(5)
+        suffix = ""
+        anchor = ""
+        if section:
+            suffix = f", §{section}"
+            anchor = _arxiv_anchor(section)
+        if appendix:
+            suffix += f", Appendix {appendix}"
+            anchor = _arxiv_appendix_anchor(appendix)
+        url = f"https://arxiv.org/html/{arxiv_id}"
+        if anchor:
+            url += f"#{anchor}"
+        snippet = (
+            f'<a href="{url}" target="_blank" rel="noopener noreferrer">'
+            f"{link_text}{suffix}</a>"
+        )
+        snippets.append(snippet)
+        return f"\x00ARXIV{len(snippets) - 1}\x00"
+
+    rewritten = ARXIV_SOURCE_RE.sub(repl, text)
+    return rewritten, snippets
 
 
 def read_course(course_dir: Path) -> CourseDoc:
@@ -743,8 +796,17 @@ def _parse_table(
 
 
 def inline(text: str) -> str:
-    # Process markdown links first, protecting generated HTML from escaping.
+    # Protect math, arXiv source links, other links, and generated HTML.
+    maths: list[str] = []
+    arxivs: list[str] = []
     links: list[str] = []
+
+    text, arxivs = _rewrite_arxiv_sources(text)
+
+    def math_repl(match: re.Match[str], kind: str) -> str:
+        wrapper = "div" if kind == "block" else "span"
+        maths.append(f'<{wrapper} class="math {kind}">{match.group(0)}</{wrapper}>')
+        return f"\x00MATH{len(maths) - 1}\x00"
 
     def link_repl(match: re.Match[str]) -> str:
         link_text = html.escape(match.group(1))
@@ -754,14 +816,20 @@ def inline(text: str) -> str:
         )
         return f"\x00LINK{len(links) - 1}\x00"
 
+    text = BLOCK_MATH_RE.sub(lambda m: math_repl(m, "block"), text)
+    text = INLINE_MATH_RE.sub(lambda m: math_repl(m, "inline"), text)
     text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", link_repl, text)
 
     escaped = html.escape(text)
     escaped = re.sub(r"`([^`]+)`", r"<code>\1</code>", escaped)
     escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
 
+    for i, math_html in enumerate(maths):
+        escaped = escaped.replace(f"\x00MATH{i}\x00", math_html)
     for i, link_html in enumerate(links):
         escaped = escaped.replace(f"\x00LINK{i}\x00", link_html)
+    for i, arxiv_html in enumerate(arxivs):
+        escaped = escaped.replace(f"\x00ARXIV{i}\x00", arxiv_html)
 
     return escaped
 

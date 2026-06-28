@@ -160,11 +160,25 @@ def _ingest_pdf(
             )
 
         caption_blocks = _caption_blocks(page)
+        text_blocks = _text_blocks(page)
+        tables = _table_blocks(page)
+        table_rects = [item["bbox"] for item in tables]
         visual_rects = _visual_rects(page)
+
         for caption in caption_blocks:
-            rect = _infer_figure_rect(
-                page.rect, caption["bbox"], visual_rects, kind=caption["kind"]
-            )
+            if caption["kind"] == "table":
+                rect = _infer_table_rect(
+                    page, caption["bbox"], tables, text_blocks=text_blocks
+                )
+            else:
+                rect = _infer_figure_rect(
+                    page.rect,
+                    caption["bbox"],
+                    visual_rects,
+                    text_blocks=text_blocks,
+                    table_rects=table_rects,
+                    kind=caption["kind"],
+                )
             if rect is None:
                 continue
             figure_candidates.append(
@@ -182,7 +196,7 @@ def _ingest_pdf(
         page = doc[page_index - 1]
         rect = candidate["rect"]
         caption = candidate["caption"]
-        pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), clip=rect, alpha=False)
+        pix = page.get_pixmap(matrix=fitz.Matrix(3, 3), clip=rect, alpha=False)
         image_hash = hashlib.sha256(pix.tobytes()).hexdigest()
         if image_hash in seen_hashes:
             continue
@@ -380,13 +394,33 @@ def _caption_kind(label: str) -> str:
     return "figure"
 
 
-def _visual_rects(page: Any) -> list[Any]:
-    """Collect image and drawing rectangles on a page, warning on errors."""
+def _visual_rects(page: Any, exclude_rects: list[Any] | None = None) -> list[Any]:
+    """Collect image and drawing rectangles on a page, warning on errors.
+
+    The ``exclude_rects`` parameter is kept for backwards compatibility but no
+    longer filters rectangles here; callers filter visual candidates against
+    tables or text blocks as needed for their caption type.
+    """
     rects: list[Any] = []
+    page_area = page.rect.width * page.rect.height
+    max_rect_area = page_area * 0.8
+    min_rect_area = 100
+    seen: set[tuple[int, int, int, int]] = set()
+
     for image in page.get_images(full=True):
         xref = image[0]
         try:
-            rects.extend(page.get_image_rects(xref))
+            for rect in page.get_image_rects(xref):
+                key = (
+                    round(rect.x0),
+                    round(rect.y0),
+                    round(rect.x1),
+                    round(rect.y1),
+                )
+                if key in seen:
+                    continue
+                seen.add(key)
+                rects.append(rect)
         except Exception as exc:
             warnings.warn(
                 f"Could not get image rects for xref {xref} on page {page.number + 1}: {exc}"
@@ -397,42 +431,304 @@ def _visual_rects(page: Any) -> list[Any]:
             if rect is None:
                 continue
             area = rect.width * rect.height if hasattr(rect, "width") else 0
-            if area >= 100:
-                rects.append(rect)
+            if not (min_rect_area <= area <= max_rect_area):
+                continue
+            key = (
+                round(rect.x0),
+                round(rect.y0),
+                round(rect.x1),
+                round(rect.y1),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            rects.append(rect)
     except Exception as exc:
         warnings.warn(f"Could not get drawings on page {page.number + 1}: {exc}")
 
+    return sorted(rects, key=lambda r: (r.y0, r.x0))
+
+
+def _text_blocks(page: Any) -> list[dict[str, Any]]:
+    """Return text blocks with bboxes, excluding empty/whitespace blocks."""
+    blocks: list[dict[str, Any]] = []
+    for block in page.get_text("blocks"):
+        if len(block) < 5:
+            continue
+        x0, y0, x1, y1, text, *_ = block
+        text = _clean_text(text)
+        if not text:
+            continue
+        blocks.append(
+            {
+                "bbox": page.rect.__class__(x0, y0, x1, y1),
+                "text": text,
+            }
+        )
+    return blocks
+
+
+def _table_blocks(page: Any) -> list[dict[str, Any]]:
+    """Return table objects with normalized bboxes.
+
+    Filters out tiny or degenerate detections (e.g. a chart misread as a table
+    with very few cells) so callers can treat the remainder as genuine tables.
+    """
+    tables: list[dict[str, Any]] = []
     try:
         for table in page.find_tables():
             try:
-                rects.append(page.rect.__class__(*table.bbox))
+                if table.row_count < 2 or table.col_count < 2 or len(table.cells) < 6:
+                    continue
+                tables.append(
+                    {
+                        "bbox": page.rect.__class__(*table.bbox),
+                        "table": table,
+                    }
+                )
             except Exception:
                 continue
     except Exception as exc:
         warnings.warn(f"Could not find tables on page {page.number + 1}: {exc}")
+    return tables
 
-    if not rects:
-        # No visual elements on this page is normal; only warn when an
-        # exception prevented us from reading them.
-        pass
-    return sorted(rects, key=lambda r: (r.y0, r.x0))
+
+def _rect_overlap_area(a: Any, b: Any) -> float:
+    x_overlap = max(0, min(a.x1, b.x1) - max(a.x0, b.x0))
+    y_overlap = max(0, min(a.y1, b.y1) - max(a.y0, b.y0))
+    return x_overlap * y_overlap
+
+
+def _rect_overlap_ratio(a: Any, b: Any) -> float:
+    area = a.width * a.height if hasattr(a, "width") else 0
+    if area <= 0:
+        return 0.0
+    return _rect_overlap_area(a, b) / area
+
+
+def _shrink_table_rect(
+    rect: Any,
+    text_blocks: list[dict[str, Any]],
+    gap_threshold: float,
+) -> Any:
+    """Shrink a table bbox by cutting at the first large vertical text gap.
+
+    This removes body text or figures that a text-strategy table finder merged
+    into the table region. Overlapping blocks are merged before gap detection.
+    """
+    intervals: list[list[float]] = []
+    for block in text_blocks:
+        bbox = block["bbox"]
+        if _rect_overlap_area(bbox, rect) <= 0:
+            continue
+        intervals.append([bbox.y0, bbox.y1])
+    if not intervals:
+        return rect
+
+    intervals.sort(key=lambda pair: pair[0])
+    merged: list[list[float]] = [intervals[0]]
+    for y0, y1 in intervals[1:]:
+        prev = merged[-1]
+        if y0 <= prev[1]:
+            prev[1] = max(prev[1], y1)
+        else:
+            merged.append([y0, y1])
+
+    # Shrink top if there is a gap before the first text.
+    if merged[0][0] > rect.y0 + gap_threshold:
+        rect.y0 = merged[0][0]
+
+    # Cut bottom at the first large vertical gap.
+    for i in range(len(merged) - 1):
+        gap = merged[i + 1][0] - merged[i][1]
+        if gap > gap_threshold:
+            rect.y1 = merged[i][1]
+            break
+
+    # Also shrink left/right to the actual text extent.
+    overlapping = [b["bbox"] for b in text_blocks if _rect_overlap_area(b["bbox"], rect) > 0]
+    if overlapping:
+        rect.x0 = max(rect.x0, min(b.x0 for b in overlapping))
+        rect.x1 = min(rect.x1, max(b.x1 for b in overlapping))
+    return rect
+
+
+def _infer_table_rect(
+    page: Any,
+    caption_rect: Any,
+    tables: list[dict[str, Any]],
+    text_blocks: list[dict[str, Any]] | None = None,
+    margin: int = 6,
+) -> Any | None:
+    """Infer the bounding box of a table from its caption.
+
+    First tries PyMuPDF's default line-based table detector. If that fails to
+    find a plausible table near the caption, it falls back to the text-based
+    strategy clipped to the region directly adjacent to the caption, then
+    shrinks the result at the first large vertical text gap so body text or
+    nearby figures are not included.
+    """
+    text_blocks = text_blocks or []
+    page_rect = page.rect
+    max_gap = page_rect.height * 0.55
+    min_clearance = 4
+
+    def nearby(rect: Any) -> bool:
+        above = (
+            rect.y1 <= caption_rect.y0 - min_clearance
+            and rect.y1 >= caption_rect.y0 - max_gap
+        )
+        below = (
+            rect.y0 >= caption_rect.y1 + min_clearance
+            and rect.y0 <= caption_rect.y1 + max_gap
+        )
+        if not (above or below):
+            return False
+        horizontal_overlap = min(rect.x1, caption_rect.x1) - max(
+            rect.x0, caption_rect.x0
+        )
+        return horizontal_overlap > -page_rect.width * 0.35
+
+    line_candidates = [
+        (abs(_vertical_distance(caption_rect, item["bbox"])), item["bbox"])
+        for item in tables
+        if nearby(item["bbox"])
+    ]
+
+    line_rect: Any | None = None
+    if line_candidates:
+        line_candidates.sort(key=lambda x: x[0])
+        line_rect = page_rect.__class__(*line_candidates[0][1])
+
+    # Always try the text-based strategy as well; it is more robust for tables
+    # without ruling lines and lets us choose the candidate closest to caption.
+    text_rect = _infer_table_rect_from_text(
+        page, page_rect, caption_rect, text_blocks
+    )
+
+    table_rect: Any | None = None
+    if line_rect is not None and text_rect is not None:
+        table_rect = (
+            line_rect
+            if abs(_vertical_distance(caption_rect, line_rect))
+            <= abs(_vertical_distance(caption_rect, text_rect))
+            else text_rect
+        )
+    elif line_rect is not None:
+        table_rect = line_rect
+    else:
+        table_rect = text_rect
+
+    if table_rect is None:
+        return None
+
+    # Remove body text / figures merged into a text-strategy table bbox.
+    gap_threshold = page_rect.height * 0.02
+    table_rect = _shrink_table_rect(table_rect, text_blocks, gap_threshold)
+
+    figure_rect = page_rect.__class__(
+        max(page_rect.x0, table_rect.x0 - margin),
+        max(page_rect.y0, table_rect.y0 - margin),
+        min(page_rect.x1, table_rect.x1 + margin),
+        min(page_rect.y1, table_rect.y1 + margin),
+    )
+
+    if table_rect.y1 <= caption_rect.y0:
+        figure_rect.y1 = min(figure_rect.y1, caption_rect.y0 - min_clearance)
+    else:
+        figure_rect.y0 = max(figure_rect.y0, caption_rect.y1 + min_clearance)
+
+    return _clip_rect(figure_rect, page_rect)
+
+
+def _infer_table_rect_from_text(
+    page: Any,
+    page_rect: Any,
+    caption_rect: Any,
+    text_blocks: list[dict[str, Any]],
+) -> Any | None:
+    """Use PyMuPDF's text-based table finder in the caption-adjacent region."""
+    max_height = page_rect.height * 0.5
+    min_height = 48
+    min_clearance = 4
+
+    above = page_rect.__class__(
+        page_rect.x0,
+        max(page_rect.y0, caption_rect.y0 - max_height),
+        page_rect.x1,
+        caption_rect.y0 - min_clearance,
+    )
+    below = page_rect.__class__(
+        page_rect.x0,
+        caption_rect.y1 + min_clearance,
+        page_rect.x1,
+        min(page_rect.y1, caption_rect.y1 + max_height),
+    )
+
+    best: Any | None = None
+    best_score = 0.0
+    for region in (above, below):
+        if region.y1 - region.y0 < min_height:
+            continue
+        try:
+            finder = page.find_tables(
+                clip=region,
+                vertical_strategy="text",
+                horizontal_strategy="text",
+            )
+            for table in finder:
+                tbbox = page_rect.__class__(*table.bbox)
+                overlap = _rect_overlap_area(tbbox, region)
+                cells = len(table.cells)
+                if cells < 6:
+                    continue
+                # Prefer tables that are close to the caption and have many cells.
+                score = overlap + cells * 10
+                if score > best_score:
+                    best_score = score
+                    best = tbbox
+        except Exception:
+            continue
+
+    return best
+
+
+def _vertical_distance(a: Any, b: Any) -> float:
+    if b.y1 <= a.y0:
+        return a.y0 - b.y1
+    if b.y0 >= a.y1:
+        return b.y0 - a.y1
+    return 0.0
+
+
+def _text_overlap_ratio(rect: Any, text_blocks: list[dict[str, Any]]) -> float:
+    if not text_blocks:
+        return 0.0
+    overlap = sum(_rect_overlap_area(rect, block["bbox"]) for block in text_blocks)
+    area = rect.width * rect.height
+    return overlap / area if area > 0 else 1.0
 
 
 def _infer_figure_rect(
     page_rect: Any,
     caption_rect: Any,
     visual_rects: list[Any],
+    text_blocks: list[dict[str, Any]] | None = None,
+    table_rects: list[Any] | None = None,
     kind: str = "figure",
     margin: int = 24,
 ) -> Any | None:
-    """Infer the bounding box of a figure or table near a caption.
+    """Infer the bounding box of a figure near a caption.
 
     Uses spatial clustering of nearby visual elements and adapts to captions
-    placed above or below the content. Falls back to a page-area crop when no
-    visual elements are found.
+    placed above or below the content.  The ``table_rects`` parameter is kept
+    for backwards compatibility but no longer filters visual candidates here.
     """
+    text_blocks = text_blocks or []
+    table_rects = table_rects or []
+
     if not visual_rects:
-        return _fallback_figure_rect(page_rect, caption_rect, margin)
+        return _fallback_figure_rect(page_rect, caption_rect, margin, text_blocks)
 
     max_gap = page_rect.height * 0.55
     min_clearance = 4
@@ -457,7 +753,7 @@ def _infer_figure_rect(
         candidates.append(rect)
 
     if not candidates:
-        return _fallback_figure_rect(page_rect, caption_rect, margin)
+        return _fallback_figure_rect(page_rect, caption_rect, margin, text_blocks)
 
     clusters = _cluster_rects(candidates)
 
@@ -479,9 +775,9 @@ def _infer_figure_rect(
 
     figure_rect = page_rect.__class__(
         max(page_rect.x0, cluster.x0 - margin),
-        max(page_rect.y0, cluster.y0 - margin),
+        max(page_rect.y0, cluster.y0 - 6),
         min(page_rect.x1, cluster.x1 + margin),
-        min(page_rect.y1, cluster.y1 + margin),
+        min(page_rect.y1, cluster.y1 + 6),
     )
 
     if cluster.y1 <= caption_rect.y0:
@@ -492,9 +788,15 @@ def _infer_figure_rect(
     return _clip_rect(figure_rect, page_rect)
 
 
-def _fallback_figure_rect(page_rect: Any, caption_rect: Any, margin: int) -> Any | None:
+def _fallback_figure_rect(
+    page_rect: Any,
+    caption_rect: Any,
+    margin: int,
+    text_blocks: list[dict[str, Any]] | None = None,
+) -> Any | None:
     """Fallback crop when no visual elements are detected near a caption."""
-    max_height = page_rect.height * 0.7
+    text_blocks = text_blocks or []
+    max_height = page_rect.height * 0.45
     min_height = 48
 
     above = page_rect.__class__(
@@ -510,14 +812,31 @@ def _fallback_figure_rect(page_rect: Any, caption_rect: Any, margin: int) -> Any
         min(page_rect.y1, caption_rect.y1 + max_height),
     )
 
-    above_height = max(0, above.y1 - above.y0)
-    below_height = max(0, below.y1 - below.y0)
+    def text_overlap_ratio(rect: Any) -> float:
+        if not text_blocks:
+            return 0.0
+        overlap = sum(
+            _rect_overlap_area(rect, block["bbox"]) for block in text_blocks
+        )
+        area = rect.width * rect.height
+        return overlap / area if area > 0 else 1.0
 
-    if above_height >= below_height and above_height >= min_height:
-        return _clip_rect(above, page_rect)
-    if below_height >= min_height:
-        return _clip_rect(below, page_rect)
-    return None
+    candidates = []
+    for rect in (above, below):
+        height = max(0, rect.y1 - rect.y0)
+        if height < min_height:
+            continue
+        candidates.append((height, text_overlap_ratio(rect), rect))
+
+    if not candidates:
+        return None
+
+    # Prefer the larger region, but drop a fallback that is mostly body text.
+    candidates.sort(key=lambda x: (-x[0], x[1]))
+    best = candidates[0]
+    if best[1] > 0.5:
+        return None
+    return _clip_rect(best[2], page_rect)
 
 
 def _cluster_rects(rects: list[Any], gap_threshold: float = 30) -> list[Any]:
@@ -601,25 +920,37 @@ def _union_rects(rects: list[Any]) -> Any:
 
 
 def _extract_table_markdown(page: Any, rect: Any) -> str | None:
-    """Try to extract a Markdown table from a PDF page region."""
-    try:
-        tables = page.find_tables()
-    except Exception:
-        return None
-    if not tables:
-        return None
+    """Try to extract a Markdown table from a PDF page region.
 
+    First uses PyMuPDF's default line-based table finder; if no good table is
+    found it falls back to the text-based strategy clipped to ``rect``.
+    """
     best_table = None
     best_overlap = 0.0
-    for table in tables:
+
+    for strategy in ("lines", "text"):
         try:
-            tbbox = table.bbox
+            if strategy == "text":
+                finder = page.find_tables(
+                    clip=rect,
+                    vertical_strategy="text",
+                    horizontal_strategy="text",
+                )
+            else:
+                finder = page.find_tables()
         except Exception:
             continue
-        overlap = _rect_overlap_area(rect, page.rect.__class__(*tbbox))
-        if overlap > best_overlap:
-            best_overlap = overlap
-            best_table = table
+        for table in finder:
+            try:
+                tbbox = table.bbox
+            except Exception:
+                continue
+            overlap = _rect_overlap_area(rect, page.rect.__class__(*tbbox))
+            if overlap > best_overlap:
+                best_overlap = overlap
+                best_table = table
+        if best_table is not None and best_overlap > 0:
+            break
 
     if best_table is None or best_overlap <= 0:
         return None

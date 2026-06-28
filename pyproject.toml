@@ -48,6 +48,7 @@ include = ["learnloop*"]
 
 [tool.setuptools.package-data]
 learnloop = [
+  "assets/i18n/*.yaml",
   "assets/templates/*.css",
   "assets/templates/*.js",
   "assets/templates/*/*.yaml",

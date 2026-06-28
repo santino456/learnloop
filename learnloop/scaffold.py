@@ -54,6 +54,7 @@ subtitle: "A source-grounded LearnLoop course scaffold."
 audience: "{audience}"
 default_port: 8787
 template: tutorial
+lang: auto
 modules:
   - id: m1
     title: "Course Design Brief"

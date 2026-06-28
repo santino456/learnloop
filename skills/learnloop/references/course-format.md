@@ -42,6 +42,7 @@ subtitle: "Short course promise."
 audience: "Target learner."
 default_port: 8787
 template: tutorial
+lang: auto
 modules:
   - id: m1
     title: "What ACP is"
@@ -50,6 +51,7 @@ modules:
 ```
 
 - `template` sets the default rendering template for the course. It can be overridden per module in module frontmatter.
+- `lang` controls the language of generated UI labels: `zh`, `en`, or `auto`. `auto` detects the language from the first module's body (CJK ratio) and falls back to English.
 - Keep module ids short and stable. The current convention is `m1`, `m2`, etc.
 
 ## Module Markdown

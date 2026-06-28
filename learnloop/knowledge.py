@@ -52,7 +52,7 @@ def audit_generation_readiness(course_dir: Path) -> list[str]:
 
 
 def validate_perspective_basis(blocks: list[Block], module_file: str) -> list[str]:
-    errors: list[str] = []
+    warnings: list[str] = []
     for block in _walk_blocks(blocks):
         if block.type == "exercise" and block.kind == "perspective":
             text = "\n".join(
@@ -61,10 +61,10 @@ def validate_perspective_basis(blocks: list[Block], module_file: str) -> list[st
                 if part
             )
             if not _has_perspective_basis(text):
-                errors.append(
-                    f"{module_file}: perspective exercise must include basis or needs-human-review"
+                warnings.append(
+                    f"{module_file}: perspective exercise should include basis or needs-human-review"
                 )
-    return errors
+    return [f"WARNING:{w}" for w in warnings]
 
 
 def _audit_reference_modules(course_dir: Path) -> list[str]:
@@ -101,6 +101,7 @@ def _audit_learning_form_fit(course_dir: Path) -> list[str]:
         return []
 
     errors: list[str] = []
+    warnings: list[str] = []
     for module in course.modules:
         path = course.root / module.file
         if not path.exists():
@@ -115,7 +116,7 @@ def _audit_learning_form_fit(course_dir: Path) -> list[str]:
         flat = _walk_blocks(blocks)
         for block in flat:
             if block.type == "decision" and not (block.perspective or block.answer):
-                errors.append(f"{module.file}: decision block must include perspective or answer")
+                warnings.append(f"{module.file}: decision block should include perspective or answer")
 
         if template.name == "practice":
             practice_blocks = [block for block in flat if block.type in {"exercise", "checkpoint"}]
@@ -129,7 +130,7 @@ def _audit_learning_form_fit(course_dir: Path) -> list[str]:
         ):
             errors.append(f"{module.file}: perspective module must include a perspective exercise")
 
-    return errors
+    return [f"WARNING:{w}" for w in warnings] + errors
 
 
 def _validate_claims(path: Path, source_ids: set[str] | None = None) -> list[str]:

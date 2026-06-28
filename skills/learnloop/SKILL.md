@@ -27,23 +27,34 @@ Think like an experienced teacher preparing a lesson: research first, check the 
 - **Course from PDF/DOCX/PPTX/Markdown/text material**: put the original file in `raw/`, run `learnloop ingest <file> --course <course-dir>`, then use `.learnloop/materials/<source>/` as the reading substrate. Do not draft directly from memory or cite `raw/*.pdf` as an image.
 - **Named entities, technical claims, commands, APIs, protocol fields, or version-sensitive facts**: verify them against a reliable source before adding them.
 - **Publication or reusable course**: also read `references/content-verification.md`; optionally add a `.learnloop/` workspace to track sources and claims.
+- **Language and audience**: generate course content and UI labels in the user's interaction language. Chinese interaction → default to Chinese content (`lang: zh` or keep `lang: auto` when the text is clearly Chinese); English interaction → default to English (`lang: en`). When language is mixed or unclear, ask: "你希望课程用中文、英文，还是中英双语呈现？" Record the final choice in `course.yaml` under `lang`.
 
 ## Expert Teacher Workflow
 
 Before drafting a new or substantial course, work through these steps in your reasoning. You do not need to write long planning documents unless the user asks for them or the course will be published.
 
-1. **Understand the learner**: Who are they? What do they already know? What specific confusion or goal brings them here?
+1. **Understand the learner and language**: Who are they? What do they already know? What specific confusion or goal brings them here? Confirm the content language from the user's interaction and set `lang` in `course.yaml` (zh, en, or auto).
 2. **Define the learning job**: What should the learner be able to understand or do after this module? One module, one job.
 3. **Research and fact-check**: Identify the sources (official docs, source code, runnable output, papers, user context). For high-stakes claims, verify exact names, versions, commands, and protocol fields. Mark uncertainty instead of guessing.
 4. **Ingest local materials**: For PDFs, Word documents, slide decks, Markdown, or text files, run `learnloop ingest` and inspect `material.json`, `chunks.jsonl`, and any `figures.md` before drafting. Treat extracted figures as candidates that still need visual checking.
 5. **Ask content-derived questions**: After you understand the material, identify 2–4 choices that actually change the course shape. The questions must come from the content, not a fixed questionnaire. If the user does not respond, fall back to a high-quality default that keeps the course complete but marks optional advanced sections.
 6. **Write the Course Blueprint**: Decide the learner job, module jobs, section-level learning actions, evidence needs, and components before editing modules. Use `.learnloop/course_blueprint.md` when present.
 7. **Design the module plan**: Decide which modules are Tutorial, Reference, Practice, or Perspective, and why.
-8. **Draft**: Write only content supported by the design and evidence. Convert suitable material into semantic learning components instead of piling up paragraphs.
-9. **Self-review**: Check for unsupported claims, fake Reference, weak Practice, empty Perspective, private examples, and section id stability.
-10. **Build**: run `validate`, `build`, and optionally `audit`.
+8. **Draft**: Write only content supported by the design and evidence. Convert suitable material into semantic learning components instead of piling up paragraphs. Do not stop to perfect container syntax while drafting.
+9. **Auto-fix and format**: Run `learnloop fix <course-dir>` to repair common syntax issues (missing concept titles, evidence status/source, unclosed containers), then `learnloop fmt <course-dir>` to normalize indentation and component layout.
+10. **Self-review**: Check for unsupported claims, fake Reference, weak Practice, empty Perspective, private examples, and section id stability.
+11. **Build**: run `validate`, `build`, and optionally `audit`.
 
-Do not write a long module before you understand the learner, the learning job, and the evidence.
+### Content-first checklist
+
+Use this order when deciding what to change:
+
+1. Does the section make a clear learning action (understand, compare, verify, practice, judge)?
+2. Is the evidence reliable and sourced?
+3. Does the chosen component reduce cognitive load or expose structure?
+4. Is the syntax valid after `learnloop fix`?
+
+Do not let container rules slow down the first draft.
 Every section should ask the learner to do one thing: understand, compare,
 verify, practice, or judge. If a section only asks the learner to read, redesign it.
 
@@ -102,6 +113,8 @@ Subagents do not edit `modules/*.md`, `course.yaml`, or `dist/`. The main agent 
 learnloop validate <course-dir>
 learnloop audit <course-dir>
 learnloop build <course-dir>
+learnloop fix <course-dir>
+learnloop fmt <course-dir>
 learnloop context <course-dir> --question-id <id>
 learnloop scaffold-course <slug> --target courses
 learnloop ingest <course-dir>/raw/<source-file> --course <course-dir>

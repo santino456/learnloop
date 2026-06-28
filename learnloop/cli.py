@@ -15,6 +15,8 @@ from .course import (
     validate_course,
 )
 from .doctor import print_doctor_report
+from .fix import fix_course
+from .fmt import fmt_course
 from .knowledge import audit_generation_readiness
 from .ingest import ingest_material
 from .model import ModuleDoc
@@ -89,6 +91,18 @@ def main(argv: list[str] | None = None) -> int:
     )
     audit_p.add_argument("course_dir", nargs="?", default=".")
 
+    fix_p = sub.add_parser("fix", help="Auto-fix common syntax issues in course modules.")
+    fix_p.add_argument("course_dir", nargs="?", default=".")
+    fix_p.add_argument(
+        "--check", action="store_true", help="Report issues without writing changes."
+    )
+
+    fmt_p = sub.add_parser("fmt", help="Normalize course module formatting.")
+    fmt_p.add_argument("course_dir", nargs="?", default=".")
+    fmt_p.add_argument(
+        "--check", action="store_true", help="Check formatting without writing changes."
+    )
+
     context_p = sub.add_parser("context", help="Print agent context for one question.")
     context_p.add_argument("course_dir", nargs="?", default=".")
     context_p.add_argument("--question-id", required=True)
@@ -149,19 +163,39 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "serve":
             serve_course(Path(args.course_dir), args.port, auto_port=args.auto_port)
         elif args.command == "validate":
-            errors = validate_course(Path(args.course_dir))
+            issues = validate_course(Path(args.course_dir))
+            warnings = [i for i in issues if i.startswith("WARNING:")]
+            errors = [i for i in issues if not i.startswith("WARNING:")]
+            for warning in warnings:
+                print(f"WARNING: {warning[len('WARNING:'):]}", file=sys.stderr)
+            for error in errors:
+                print(f"ERROR: {error}", file=sys.stderr)
             if errors:
-                for error in errors:
-                    print(f"ERROR: {error}", file=sys.stderr)
                 return 1
             print("Course is valid")
         elif args.command == "audit":
-            errors = audit_generation_readiness(Path(args.course_dir))
+            issues = audit_generation_readiness(Path(args.course_dir))
+            warnings = [i for i in issues if i.startswith("WARNING:")]
+            errors = [i for i in issues if not i.startswith("WARNING:")]
+            for warning in warnings:
+                print(f"WARNING: {warning[len('WARNING:'):]}", file=sys.stderr)
+            for error in errors:
+                print(f"ERROR: {error}", file=sys.stderr)
             if errors:
-                for error in errors:
-                    print(f"ERROR: {error}", file=sys.stderr)
                 return 1
             print("Course generation audit passed")
+        elif args.command == "fix":
+            changed = fix_course(Path(args.course_dir), check=args.check)
+            for item in changed:
+                print(item)
+            if args.check and changed:
+                return 1
+        elif args.command == "fmt":
+            changed = fmt_course(Path(args.course_dir), check=args.check)
+            for item in changed:
+                print(item)
+            if args.check and changed:
+                return 1
         elif args.command == "context":
             print(make_context(Path(args.course_dir), args.question_id))
         elif args.command == "ingest":

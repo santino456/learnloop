@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .model import Block, CourseDoc, LearnLoopError, ModuleDoc
+from .i18n import resolve_course_language, t, use_language
 from .knowledge import validate_knowledge_state, validate_perspective_basis
 from .parser import collect_block_types, collect_sections, inline, parse_markdown, parse_module, read_course
 from .templates import select_template, template_root, validate_template_support
@@ -126,13 +127,13 @@ def render_timeline(block: Block) -> str:
 
 def render_concept(block: Block, template: Any | None = None) -> str:
     attrs = block.attrs or {}
-    title = inline(attrs.get("title", "Key concept"))
+    title = inline(attrs.get("title", t("label.key_concept")))
     why = attrs.get("why", "")
     body = render_blocks(block.blocks or [], template)
     why_html = f'<p class="concept-why">{inline(why)}</p>' if why else ""
     return (
         '<section class="ll-concept">'
-        '<span class="learning-block-label">Concept</span>'
+        f'<span class="learning-block-label">{t("label.concept")}</span>'
         f"<h4>{title}</h4>"
         f"{why_html}"
         f'<div class="concept-body">{body}</div>'
@@ -142,8 +143,8 @@ def render_concept(block: Block, template: Any | None = None) -> str:
 
 def render_compare(block: Block) -> str:
     attrs = block.attrs or {}
-    left = inline(attrs.get("left", "Option A"))
-    right = inline(attrs.get("right", "Option B"))
+    left = inline(attrs.get("left", t("label.option_a")))
+    right = inline(attrs.get("right", t("label.option_b")))
     rows = []
     for item in block.media or []:
         rows.append(
@@ -155,9 +156,9 @@ def render_compare(block: Block) -> str:
         )
     return (
         '<section class="ll-compare">'
-        '<span class="learning-block-label">Compare</span>'
+        f'<span class="learning-block-label">{t("label.compare")}</span>'
         "<table>"
-        f"<thead><tr><th>Dimension</th><th>{left}</th><th>{right}</th></tr></thead>"
+        f"<thead><tr><th>{t('label.dimension')}</th><th>{left}</th><th>{right}</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody>"
         "</table>"
         "</section>"
@@ -181,7 +182,7 @@ def render_evidence(block: Block, template: Any | None = None) -> str:
     footer = f'<footer>{"".join(meta)}</footer>' if meta else ""
     return (
         '<aside class="ll-evidence">'
-        '<span class="learning-block-label">Evidence</span>'
+        f'<span class="learning-block-label">{t("label.evidence")}</span>'
         f"{claim_html}"
         f"{basis_html}"
         f"{body}"
@@ -195,17 +196,17 @@ def render_decision(block: Block, template: Any | None = None) -> str:
     reveal_parts = []
     if block.answer:
         reveal_parts.append(
-            '<section class="decision-answer"><h4>参考答案</h4>'
+            f'<section class="decision-answer"><h4>{t("label.answer")}</h4>'
             f"{render_blocks(parse_markdown(block.answer), template)}</section>"
         )
     if block.perspective:
         reveal_parts.append(
-            '<section class="decision-perspective"><h4>Perspective</h4>'
+            f'<section class="decision-perspective"><h4>{t("label.perspective")}</h4>'
             f"{render_blocks(parse_markdown(block.perspective), template)}</section>"
         )
     if block.explanation:
         reveal_parts.append(
-            '<section class="decision-explanation"><h4>说明</h4>'
+            f'<section class="decision-explanation"><h4>{t("label.explanation")}</h4>'
             f"{render_blocks(parse_markdown(block.explanation), template)}</section>"
         )
     reveal = ""
@@ -222,7 +223,7 @@ def render_decision(block: Block, template: Any | None = None) -> str:
         "</div>"
         f"{reveal}"
         '<button class="decision-toggle" type="button" aria-expanded="false">'
-        "显示判断视角</button>"
+        f'{t("label.show_perspective")}</button>'
         "</section>"
     )
 
@@ -247,7 +248,7 @@ def render_section(block: Block, template: Any | None = None) -> str:
     inner = render_blocks(block.blocks or [], template)
     ask_button = (
         f'<button class="ask-btn" data-ask-section="{section_id}" '
-        f'data-ask-title="{title}">提问</button>'
+        f'data-ask-title="{title}">{t("label.ask")}</button>'
     )
 
     if template and template.name == "reference":
@@ -256,7 +257,7 @@ def render_section(block: Block, template: Any | None = None) -> str:
         return (
             f'<section class="card" data-section-id="{section_id}" data-section-title="{title}">\n'
             f'  <div class="card-header">\n'
-            f'    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠">'
+            f'    <button class="card-toggle" type="button" aria-expanded="false" aria-label="{t("label.toggle_expand")}">'
             f'<span aria-hidden="true">▶</span></button>\n'
             f'    <span class="card-title">{title}</span>\n'
             f'    {ask_button}\n'
@@ -314,10 +315,9 @@ def render_exercise(block: Block, template: Any | None = None) -> str:
     has_answer = "true" if block.answer else "false"
     controls = (
         '<div class="exercise-controls">\n'
-        '  <button class="exercise-toggle" type="button" aria-expanded="false">'
-        '显示答案</button>\n'
+        f'  <button class="exercise-toggle" type="button" aria-expanded="false">{t("label.show_answer")}</button>\n'
         '  <label class="exercise-done">\n'
-        '    <input type="checkbox"> 已完成\n'
+        f'    <input type="checkbox"> {t("label.done")}\n'
         '  </label>\n'
         '</div>'
     )
@@ -367,10 +367,10 @@ def render_choice_exercise(block: Block, template: Any | None) -> str:
     feedback = '<div class="exercise-feedback" role="status" hidden></div>'
     controls = (
         '<div class="exercise-controls">\n'
-        '  <button class="exercise-check" type="button">检查</button>\n'
-        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>显示答案</button>\n'
+        f'  <button class="exercise-check" type="button">{t("label.check")}</button>\n'
+        f'  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>{t("label.show_answer")}</button>\n'
         '  <label class="exercise-done">\n'
-        '    <input type="checkbox"> 已完成\n'
+        f'    <input type="checkbox"> {t("label.done")}\n'
         '  </label>\n'
         '</div>'
     )
@@ -406,10 +406,10 @@ def render_fill_exercise(block: Block, template: Any | None) -> str:
     feedback = '<div class="exercise-feedback" role="status" hidden></div>'
     controls = (
         '<div class="exercise-controls">\n'
-        '  <button class="exercise-check" type="button">检查</button>\n'
-        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>显示答案</button>\n'
+        f'  <button class="exercise-check" type="button">{t("label.check")}</button>\n'
+        f'  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>{t("label.show_answer")}</button>\n'
         '  <label class="exercise-done">\n'
-        '    <input type="checkbox"> 已完成\n'
+        f'    <input type="checkbox"> {t("label.done")}\n'
         '  </label>\n'
         '</div>'
     )
@@ -447,10 +447,10 @@ def render_bug_exercise(block: Block, template: Any | None) -> str:
     feedback = '<div class="exercise-feedback" role="status" hidden></div>'
     controls = (
         '<div class="exercise-controls">\n'
-        '  <button class="exercise-check" type="button">检查</button>\n'
-        '  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>显示答案</button>\n'
+        f'  <button class="exercise-check" type="button">{t("label.check")}</button>\n'
+        f'  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>{t("label.show_answer")}</button>\n'
         '  <label class="exercise-done">\n'
-        '    <input type="checkbox"> 已完成\n'
+        f'    <input type="checkbox"> {t("label.done")}\n'
         '  </label>\n'
         '</div>'
     )
@@ -493,22 +493,22 @@ def render_perspective_exercise(block: Block, template: Any | None) -> str:
     if perspective or tradeoffs or pitfalls:
         parts = []
         if perspective:
-            parts.append(f'<section class="judgment-section perspective" hidden><h4>作者视角</h4>\n{perspective}\n</section>')
+            parts.append(f'<section class="judgment-section perspective" hidden><h4>{t("label.author_perspective")}</h4>\n{perspective}\n</section>')
         if tradeoffs:
-            parts.append(f'<section class="judgment-section tradeoffs" hidden><h4>取舍与 trade-offs</h4>\n{tradeoffs}\n</section>')
+            parts.append(f'<section class="judgment-section tradeoffs" hidden><h4>{t("label.tradeoffs")}</h4>\n{tradeoffs}\n</section>')
         if pitfalls:
-            parts.append(f'<section class="judgment-section pitfalls" hidden><h4>常见误区</h4>\n{pitfalls}\n</section>')
+            parts.append(f'<section class="judgment-section pitfalls" hidden><h4>{t("label.pitfalls")}</h4>\n{pitfalls}\n</section>')
         joined_parts = "\n".join(parts)
         hidden_sections = f'<div class="judgment-reveal" hidden>\n{joined_parts}\n</div>'
     return (
         f'<div class="exercise" data-kind="perspective">\n'
         f'<div class="exercise-task judgment-task">\n{task}\n</div>\n'
-        f'<textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>\n'
+        f'<textarea class="judgment-reasoning" placeholder="{html.escape(t("label.placeholder.judgment"))}"></textarea>\n'
         f'{hidden_sections}\n'
         f'<div class="exercise-controls">\n'
-        '  <button class="exercise-compare" type="button">对比作者视角</button>\n'
+        f'  <button class="exercise-compare" type="button">{t("label.compare_with_author")}</button>\n'
         '  <label class="exercise-done">\n'
-        '    <input type="checkbox"> 已完成\n'
+        f'    <input type="checkbox"> {t("label.done")}\n'
         '  </label>\n'
         '</div>\n'
         f'</div>'
@@ -526,8 +526,7 @@ def render_checkpoint(block: Block, template: Any | None = None) -> str:
     has_answer = "true" if block.answer else "false"
     controls = (
         '<div class="checkpoint-controls">\n'
-        '  <button class="checkpoint-toggle" type="button" aria-expanded="false">'
-        '显示提示</button>\n'
+        f'  <button class="checkpoint-toggle" type="button" aria-expanded="false">{t("label.show_hint")}</button>\n'
         '</div>'
     )
     return (
@@ -545,9 +544,10 @@ def render_module_page(
     sections: list[Block],
     template: Any,
 ) -> str:
-    content = render_blocks(sections, template)
-    template_label = template.name
-    content = f"""<nav class="top-nav"><a href="index.html">学习路径</a><span>{html.escape(module.id)}</span><span class="top-nav-template">{html.escape(template_label)}</span></nav>
+    with use_language(resolve_course_language(course)):
+        content = render_blocks(sections, template)
+        template_label = template.name
+        content = f"""<nav class="top-nav"><a href="index.html">{t("label.nav.learning_path")}</a><span>{html.escape(module.id)}</span><span class="top-nav-template">{html.escape(template_label)}</span></nav>
 <article class="lesson" data-course-id="{html.escape(course.id)}" data-module-id="{html.escape(module.id)}">
   <header class="lesson-header">
     <p class="eyebrow">{html.escape(course.title)}</p>
@@ -559,13 +559,13 @@ def render_module_page(
 </article>
 {QUESTION_UI}"""
 
-    page = template.template_html
-    page = page.replace("{{ page_title }}", html.escape(f"{module.title} | LearnLoop"))
-    page = page.replace("{{ course_title }}", html.escape(course.title))
-    page = page.replace("{{ content }}", content)
-    page = page.replace("{{ css_href }}", f"assets/{template.name}/style.css")
-    page = page.replace("{{ js_src }}", f"assets/{template.name}/runtime.js")
-    return page
+        page = template.template_html
+        page = page.replace("{{ page_title }}", html.escape(f"{module.title} | LearnLoop"))
+        page = page.replace("{{ course_title }}", html.escape(course.title))
+        page = page.replace("{{ content }}", content)
+        page = page.replace("{{ css_href }}", f"assets/{template.name}/style.css")
+        page = page.replace("{{ js_src }}", f"assets/{template.name}/runtime.js")
+        return page
 
 
 def module_nav_links(course: CourseDoc, module: ModuleDoc) -> str:
@@ -573,12 +573,12 @@ def module_nav_links(course: CourseDoc, module: ModuleDoc) -> str:
     previous_module = course.modules[idx - 1] if idx > 0 else None
     next_module = course.modules[idx + 1] if idx + 1 < len(course.modules) else None
     prev_link = (
-        f'<a href="{html.escape(module_output_name(previous_module))}">上一节</a>'
+        f'<a href="{html.escape(module_output_name(previous_module))}">{t("label.nav.previous")}</a>'
         if previous_module
         else "<span></span>"
     )
     next_link = (
-        f'<a href="{html.escape(module_output_name(next_module))}">下一节</a>'
+        f'<a href="{html.escape(module_output_name(next_module))}">{t("label.nav.next")}</a>'
         if next_module
         else "<span></span>"
     )
@@ -586,11 +586,12 @@ def module_nav_links(course: CourseDoc, module: ModuleDoc) -> str:
 
 
 def render_index(course: CourseDoc, template: Any) -> str:
-    cards = []
-    for idx, module in enumerate(course.modules, start=1):
-        label = _module_template_label(course, module)
-        cards.append(
-            f"""<a class="module-card" href="{html.escape(module_output_name(module))}">
+    with use_language(resolve_course_language(course)):
+        cards = []
+        for idx, module in enumerate(course.modules, start=1):
+            label = _module_template_label(course, module)
+            cards.append(
+                f"""<a class="module-card" href="{html.escape(module_output_name(module))}">
   <span class="module-number">{idx:02d}</span>
   <span class="module-text">
     <span class="module-meta">
@@ -600,21 +601,21 @@ def render_index(course: CourseDoc, template: Any) -> str:
     <em>{html.escape(module.summary)}</em>
   </span>
 </a>"""
-        )
-    content = f"""<header class="hero">
-  <p class="eyebrow">LearnLoop 课程</p>
+            )
+        content = f"""<header class="hero">
+  <p class="eyebrow">{t("label.course_title_prefix")}</p>
   <h1>{html.escape(course.title)}</h1>
   <p class="lede">{html.escape(course.subtitle)}</p>
 </header>
 <nav class="modules">{''.join(cards)}</nav>"""
 
-    page = template.template_html
-    page = page.replace("{{ page_title }}", html.escape(f"{course.title} | LearnLoop"))
-    page = page.replace("{{ course_title }}", html.escape(course.title))
-    page = page.replace("{{ content }}", content)
-    page = page.replace("{{ css_href }}", f"assets/{template.name}/style.css")
-    page = page.replace("{{ js_src }}", f"assets/{template.name}/runtime.js")
-    return page
+        page = template.template_html
+        page = page.replace("{{ page_title }}", html.escape(f"{course.title} | LearnLoop"))
+        page = page.replace("{{ course_title }}", html.escape(course.title))
+        page = page.replace("{{ content }}", content)
+        page = page.replace("{{ css_href }}", f"assets/{template.name}/style.css")
+        page = page.replace("{{ js_src }}", f"assets/{template.name}/runtime.js")
+        return page
 
 
 BUILD_LOCK_TIMEOUT_SECONDS = 30
@@ -863,12 +864,13 @@ def validate_media_blocks(
 
 def validate_learning_blocks(blocks: list[Block], module_file: str) -> list[str]:
     errors: list[str] = []
+    warnings: list[str] = []
     for block in _walk_blocks(blocks):
         location = _source_label(block.source, module_file)
         attrs = block.attrs or {}
         if block.type == "concept":
             if not attrs.get("title", "").strip():
-                errors.append(f"{location}: concept block is missing title")
+                warnings.append(f"{location}: concept block is missing title")
             if not (block.blocks or attrs.get("why", "").strip()):
                 errors.append(f"{location}: concept block needs body text or why")
         elif block.type == "compare":
@@ -880,13 +882,13 @@ def validate_learning_blocks(blocks: list[Block], module_file: str) -> list[str]
             if not attrs.get("claim", "").strip():
                 errors.append(f"{location}: evidence block is missing claim")
             if not attrs.get("source", "").strip():
-                errors.append(f"{location}: evidence block is missing source")
+                warnings.append(f"{location}: evidence block is missing source")
             status = attrs.get("status", "").strip()
             if not status:
-                errors.append(f"{location}: evidence block is missing status")
+                warnings.append(f"{location}: evidence block is missing status")
             elif status not in {"verified", "unverified", "needs-human-review", "agent-inference"}:
                 errors.append(f"{location}: unsupported evidence status: {status}")
-    return errors
+    return [f"WARNING:{w}" for w in warnings] + errors
 
 
 def _validate_media_src(

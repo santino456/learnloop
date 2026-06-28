@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "/Users/hqyone/Documents/learn-with-ai/courses/qwen-agentworld/raw/qwen-agentworld.pdf",
+    "filename": "qwen-agentworld.pdf",
+    "type": "pdf"
+  },
+  "backend": "pymupdf",
+  "generated_at": "2026-06-27T16:57:20.145999+00:00",
+  "outputs": {
+    "chunks_jsonl": "chunks.jsonl",
+    "figures_json": "figures.json",
+    "figures_md": "figures.md"
+  },
+  "stats": {
+    "chunks": 47,
+    "figures": 28
+  },
+  "metadata": {
+    "backend": "pymupdf",
+    "pages": 47,
+    "title": "Qwen-AgentWorld: Language World Models for General Agents",
+    "author": "Yuxin Zuo; Zikai Xiao; Li Sheng; Fei Huang; Jianhong Tu; Yuxuan Liu; Tianyi Tang; Xiaomeng Hu; Yang Su; Qingfeng Lan; Yantao Liu; Qin Zhu; Yinger Zhang; Bowen Yu; Haiquan Zhao; Haiyang Xu; Jianxin Yang; Jiayang Cheng; Junyang Wang; Lianghao Deng; Mingfeng Xue; Tianyi Bai; Yang Fan; Yubo Ma; Yucheng Li; Zeyu Cui; Zhihai Wang; Zhihui Xie; Zhuorui Ye; An Yang; Dayiheng Liu; Jingren Zhou; Ning Ding",
+    "figure_extraction": "caption-nearby-crop"
+  }
+}

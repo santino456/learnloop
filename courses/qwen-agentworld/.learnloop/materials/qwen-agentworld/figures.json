@@ -1,0 +1,454 @@
+{
+  "figures": [
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-1",
+      "source": "qwen-agentworld.pdf",
+      "page": 1,
+      "label": "Figure 1",
+      "caption": "Figure 1: Overview of Qwen-AgentWorld. Top: Qwen-AgentWorld is a unified native language world model across seven domains. Bottom: We explore two complementary strategies for applying world modeling to enhance language agents (mainly using the 35B-A3B model as agent): Decouple and Unify , where the world model serves as the environment simulator and agent foundation model, respectively.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-1.png",
+      "bbox": [
+        56.47,
+        436.92,
+        550.78,
+        715.34
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-2",
+      "source": "qwen-agentworld.pdf",
+      "page": 4,
+      "label": "Figure 2",
+      "caption": "Figure 2: Qwen-AgentWorld unifies seven categories of interactive environment simulation within a single language world model.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-2.png",
+      "bbox": [
+        47.01,
+        46.91,
+        548.56,
+        378.38
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-3",
+      "source": "qwen-agentworld.pdf",
+      "page": 5,
+      "label": "Figure 3",
+      "caption": "Figure 3: Anatomy of a Terminal domain LWM RL system prompt, showing the five components defined in §2.2. Blue = static (shared across trajectories); red = dynamic (injected per trajectory).",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-3.png",
+      "bbox": [
+        46.87,
+        46.86,
+        548.42,
+        470.66
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-4",
+      "source": "qwen-agentworld.pdf",
+      "page": 6,
+      "label": "Figure 4",
+      "caption": "Figure 4: Representative interaction examples from a text-based domain (SWE) and a GUI domain (Android), illustrating the breadth of the observation space.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-4.png",
+      "bbox": [
+        46.87,
+        46.87,
+        548.36,
+        463.3
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-1",
+      "source": "qwen-agentworld.pdf",
+      "page": 7,
+      "label": "Table 1",
+      "caption": "Table 1: The seven domains covered by Qwen-AgentWorld, with their action, observation, and core capability exercised by next-state prediction.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-1.png",
+      "bbox": [
+        46.87,
+        344.22,
+        548.4,
+        520.38
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-5",
+      "source": "qwen-agentworld.pdf",
+      "page": 7,
+      "label": "Figure 5",
+      "caption": "Figure 5: Three-stage training pipeline of Qwen-AgentWorld. Stage 1 CPT injects world knowledge; Stage 2 SFT instills next-state-prediction thinking patterns; Stage 3 RL sharpens output quality.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-5.png",
+      "bbox": [
+        46.87,
+        344.22,
+        548.4,
+        502.8
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-2",
+      "source": "qwen-agentworld.pdf",
+      "page": 8,
+      "label": "Table 2",
+      "caption": "Table 2: SFT and RL training data statistics across all seven domains. Average token counts and turn counts are computed over the RL training pool.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-2.png",
+      "bbox": [
+        24.0,
+        275.86,
+        571.28,
+        841.89
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-3",
+      "source": "qwen-agentworld.pdf",
+      "page": 10,
+      "label": "Table 3",
+      "caption": "Table 3: Seven turn categories for information-theoretic loss masking. Categories are determined from statistical signals rather than tool names. Keep ratio is the fraction of tokens used in loss computation.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-3.png",
+      "bbox": [
+        24.0,
+        274.47,
+        571.28,
+        841.89
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-4",
+      "source": "qwen-agentworld.pdf",
+      "page": 11,
+      "label": "Table 4",
+      "caption": "Table 4: Rejection sampling statistics per domain. “Candidates” is the number of queries with complete rollouts. “Retain rate” is the fraction of queries whose best-of-three trajectory exceeds the quality threshold. “Final SFT” is the count after filtering.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-4.png",
+      "bbox": [
+        24.0,
+        107.27,
+        571.28,
+        692.6
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-6",
+      "source": "qwen-agentworld.pdf",
+      "page": 13,
+      "label": "Figure 6",
+      "caption": "Figure 6: Overview of AgentWorldBench composition. Left: Domain distribution across seven domains, source benchmarks mapped to each domain, and the five evaluation dimensions (Format, Factuality, Consistency, Realism, Quality). Right: Summary statistics, per-domain average context length and trajectory depth. All ground-truth observations are obtained from real environment execution.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-6.png",
+      "bbox": [
+        46.87,
+        46.87,
+        548.41,
+        314.57
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-7",
+      "source": "qwen-agentworld.pdf",
+      "page": 15,
+      "label": "Figure 7",
+      "caption": "Figure 7: Main results on AgentWorldBench: five-dimensional rubric mean per domain. Qwen- AgentWorld-397B-A17B achieves the highest overall average among all evaluated models, with consistent advantages on text-based domains and competitive performance on GUI domains.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-7.png",
+      "bbox": [
+        46.87,
+        46.87,
+        548.41,
+        234.84
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-5",
+      "source": "qwen-agentworld.pdf",
+      "page": 16,
+      "label": "Table 5",
+      "caption": "Table 5: AgentWorldBench main results: five-dimensional rubric mean (↑) per domain. The highest and second-best scores per domain are shown in bold and underlined, respectively.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-5.png",
+      "bbox": [
+        46.87,
+        315.56,
+        548.43,
+        533.01
+      ],
+      "method": "caption-nearby-crop",
+      "table_markdown": "|  |  |  |  |  |  |  |\n| --- | --- | --- | --- | --- | --- | --- |\n|  |  |  |  |  | +14.2 |  |\n|  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-8",
+      "source": "qwen-agentworld.pdf",
+      "page": 16,
+      "label": "Figure 8",
+      "caption": "Figure 8: Cross-domain generalization when training Stage 3 (RL) on Terminal data alone. (a) Terminal (in-domain) improves by +14.2 points over the SFT baseline. (b) All three held-out domains improve without receiving any domain-specific training signal: MCP (+5.0), SWE (+11.5), and Search (+11.8).",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-8.png",
+      "bbox": [
+        46.87,
+        315.56,
+        548.43,
+        515.49
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-6",
+      "source": "qwen-agentworld.pdf",
+      "page": 18,
+      "label": "Table 6",
+      "caption": "Table 6: Sim RL on simulated OpenClaw environments. Qwen3.5-35B-A3B is trained via Sim RL using different environment simulators. ∆reports gains over the base model.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-6.png",
+      "bbox": [
+        24.0,
+        142.96,
+        571.28,
+        728.28
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-7",
+      "source": "qwen-agentworld.pdf",
+      "page": 19,
+      "label": "Table 7",
+      "caption": "Table 7: Controllable Sim RL results on Tool Decathlon and MCPMark. “w/ Qwen-AgentWorld-397B- A17B controlled” adds targeted environment control instructions during Sim RL.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-7.png",
+      "bbox": [
+        24.0,
+        225.36,
+        571.28,
+        810.68
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-8",
+      "source": "qwen-agentworld.pdf",
+      "page": 20,
+      "label": "Table 8",
+      "caption": "Table 8: Controllable Sim RL results on WideSearch, using fictional-world simulation.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-8.png",
+      "bbox": [
+        46.87,
+        234.01,
+        549.34,
+        581.91
+      ],
+      "method": "caption-nearby-crop",
+      "table_markdown": "|  |  |  |  | R |  | eal RL |\n| --- | --- | --- | --- | --- | --- | --- |\n|  |  |  |  |  | R | eal RL |\n|  |  |  |  | S | S | im RL |\n|  |  |  |  |  |  |  |\n|  |  |  |  |  |  |  |"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-9",
+      "source": "qwen-agentworld.pdf",
+      "page": 20,
+      "label": "Figure 9",
+      "caption": "Figure 9: Controllable Sim RL vs. Real RL (trained against a live search engine) on WideSearch during the first 60 training steps. Both experiments use Qwen3.5-35B-A3B-SFT as the base model.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-9.png",
+      "bbox": [
+        46.87,
+        234.01,
+        549.34,
+        580.29
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-9",
+      "source": "qwen-agentworld.pdf",
+      "page": 21,
+      "label": "Table 9",
+      "caption": "Table 9: Agent foundation model: LWM RL warm-up on single-turn, non-agentic trajectories transfers to multi-turn, tool-calling agentic tasks. No additional fine-tuning is applied after LWM RL.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-9.png",
+      "bbox": [
+        46.87,
+        70.09,
+        548.42,
+        243.68
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-10",
+      "source": "qwen-agentworld.pdf",
+      "page": 22,
+      "label": "Figure 10",
+      "caption": "Figure 10: Environment prediction accu- racy on Terminal-Bench 2.0 trajectories.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-10.png",
+      "bbox": [
+        318.99,
+        93.16,
+        548.41,
+        277.04
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-11",
+      "source": "qwen-agentworld.pdf",
+      "page": 23,
+      "label": "Figure 11",
+      "caption": "Figure 11: Case study of prediction-driven action refinement on the mailman task from Terminal-Bench 2.0.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-11.png",
+      "bbox": [
+        46.87,
+        46.86,
+        548.42,
+        440.26
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-12",
+      "source": "qwen-agentworld.pdf",
+      "page": 24,
+      "label": "Figure 12",
+      "caption": "Figure 12: Representative LWM reasoning patterns from Qwen-AgentWorld-397B-A17B’s thinking traces. Left: Multi-step causal reasoning in Terminal, where a chain spans package management, process lifecycle, curl semantics, and Python errors. Center: Information leakage prevention in Search, where the model distinguishes what the agent knows from what the environment should reveal to prevent answer contamination. Right: Epistemic boundary awareness in Terminal, where the model recognizes computational limits and falls back to format-only output rather than fabricating unknowable values.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-12.png",
+      "bbox": [
+        46.87,
+        46.87,
+        548.33,
+        346.15
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-13",
+      "source": "qwen-agentworld.pdf",
+      "page": 25,
+      "label": "Figure 13",
+      "caption": "Figure 13: Micro-level fidelity improvements during RL training. Top: Search domain: evolution of a single sample across RL steps. URL identifiers, source diversity, and snippet specificity all improve, despite occupying a tiny fraction of total output tokens. Bottom left: Terminal domain: the model performs exact byte-level arithmetic by enumerating characters including invisible newlines. Bottom right: MCP domain: the model maintains cross-turn schema consistency (user IDs, parent-child references, UUID formats) across nine Notion API calls.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-13.png",
+      "bbox": [
+        46.87,
+        46.87,
+        548.43,
+        443.93
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-14",
+      "source": "qwen-agentworld.pdf",
+      "page": 35,
+      "label": "Figure 14",
+      "caption": "Figure 14: Interaction examples from the GUI domains (continued). OS and Web are shown here; Android is in Section 2.3. Given the current screen and the agent’s action, the world model predicts the next GUI state in HTML, which is then rendered as a screenshot.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-14.png",
+      "bbox": [
+        46.87,
+        350.55,
+        548.36,
+        616.81
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-15",
+      "source": "qwen-agentworld.pdf",
+      "page": 36,
+      "label": "Figure 15",
+      "caption": "Figure 15: Interaction examples from the text-based domains (continued). Terminal, MCP Tool Use, and Search are shown here; Software Engineering is in Section 2.3.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-15.png",
+      "bbox": [
+        46.87,
+        480.21,
+        548.36,
+        698.13
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-fig-16",
+      "source": "qwen-agentworld.pdf",
+      "page": 37,
+      "label": "Figure 16",
+      "caption": "Figure 16: Training dynamics across 440 RL steps (Qwen- AgentWorld-35B-A3B). Format converges within ∼90 steps. Consistency requires ∼250 steps.",
+      "kind": "figure",
+      "asset": "assets/qwen-agentworld-fig-16.png",
+      "bbox": [
+        239.62,
+        120.1,
+        546.14,
+        303.04
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-10",
+      "source": "qwen-agentworld.pdf",
+      "page": 38,
+      "label": "Table 10",
+      "caption": "Table 10: Rule-based verification: per-domain accuracy (%, ↑) across four text domains (MCP, Search, Terminal, SWE) and three GUI domains (Android, Web, OS). The highest and second-best scores per column are shown in bold and underlined, respectively.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-10.png",
+      "bbox": [
+        24.0,
+        107.27,
+        571.28,
+        692.6
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-11",
+      "source": "qwen-agentworld.pdf",
+      "page": 39,
+      "label": "Table 11",
+      "caption": "Table 11: Rule-based evaluation on text-based domains: accuracy (%, ↑) on three sub-capabilities. Ctrl: controllability; Err: error handling; LC: long-context consistency. The highest and second-best scores are shown in bold and underlined, respectively.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-11.png",
+      "bbox": [
+        24.0,
+        107.27,
+        571.28,
+        692.6
+      ],
+      "method": "caption-nearby-crop"
+    },
+    {
+      "id": "qwen-agentworld:qwen-agentworld-table-12",
+      "source": "qwen-agentworld.pdf",
+      "page": 39,
+      "label": "Table 12",
+      "caption": "Table 12: Rule-based evaluation on GUI domains: accuracy (%, ↑) on three sub-capabilities. Ctrl: controllability; Err: error handling; LC: long-context consistency. The highest and second-best scores are shown in bold and underlined, respectively.",
+      "kind": "table",
+      "asset": "assets/qwen-agentworld-table-12.png",
+      "bbox": [
+        24.0,
+        364.84,
+        571.28,
+        841.89
+      ],
+      "method": "caption-nearby-crop"
+    }
+  ]
+}

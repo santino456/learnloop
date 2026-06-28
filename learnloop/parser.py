@@ -52,6 +52,7 @@ def read_course(course_dir: Path) -> CourseDoc:
         default_port=default_port,
         template=str(data.get("template", "")) or None,
         modules=modules,
+        lang=str(data.get("lang", "auto")),
     )
 
 

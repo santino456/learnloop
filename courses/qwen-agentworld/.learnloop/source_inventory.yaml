@@ -1,0 +1,25 @@
+sources:
+  - id: qwen-agentworld-paper
+    type: paper
+    title: "Qwen-AgentWorld: Language World Models for General Agents"
+    authors: "Qwen Team (Yuxin Zuo, Zikai Xiao, Li Sheng, Fei Huang, Jianhong Tu, et al.)"
+    date: "2026-06-24"
+    url: "https://arxiv.org/abs/2606.24597"
+    version: "arXiv:2606.24597v1 [cs.CL] 23 Jun 2026"
+    primary: true
+    reliability_notes:
+      - "Preprint from the Qwen Team (Alibaba); not yet peer-reviewed."
+      - "Contains extensive empirical results with multiple baseline comparisons, but some claims (e.g., GPT-5.4, Claude Opus 4.8 scores) depend on API evaluations that may not be fully reproducible without access to those models."
+      - "Benchmark construction (AgentWorldBench) uses proprietary in-house data pipelines and frontier model trajectories; exact replication may be difficult."
+      - "Concurrent works cited (e.g., Shrivastava et al. 2026, LiteResearcher 2026) are also preprints, creating a cluster of unverified cross-citations."
+      - "The paper makes strong theoretical claims (necessity of world models) based on Richens et al. 2025, which is itself a preprint."
+      - "No ablation isolating multimodal pre-training effects on GUI domains; the attributed explanation is interpretive."
+      - "Data statistics (10M+ trajectories, 2,170 benchmark samples) are reported but the underlying data is not publicly released."
+  - id: qwen-agentworld
+    type: local-material
+    title: "qwen-agentworld.pdf"
+    path: "raw/qwen-agentworld.pdf"
+    status: ingested
+    material: ".learnloop/materials/qwen-agentworld/material.json"
+    chunks: 47
+    figures: 38

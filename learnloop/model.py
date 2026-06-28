@@ -19,6 +19,7 @@ class CourseDoc:
     default_port: int
     template: str | None
     modules: list[ModuleDoc]
+    lang: str = "auto"
 
 
 @dataclass

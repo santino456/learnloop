@@ -13,6 +13,8 @@ from urllib import request
 
 from learnloop.course import LearnLoopError, build_course, init_course, make_context, scaffold_course, validate_course
 from learnloop.doctor import doctor_report
+from learnloop.fix import fix_module_text
+from learnloop.fmt import format_module_text
 from learnloop.ingest import ingest_material
 from learnloop.knowledge import audit_generation_readiness
 from learnloop.parser import parse_markdown
@@ -610,7 +612,7 @@ Body.
             errors = validate_course(created)
             self.assertTrue(any("unknown source_id: missing-source" in error for error in errors))
 
-    def test_perspective_without_basis_fails_validation(self) -> None:
+    def test_perspective_without_basis_is_reported_as_warning(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "perspective-basis-course")
             course_yaml = created / "course.yaml"
@@ -626,8 +628,13 @@ Body.
                 + "\n::: exercise\nJudge this design.\n\n--- perspective\nThis is a mature view.\n---\n:::\n",
                 encoding="utf-8",
             )
-            errors = validate_course(created)
-            self.assertTrue(any("perspective exercise must include basis" in error for error in errors))
+            issues = validate_course(created)
+            self.assertTrue(
+                any(
+                    i.startswith("WARNING:") and "perspective exercise should include basis" in i
+                    for i in issues
+                )
+            )
 
     def test_exercise_and_checkpoint_render_in_html(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -795,6 +802,7 @@ Body.
         self.assertNotIn("&lt;!-- bug --&gt;", html)
 
     def test_perspective_exercise_renders_judgment_card_html(self) -> None:
+        from learnloop.i18n import use_language
         from learnloop.renderer import render_blocks
         from learnloop.templates import load_template
 
@@ -814,7 +822,8 @@ Body.
         )
         blocks = parse_markdown(md)
         template = load_template("perspective")
-        html = render_blocks(blocks, template)
+        with use_language("zh"):
+            html = render_blocks(blocks, template)
         self.assertIn('data-kind="perspective"', html)
         self.assertIn('class="judgment-reasoning"', html)
         self.assertIn("对比作者视角", html)
@@ -873,6 +882,7 @@ Body.
         self.assertIn('alt="KV Cache decode flow"', html)
 
     def test_semantic_learning_components_render(self) -> None:
+        from learnloop.i18n import use_language
         from learnloop.renderer import render_blocks
 
         md = (
@@ -919,7 +929,8 @@ Body.
             "---\n"
             ":::\n"
         )
-        html = render_blocks(parse_markdown(md))
+        with use_language("zh"):
+            html = render_blocks(parse_markdown(md))
         self.assertIn('class="ll-figure"', html)
         self.assertIn('src="https://example.com/flow.png"', html)
         self.assertIn('class="ll-gallery"', html)
@@ -1048,7 +1059,7 @@ Body.
             self.assertTrue(any("must reference an image file" in error for error in errors))
             self.assertTrue(any("must use assets/..." in error for error in errors))
 
-    def test_decision_without_answer_or_perspective_fails_audit(self) -> None:
+    def test_decision_without_answer_or_perspective_is_reported_as_warning(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             created = init_course(Path(tmp), "decision-course")
             module = created / "modules" / "01.md"
@@ -1057,8 +1068,13 @@ Body.
                 + "\n::: decision\nShould we add Docker now?\n\n- A. Yes\n- B. No\n:::\n",
                 encoding="utf-8",
             )
-            errors = audit_generation_readiness(created)
-            self.assertTrue(any("decision block must include perspective or answer" in error for error in errors))
+            issues = audit_generation_readiness(created)
+            self.assertTrue(
+                any(
+                    i.startswith("WARNING:") and "decision block should include perspective or answer" in i
+                    for i in issues
+                )
+            )
 
     def test_plain_markdown_headings_render_by_level(self) -> None:
         from learnloop.renderer import render_blocks
@@ -1113,6 +1129,79 @@ Body.
             self.assertTrue(len(text) > 0)
             self.assertIn('<main class="page">', text)
             self.assertIn("</main>", text)
+
+
+    def test_fix_infers_concept_title_and_evidence_defaults(self) -> None:
+        text = """::: concept
+
+**KV Cache**
+
+The cache stores prior keys and values.
+:::
+
+::: evidence
+claim: Decode appends one token at a time.
+
+See [paper](https://example.com/paper).
+:::
+"""
+        fixed, _notes = fix_module_text(text)
+        self.assertIn("title: KV Cache", fixed)
+        self.assertIn("status: unverified", fixed)
+        self.assertIn("source: https://example.com/paper", fixed)
+
+    def test_fmt_reorders_frontmatter_and_sorts_compare_rows(self) -> None:
+        text = """---
+template: tutorial
+title: "Demo"
+---
+
+## [s1] Section
+
+::: compare
+left: A
+right: B
+
+- Z | z | Z
+- A | a | A
+:::
+"""
+        formatted = format_module_text(text)
+        # title should precede template in canonical order.
+        title_idx = formatted.index("title: Demo")
+        template_idx = formatted.index("template: tutorial")
+        self.assertLess(title_idx, template_idx)
+        lines = formatted.splitlines()
+        a_idx = next(i for i, line in enumerate(lines) if line.startswith("- A"))
+        z_idx = next(i for i, line in enumerate(lines) if line.startswith("- Z"))
+        self.assertLess(a_idx, z_idx)
+
+    def test_validate_reports_missing_concept_title_and_evidence_status_as_warnings(self) -> None:
+        from learnloop.renderer import validate_learning_blocks
+
+        blocks = parse_markdown(
+            "::: concept\nBody text.\n:::\n\n"
+            "::: evidence\nclaim: X is true.\n:::\n"
+        )
+        issues = validate_learning_blocks(blocks, "modules/01.md")
+        self.assertTrue(
+            any(
+                i.startswith("WARNING:") and "concept block is missing title" in i
+                for i in issues
+            )
+        )
+        self.assertTrue(
+            any(
+                i.startswith("WARNING:") and "evidence block is missing status" in i
+                for i in issues
+            )
+        )
+        self.assertTrue(
+            all(
+                not (i.startswith("WARNING:") and "evidence block is missing claim" in i)
+                for i in issues
+            )
+        )
 
 
 def wait_for(url: str) -> None:

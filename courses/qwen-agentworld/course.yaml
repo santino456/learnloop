@@ -1,0 +1,35 @@
+id: qwen-agentworld
+title: "Qwen-AgentWorld"
+subtitle: "Language World Models for General Agents"
+audience: "AI researchers and engineers studying agent world models"
+default_port: 8787
+template: tutorial
+modules:
+  - id: m1
+    title: "Foundations — Why Language World Models?"
+    file: "modules/01.md"
+    summary: "World models vs. policy-only agents, seven domains, Decouple vs. Unify paradigms."
+  - id: m2
+    title: "The Unified Environment Trajectory Schema"
+    file: "modules/02.md"
+    summary: "Shared trajectory format, system prompt components, turn-level expansion, data preprocessing."
+  - id: m3
+    title: "Three-Stage Training Recipe"
+    file: "modules/03.md"
+    summary: "CPT with loss masking, SFT reasoning traces, RL with hybrid rubric-and-rule rewards."
+  - id: m4
+    title: "AgentWorldBench — Evaluating World Models"
+    file: "modules/04.md"
+    summary: "Benchmark construction, five-dimensional rubric, reference-grounded LLM judge, main results."
+  - id: m5
+    title: "Application I — World Model as Environment Simulator"
+    file: "modules/05.md"
+    summary: "Decoupled simulator, scalable/controllable/fictional-world Sim RL, sim-to-real transfer."
+  - id: m6
+    title: "Application II — World Model as Agent Foundation Model"
+    file: "modules/06.md"
+    summary: "Unified agent foundation model, LWM warm-up, prediction-driven action refinement."
+  - id: m7
+    title: "Analysis and Reasoning Patterns"
+    file: "modules/07.md"
+    summary: "LWM chain-of-thought patterns, micro-level fidelity, RL training dynamics."

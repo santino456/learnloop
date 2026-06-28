@@ -78,6 +78,7 @@ subtitle: "A local-first adaptive learning course."
 audience: "Learners who want structured feedback."
 default_port: 8787
 template: tutorial
+lang: auto
 modules:
   - id: m1
     title: "Start Here"

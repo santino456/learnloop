@@ -14,6 +14,7 @@ from .model import LearnLoopError
 
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".pptx", ".md", ".markdown", ".txt"}
+CROP_RENDER_SCALE = 4
 CAPTION_RE = re.compile(
     r"^\s*((?:fig(?:ure)?\.?|图|table|表)\s*[\dIVXLC]+[a-zA-Z]?)\s*[:.\-：]\s*(.*)",
     re.I,
@@ -196,7 +197,7 @@ def _ingest_pdf(
         page = doc[page_index - 1]
         rect = candidate["rect"]
         caption = candidate["caption"]
-        pix = page.get_pixmap(matrix=fitz.Matrix(3, 3), clip=rect, alpha=False)
+        pix = page.get_pixmap(matrix=fitz.Matrix(CROP_RENDER_SCALE, CROP_RENDER_SCALE), clip=rect, alpha=False)
         image_hash = hashlib.sha256(pix.tobytes()).hexdigest()
         if image_hash in seen_hashes:
             continue

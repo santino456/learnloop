@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>性能、局限与选型 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m5</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="dspark" data-module-id="m5">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek DSpark：半自回归投机解码推理加速</p>
+    <h1>性能、局限与选型</h1>
+    <p class="lede">Benchmark 数据、与 Eagle3 / DFlash / MTP 的对比以及适用场景。</p>
+  </header>
+  <section><h2 data-section-id="m5-offline-results" data-section-title="离线 accepted length 结果">离线 accepted length 结果 <button class="ask-btn" data-ask-section="m5-offline-results" data-ask-title="离线 accepted length 结果">提问</button></h2>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>在 Qwen3-4B/8B/14B 上，DSpark 的 accepted length 显著高于 Eagle3 和 DFlash。</strong></p><p class="evidence-basis">论文 Table 1 与 Introduction 给出如下宏观平均提升。</p><footer><span>verified</span><span><a href="https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf" target="_blank" rel="noopener noreferrer">DSpark 论文 PDF</a></span></footer></aside>
+<table><thead><tr><th>目标模型</th><th>vs Eagle3 accepted length</th><th>vs DFlash accepted length</th></tr></thead><tbody><tr><td>Qwen3-4B</td><td>+30.9%</td><td>+16.3%</td></tr><tr><td>Qwen3-8B</td><td>+26.7%</td><td>+18.4%</td></tr><tr><td>Qwen3-14B</td><td>+30.0%</td><td>+18.3%</td></tr></tbody></table>
+<p>DSpark 在半自回归架构下，既保留了并行 draft 的速度，又接近自回归 draft 的接受率，从而在离线指标上超过两种基线。</p></section>
+<section><h2 data-section-id="m5-production-results" data-section-title="生产环境吞吐结果">生产环境吞吐结果 <button class="ask-btn" data-ask-section="m5-production-results" data-ask-title="生产环境吞吐结果">提问</button></h2>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>在 DeepSeek 在线服务中，DSpark 相对 MTP-1 基线显著提升吞吐与每用户 TPS。</strong></p><p class="evidence-basis">论文 Figure 7 给出不同 SLA 下的相对提升。</p><footer><span>verified</span><span><a href="https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf" target="_blank" rel="noopener noreferrer">DSpark 论文 PDF</a></span></footer></aside>
+<p><strong>DeepSeek-V4-Flash</strong></p>
+<table><thead><tr><th>SLA 场景</th><th>相对 MTP-1 吞吐提升</th><th>相对 MTP-1 TPS 提升</th></tr></thead><tbody><tr><td>宽松延迟</td><td>+51%</td><td>+60%</td></tr><tr><td>严格延迟</td><td>+661%</td><td>+85%</td></tr></tbody></table>
+<p><strong>DeepSeek-V4-Pro</strong></p>
+<table><thead><tr><th>SLA 场景</th><th>相对 MTP-1 吞吐提升</th><th>相对 MTP-1 TPS 提升</th></tr></thead><tbody><tr><td>宽松延迟</td><td>+52%</td><td>+57%</td></tr><tr><td>严格延迟</td><td>+406%</td><td>+78%</td></tr></tbody></table>
+<p>严格延迟约束下 MTP-1 进入低并发 regime，DSpark 的优势被进一步放大。</p></section>
+<section><h2 data-section-id="m5-compare-methods" data-section-title="方法对比">方法对比 <button class="ask-btn" data-ask-section="m5-compare-methods" data-ask-title="方法对比">提问</button></h2>
+<section class="ll-compare"><span class="learning-block-label">对比</span><table><thead><tr><th>维度</th><th>MTP-1（DeepSeek 原有多 token 预测）</th><th>DSpark</th></tr></thead><tbody><tr><th>是否需要单独 draft 模型</th><td>否，复用模型自身 MTP head</td><td>是，单独训练 draft 模块</td></tr><tr><th>长序列能力</th><td>受限于自回归 head</td><td>并行 draft 可一次性提出长候选</td></tr><tr><th>负载感知</th><td>固定验证策略</td><td>Confidence-Scheduled 动态调整</td></tr><tr><th>生产效果</th><td>基线</td><td>V4-Flash TPS +60–85%</td></tr></tbody></table></section>
+<section class="ll-compare"><span class="learning-block-label">对比</span><table><thead><tr><th>维度</th><th>DFlash</th><th>DSpark</th></tr></thead><tbody><tr><th>Draft 方式</th><td>块级扩散，完全并行</td><td>并行 backbone + 顺序 head</td></tr><tr><th>Suffix decay</th><td>较明显</td><td>显著缓解</td></tr><tr><th>接受长度</th><td>较低</td><td>提升 16–18%</td></tr><tr><th>训练复杂度</th><td>扩散模型训练</td><td>更简单的自回归+置信度头</td></tr></tbody></table></section></section>
+<section><h2 data-section-id="m5-limitations" data-section-title="局限与适用场景">局限与适用场景 <button class="ask-btn" data-ask-section="m5-limitations" data-ask-title="局限与适用场景">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>主要局限</h4><p class="concept-why">任何加速技术都有适用范围和部署成本。</p><div class="concept-body"><ul><li><strong>训练数据准备成本高</strong>：target cache 可达数十 TB。</li><li><strong>效果与任务类型相关</strong>：代码、数学等结构化任务接受率高；开放聊天接受率相对较低。</li><li><strong>硬件依赖</strong>： still 需要大显存部署 V4-Pro；加速的是推理时间，不是模型大小。</li><li><strong>生态集成仍在进行</strong>：vLLM/SGLang 支持需要关注对应 PR/issue。</li></ul></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>最适合采用的场景</h4><p class="concept-why">判断是否值得引入 DSpark 要看 workload 和成本结构。</p><div class="concept-body"><p>优先考虑 DSpark 的场景：</p>
+<ul><li>高并发在线服务，延迟敏感（如实时对话、Agent 工作流）。</li><li>主要生成代码、数学、结构化文本等接受率高的内容。</li><li>已经在使用 DeepSeek-V4 系列，想降低推理成本。</li><li>有资源自己训练 draft 模型以适配私有数据分布。</li></ul>
+<p>暂时不优先考虑的场景：</p>
+<ul><li>低并发、批处理任务。</li><li>开放域聊天为主，且对延迟不敏感。</li><li>硬件资源不足以部署 V4-Pro。</li></ul></div></section></section>
+<section><h2 data-section-id="m5-decision" data-section-title="练习：是否在你的服务中引入 DSpark？">练习：是否在你的服务中引入 DSpark？ <button class="ask-btn" data-ask-section="m5-decision" data-ask-title="练习：是否在你的服务中引入 DSpark？">提问</button></h2>
+<section class="ll-decision"><div class="decision-prompt"><p>你正在运营一个代码助手 API，当前使用 DeepSeek-V4-Pro 自回归服务。观察到：</p>
+<ul><li>高峰期延迟 P99 较高，用户投诉明显。</li><li>70% 的请求是代码补全与单元测试生成。</li><li>团队有 8×A100 节点可用于训练 draft 模块。</li><li>存储资源可以支撑数十 TB 的目标缓存。</li></ul>
+<p>是否值得引入 DSpark？</p></div><div class="decision-reveal" hidden><section class="decision-perspective"><h4>视角</h4><p>值得尝试。代码类任务接受率通常较高，DSpark 在 V4-Pro 上的生产数据表明每用户 TPS 可提升 57–78%，且团队具备训练 draft 模块的硬件和存储条件。建议先在高频代码场景做 A/B 测试，再逐步全量上线。</p></section></div><button class="decision-toggle" type="button" aria-expanded="false">显示判断视角</button></section></section>
+<section><h2 data-section-id="m5-summary" data-section-title="课程总结">课程总结 <button class="ask-btn" data-ask-section="m5-summary" data-ask-title="课程总结">提问</button></h2>
+<ul><li><strong>DSpark 不是新模型</strong>，而是 DeepSeek-V4 的投机解码加速层，已在生产 API 部署。</li><li><strong>半自回归架构</strong>用并行 backbone 保证速度，用轻量 sequential head 缓解 suffix decay。</li><li><strong>Confidence-Scheduled Verification</strong>根据 token 置信度和系统负载动态分配验证长度。</li><li><strong>离线指标</strong>上 accepted length 比 Eagle3 提升 26.7–30.9%，比 DFlash 提升 16.3–18.4%。</li><li><strong>生产指标</strong>上 V4-Flash TPS 提升 60–85%，V4-Pro TPS 提升 57–78%。</li><li>部署成本主要是 target cache 存储和 draft 训练，但官方已提供即插即用 checkpoint。</li></ul>
+<p>延伸阅读：</p>
+<ul><li><a href="https://github.com/deepseek-ai/DeepSpec" target="_blank" rel="noopener noreferrer">DeepSpec GitHub 仓库</a></li><li><a href="https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf" target="_blank" rel="noopener noreferrer">DSpark 论文 PDF</a></li><li><a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro-DSpark" target="_blank" rel="noopener noreferrer">HuggingFace DeepSeek-V4-Pro-DSpark</a></li><li><a href="https://arxiv.org/html/2503.01840" target="_blank" rel="noopener noreferrer">EAGLE-3 论文</a></li><li><a href="https://arxiv.org/html/2602.06036" target="_blank" rel="noopener noreferrer">DFlash 论文</a></li><li><a href="https://arxiv.org/html/2404.19737" target="_blank" rel="noopener noreferrer">Multi-Token Prediction 基础</a></li></ul></section>
+  <footer class="next-prev"><a href="m4.html">上一节</a><span></span></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

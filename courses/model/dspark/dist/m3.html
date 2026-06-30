@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>置信度调度验证 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m3</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="dspark" data-module-id="m3">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek DSpark：半自回归投机解码推理加速</p>
+    <h1>置信度调度验证</h1>
+    <p class="lede">动态调整验证长度，把 batch 容量留给高置信度 token。</p>
+  </header>
+  <section><h2 data-section-id="m3-problem" data-section-title="盲目验证的浪费">盲目验证的浪费 <button class="ask-btn" data-ask-section="m3-problem" data-ask-title="盲目验证的浪费">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>并行 draft 带来长候选，但 batch 容量有限</h4><p class="concept-why">生产环境里不是所有候选 token 都值得用大模型验证。</p><div class="concept-body"><p>并行 draft 能一次性提出 7 个甚至更多候选 token，但目标模型一次 forward 能验证的 token 数量受 batch capacity 限制。如果不管三七二十一全部送进去验证：</p>
+<ul><li>低置信度的尾部 token 大概率被拒绝，白白占用 batch 容量。</li><li>高并发时，浪费的容量会拖慢所有请求的响应。</li></ul>
+<p>论文把这种现象称为 <strong>indiscriminate verification</strong>，是并行 draft 在高并发 serving 中的主要系统瓶颈。</p></div></section></section>
+<section><h2 data-section-id="m3-confidence" data-section-title="置信度头与调度器">置信度头与调度器 <button class="ask-btn" data-ask-section="m3-confidence" data-ask-title="置信度头与调度器">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>Confidence head 估计每个前缀的生存概率</h4><p class="concept-why">需要提前判断哪些候选 token 更可能被接受。</p><div class="concept-body"><p>DSpark 在 draft 模型上加了一个轻量的 <strong>confidence head</strong>。对每个候选位置 <span class="math inline">$j$</span>，它输出一个标量置信度 <span class="math inline">$c_{r,j}$</span>，表示该 token 被目标模型接受的概率。</p>
+<p>基于这些置信度，可以计算前缀生存概率：</p>
+<p><div class="math block">$$ a_{r,j} = \prod_{i \le j} c_{r,i} $$</div></p>
+<p>即前 <span class="math inline">$j$</span> 个 token 全部被接受的概率。这个概率越高，继续往后验证的收益越大。</p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>Hardware-Aware Prefix Scheduler 动态分配验证长度</h4><p class="concept-why">验证长度应该随负载变化，而不是固定值。</p><div class="concept-body"><p>DSpark 的调度器会：</p>
+<ol><li>把所有请求的所有候选前缀按生存概率全局排序。</li><li>根据当前 GPU 吞吐曲线（预先用不同 batch size profile 得到）计算最优 batch size <span class="math inline">$B$</span>。</li><li>逐步从高到低 admitting token，直到达到容量 <span class="math inline">$K$</span>。</li></ol>
+<p>负载轻时，可以接受更多长前缀，充分利用空闲算力；负载重时，只验证高置信度前缀，保护 batch 容量。论文把这个机制叫做 <strong>Confidence-Scheduled Verification</strong>。</p></div></section>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>Confidence-Scheduled Verification 在高并发下能显著提升系统吞吐，避免低置信度 token 浪费 batch 容量。</strong></p><p class="evidence-basis">论文 Section 3.2 与 Figure 7 显示，在严格延迟 SLA 下 DSpark 相对 MTP-1 的吞吐提升可达 406–661%，调度器是关键系统优化之一。</p><footer><span>verified</span><span><a href="https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf" target="_blank" rel="noopener noreferrer">DSpark 论文 PDF</a></span></footer></aside></section>
+<section><h2 data-section-id="m3-training-objective" data-section-title="训练目标">训练目标 <button class="ask-btn" data-ask-section="m3-training-objective" data-ask-title="训练目标">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>总变差损失直接优化接受率</h4><p class="concept-why">让 draft 产出的 token 更容易被目标模型接受。</p><div class="concept-body"><p>DSpark 的训练目标由三项加权组成：</p>
+<p><div class="math block">$$ \mathcal{L} = \alpha_{\text{ce}} \mathcal{L}_{\text{ce}} + \alpha_{\text{tv}} \mathcal{L}_{\text{tv}} + \alpha_{\text{conf}} \mathcal{L}_{\text{conf}} $$</div></p>
+<p>默认权重为 <span class="math inline">$\alpha_{\text{ce}}=0.1$</span>、<span class="math inline">$\alpha_{\text{tv}}=0.9$</span>、<span class="math inline">$\alpha_{\text{conf}}=1.0$</span>。</p>
+<ul><li><span class="math inline">$\mathcal{L}_{\text{ce}}$</span>：标准交叉熵，保证 draft 分布合理。</li><li><span class="math inline">$\mathcal{L}_{\text{tv}}$</span>：总变差损失（total-variation loss），让 draft 分布与目标模型分布更接近，从而提升接受率。</li><li><span class="math inline">$\mathcal{L}_{\text{conf}}$</span>：置信度头损失，让 confidence head 的估计更准确。</li></ul></div></section>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>假设某请求有 5 个候选 token，置信度分别为 0.95、0.90、0.85、0.60、0.30。请计算前 3 个 token 全部 survive 的概率，并判断是否应该验证第 5 个 token。</p>
+</div>
+<div class="exercise-answer" hidden>
+<p>前 3 个 token 全部 survive 的概率 = 0.95 × 0.90 × 0.85 ≈ 0.727。 第 5 个 token 的前缀 survive 概率 = 0.95 × 0.90 × 0.85 × 0.60 × 0.30 ≈ 0.131。在 batch 容量紧张时不值得验证，应优先把容量留给更高置信度的前缀。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-summary" data-section-title="本章小结">本章小结 <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="本章小结">提问</button></h2>
+<ul><li>并行 draft 的长候选如果全部验证，会浪费宝贵的 batch 容量。</li><li>Confidence head 给每个 token 估计接受概率，前缀生存概率指导调度。</li><li>Hardware-Aware Prefix Scheduler 根据负载动态选择验证长度，实现高并发下的吞吐最大化。</li><li>训练目标同时优化 draft 质量、分布一致性和置信度估计。</li></ul></section>
+  <footer class="next-prev"><a href="m2.html">上一节</a><a href="m4.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

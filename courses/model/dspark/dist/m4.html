@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>训练与部署 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m4</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="dspark" data-module-id="m4">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek DSpark：半自回归投机解码推理加速</p>
+    <h1>训练与部署</h1>
+    <p class="lede">DeepSpec 训练流程、数据准备与 vLLM/SGLang 生产服务。</p>
+  </header>
+  <section><h2 data-section-id="m4-deepspec" data-section-title="DeepSpec 仓库">DeepSpec 仓库 <button class="ask-btn" data-ask-section="m4-deepspec" data-ask-title="DeepSpec 仓库">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>DeepSpec 是一个全栈训练与评估代码库</h4><p class="concept-why">DSpark 不仅开源了权重，还开源了训练 draft 模型的完整流程。</p><div class="concept-body"><p>DeepSpec 仓库（<code>deepseek-ai/DeepSpec</code>）包含：</p>
+<ul><li><strong>三种投机解码算法实现</strong>：DSpark、DFlash、Eagle3。</li><li><strong>训练脚本</strong>：数据准备、多 GPU 训练、评估。</li><li><strong>配置驱动</strong>：例如 <code>config/dspark/dspark_qwen3_4b.py</code> 定义模型与训练超参。</li><li><strong>9 个离线 benchmark</strong>：GSM8K、MATH、AIME25、HumanEval、MBPP、LiveCodeBench、MT-Bench、Alpaca、Arena-Hard-v2。</li></ul>
+<p>延伸阅读：</p>
+<ul><li><a href="https://github.com/deepseek-ai/DeepSpec" target="_blank" rel="noopener noreferrer">DeepSpec GitHub 仓库</a></li><li><a href="https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro-DSpark" target="_blank" rel="noopener noreferrer">HuggingFace DeepSeek-V4-Pro-DSpark 权重</a></li></ul></div></section></section>
+<section><h2 data-section-id="m4-training" data-section-title="训练流程">训练流程 <button class="ask-btn" data-ask-section="m4-training" data-ask-title="训练流程">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>冻结目标模型，复用 embedding 与输出头</h4><p class="concept-why">不需要重新训练大模型，只需要训练一个外挂 draft 模块。</p><div class="concept-body"><p>DSpark 的训练只更新 draft 模块参数：</p>
+<ul><li>目标模型（如 DeepSeek-V4）权重完全冻结。</li><li>Draft backbone、sequential head、confidence head 从零或 Warmup 开始训练。</li><li>Embedding 层和输出头复用目标模型，保证 draft 与 target 的 token 分布对齐。</li></ul>
+<p>这样做的好处是训练成本低，且不会破坏原模型的输出分布。</p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>数据准备与目标缓存</h4><p class="concept-why">训练 draft 需要目标模型对大量序列的分布信息。</p><div class="concept-body"><p>训练前需要准备 <strong>target cache</strong>：用冻结的目标模型跑一遍训练数据，保存中间层特征与输出分布。这个缓存可能非常大——例如 Qwen3-4B 设置下接近 38 TB。缓存越大，训练数据覆盖越广，draft 泛化越好。</p>
+<p>训练阶段默认使用单节点 8 GPU，可通过 <code>CUDA_VISIBLE_DEVICES</code> 调整可见设备数。</p></div></section>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>DSpark 的训练配置默认单节点 8 GPU，目标缓存可达数十 TB 量级。</strong></p><p class="evidence-basis">报道明确提到默认 8 GPU 配置与约 38 TB target cache（Qwen3-4B 设置）。</p><footer><span>verified</span><span><a href="https://www.marktechpost.com/2026/06/27/deepseek-releases-dspark-a-speculative-decoding-framework-that-accelerates-deepseek-v4-per-user-generation-60-85-over-mtp-1/" target="_blank" rel="noopener noreferrer">MarkTechPost: DeepSeek Releases DSpark</a></span></footer></aside></section>
+<section><h2 data-section-id="m4-deployment" data-section-title="生产部署">生产部署 <button class="ask-btn" data-ask-section="m4-deployment" data-ask-title="生产部署">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>已发布即插即用的 checkpoint</h4><p class="concept-why">大多数用户不需要自己训练，直接加载权重即可。</p><div class="concept-body"><p>DeepSeek 在 HuggingFace 上发布了两个生产 checkpoint：</p>
+<ul><li><code>deepseek-ai/DeepSeek-V4-Pro-DSpark</code></li><li><code>deepseek-ai/DeepSeek-V4-Flash-DSpark</code></li></ul>
+<p>它们不是新训练的目标模型，而是原 V4 checkpoint 加上训练好的 draft 模块。推理框架可以直接加载并启用投机解码。</p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>vLLM / SGLang 服务方式</h4><p class="concept-why">主流开源推理引擎已支持或正在集成 DSpark。</p><div class="concept-body"><p>示例启动命令：</p>
+<pre><code class="language-bash"># vLLM
+vllm serve &quot;deepseek-ai/DeepSeek-V4-Pro-DSpark&quot;
+
+# SGLang
+python3 -m sglang.launch_server \
+  --model-path &quot;deepseek-ai/DeepSeek-V4-Pro-DSpark&quot;</code></pre>
+<p>实际部署时还需要配置 speculative decoding 参数，如 draft 长度、验证 batch size、置信度阈值等。</p>
+<p>延伸阅读：</p>
+<ul><li><a href="https://github.com/vllm-project/vllm/issues/46910" target="_blank" rel="noopener noreferrer">vLLM Issue: Support DSpark for DeepSeek V4</a></li><li><a href="https://github.com/vllm-project/vllm/issues/46931" target="_blank" rel="noopener noreferrer">vLLM Issue: DSpark performance</a></li></ul></div></section>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>把训练/部署阶段与主要成本连起来。</p>
+<ul><li>准备 target cache</li><li>训练 draft 模块</li><li>在线服务加载 DSpark checkpoint</li></ul>
+<p>成本：</p>
+<ol><li>大量存储空间</li><li>8 GPU 训练时间</li><li>几乎零额外训练成本</li></ol>
+</div>
+<div class="exercise-answer" hidden>
+<ul><li>准备 target cache → 1</li><li>训练 draft 模块 → 2</li><li>在线服务加载 DSpark checkpoint → 3</li></ul>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-summary" data-section-title="本章小结">本章小结 <button class="ask-btn" data-ask-section="m4-summary" data-ask-title="本章小结">提问</button></h2>
+<ul><li>DeepSpec 提供 DSpark / DFlash / Eagle3 的全栈训练与评估代码。</li><li>DSpark 冻结目标模型，只训练 draft 模块，训练成本低。</li><li>目标缓存可能很大，但生产 checkpoint 可以直接加载使用。</li><li>vLLM、SGLang 等引擎正在集成，部署门槛逐步降低。</li></ul></section>
+  <footer class="next-prev"><a href="m3.html">上一节</a><a href="m5.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

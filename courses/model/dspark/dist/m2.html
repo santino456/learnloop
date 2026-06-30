@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>半自回归生成架构 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m2</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="dspark" data-module-id="m2">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek DSpark：半自回归投机解码推理加速</p>
+    <h1>半自回归生成架构</h1>
+    <p class="lede">DSpark 如何用并行 draft backbone + 轻量顺序头缓解 suffix decay。</p>
+  </header>
+  <section><h2 data-section-id="m2-paradigms" data-section-title="两类 draft 范式">两类 draft 范式 <button class="ask-btn" data-ask-section="m2-paradigms" data-ask-title="两类 draft 范式">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>自回归 draft：Eagle3 路线</h4><p class="concept-why">顺序生成能建模 token 间依赖，但 draft 本身也有串行成本。</p><div class="concept-body"><p>Eagle3 是 2025 年代表性的自回归投机解码方法。它用一个极小的 draft 模型（通常 1 层）依次生成候选 token，并依赖目标模型的特征做条件。优点是：</p>
+<ul><li>每个 draft token 都显式依赖前面已采样的 token，序列内一致性强。</li><li>在代码、数学等结构化任务上接受率较高。</li></ul>
+<p>缺点是：</p>
+<ul><li>draft 成本随候选长度线性增长。</li><li>当需要一次性提出长候选序列时，draft 本身会成为瓶颈。</li></ul>
+<p>延伸阅读：</p>
+<ul><li><a href="https://arxiv.org/html/2503.01840" target="_blank" rel="noopener noreferrer">EAGLE-3: Scaling up Inference Acceleration of Large Language Models via Training-Time Test</a></li></ul></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>并行 draft：DFlash 路线</h4><p class="concept-why">一次 forward 生成整个 token 块，速度极快，但后面 token 质量会衰减。</p><div class="concept-body"><p>DFlash 用块级扩散模型（block diffusion）做并行 draft，把整个候选块一次性生成。优点是：</p>
+<ul><li>draft 时间与块长基本无关，常数时间产出长序列。</li><li>在短候选上速度优势明显。</li></ul>
+<p>但论文指出，并行 draft 存在一个关键问题：<strong>suffix decay</strong>。块内后面的 token 缺乏对前面已生成 token 的显式依赖，导致越靠后的 token 被目标模型接受的概率越低。</p>
+<p>延伸阅读：</p>
+<ul><li><a href="https://arxiv.org/html/2602.06036" target="_blank" rel="noopener noreferrer">DFlash: Block Diffusion for Flash Speculative Decoding</a></li></ul></div></section></section>
+<section><h2 data-section-id="m2-dspark-arch" data-section-title="DSpark 的半自回归设计">DSpark 的半自回归设计 <button class="ask-btn" data-ask-section="m2-dspark-arch" data-ask-title="DSpark 的半自回归设计">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>并行 backbone 负责“快”</h4><p class="concept-why">保留并行 draft 的高吞吐优势。</p><div class="concept-body"><p>DSpark 首先用一个并行 backbone 在单个 forward 内生成整个候选块。这相当于继承了 DFlash 的高吞吐特性：给定前缀 token <span class="math inline">$\mathbf{x}_{<t}$</span>，一次性产出后续 <span class="math inline">$\gamma$</span> 个位置的初始 logits。</p>
+<p>论文把这一步称为 <strong>parallel stage</strong>。anchor token 加上若干 masked 位置进入 backbone，得到块内每个位置的 draft 分布。</p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>轻量 sequential head 负责“准”</h4><p class="concept-why">在块内引入局部顺序依赖，缓解 suffix decay。</p><div class="concept-body"><p>DSpark 在并行 backbone 之上增加了一个轻量的 <strong>sequential head</strong>（默认是 Markov head，可选 RNN head）。它只建模块内相邻 token 之间的转移偏置：</p>
+<p><div class="math block">$$ B_k(x_0, x_{<k}) \approx \log P(x_k \mid x_0, x_{<k}) - \log P(x_k \mid x_0) $$</div></p>
+<p>其中 <span class="math inline">$x_0$</span> 是 anchor token。这个 head 参数量很小，但给块内每个位置引入了前缀依赖，从而显著提升后面 token 的接受率。</p>
+<p>这种“并行主干 + 局部自回归修正”的组合就是 <strong>Semi-Autoregressive Generation</strong>。</p></div></section>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>在 Qwen3-4B/8B/14B 上，DSpark 的 accepted length 比 Eagle3 提升 26.7–30.9%，比 DFlash 提升 16.3–18.4%。</strong></p><p class="evidence-basis">论文 Introduction 中给出跨 Qwen3 三个尺寸的宏观平均 accepted length 对比数据。</p><footer><span>verified</span><span><a href="https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf" target="_blank" rel="noopener noreferrer">DSpark 论文 PDF</a></span></footer></aside>
+<section class="ll-compare"><span class="learning-block-label">对比</span><table><thead><tr><th>维度</th><th>Eagle3（自回归 draft）</th><th>DSpark（半自回归 draft）</th></tr></thead><tbody><tr><th>依赖建模</th><td>全局顺序，依赖链长</td><td>块内局部顺序，块间并行</td></tr><tr><th>Draft 速度</th><td>随候选长度线性增长</td><td>块长增加时成本增长缓慢</td></tr><tr><th>Suffix decay</th><td>较轻</td><td>通过 sequential head 显著缓解</td></tr><tr><th>适用长度</th><td>中短候选</td><td>中长候选</td></tr></tbody></table></section></section>
+<section><h2 data-section-id="m2-exercise" data-section-title="练习：把组件和问题对应起来">练习：把组件和问题对应起来 <button class="ask-btn" data-ask-section="m2-exercise" data-ask-title="练习：把组件和问题对应起来">提问</button></h2>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>把 DSpark 的组件与它所解决的主要问题连起来。</p>
+<ul><li>并行 backbone</li><li>Markov sequential head</li><li>anchor token 机制</li></ul>
+<p>问题：</p>
+<ol><li>draft 后面 token 质量下降</li><li>每步只产 1 个 token 太慢</li><li>减少 draft 输入长度同时保持预测位置数</li></ol>
+</div>
+<div class="exercise-answer" hidden>
+<ul><li>并行 backbone → 2</li><li>Markov sequential head → 1</li><li>anchor token 机制 → 3</li></ul>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-summary" data-section-title="本章小结">本章小结 <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="本章小结">提问</button></h2>
+<ul><li>自回归 draft 准但慢，并行 draft 快但后面 token 容易变差。</li><li>DSpark 用“并行 backbone + 轻量 sequential head”兼顾速度与质量。</li><li>实测在多个目标模型上 accepted length 显著优于 Eagle3 和 DFlash。</li></ul></section>
+  <footer class="next-prev"><a href="m1.html">上一节</a><a href="m3.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

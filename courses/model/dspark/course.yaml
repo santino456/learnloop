@@ -1,0 +1,28 @@
+id: dspark
+title: "DeepSeek DSpark：半自回归投机解码推理加速"
+subtitle: "从动机、架构、置信度调度到生产部署的系统化课程。"
+audience: "AI 工程师与研究人员"
+default_port: 8787
+template: tutorial
+lang: zh
+modules:
+  - id: m1
+    title: "投机解码的动机"
+    file: "modules/01.md"
+    summary: "为什么 LLM 推理慢，以及投机解码如何突破自回归串行瓶颈。"
+  - id: m2
+    title: "半自回归生成架构"
+    file: "modules/02.md"
+    summary: "DSpark 如何用并行 draft backbone + 轻量顺序头缓解 suffix decay。"
+  - id: m3
+    title: "置信度调度验证"
+    file: "modules/03.md"
+    summary: "动态调整验证长度，把 batch 容量留给高置信度 token。"
+  - id: m4
+    title: "训练与部署"
+    file: "modules/04.md"
+    summary: "DeepSpec 训练流程、数据准备与 vLLM/SGLang 生产服务。"
+  - id: m5
+    title: "性能、局限与选型"
+    file: "modules/05.md"
+    summary: "Benchmark 数据、与 Eagle3 / DFlash / MTP 的对比以及适用场景。"

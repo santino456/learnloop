@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "/Users/hqyone/Documents/learn-with-ai/courses/model/dspark/raw/DSpark_paper.pdf",
+    "filename": "DSpark_paper.pdf",
+    "type": "pdf"
+  },
+  "backend": "pymupdf",
+  "generated_at": "2026-06-30T06:22:12.179114+00:00",
+  "outputs": {
+    "chunks_jsonl": "chunks.jsonl",
+    "figures_json": null,
+    "figures_md": null
+  },
+  "stats": {
+    "chunks": 33,
+    "figures": 0
+  },
+  "metadata": {
+    "backend": "pymupdf",
+    "pages": 33,
+    "title": "",
+    "author": "",
+    "figure_extraction": "caption-nearby-crop"
+  }
+}

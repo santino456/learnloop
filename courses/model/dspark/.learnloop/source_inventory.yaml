@@ -1,0 +1,65 @@
+sources:
+  - id: dspark-paper
+    type: paper
+    title: "DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation"
+    url: "https://github.com/deepseek-ai/DeepSpec/blob/main/DSpark_paper.pdf"
+    status: read
+    notes: "Primary source. Core claims: semi-autoregressive draft, confidence-scheduled verification, accepted length gains vs Eagle3/DFlash, production deployment on DeepSeek-V4."
+
+  - id: deepspec-repo
+    type: official
+    title: "DeepSpec: Deep Speculative Decoding Framework"
+    url: "https://github.com/deepseek-ai/DeepSpec"
+    status: read
+    notes: "Official MIT-licensed codebase for training and evaluating DSpark, DFlash, and Eagle3 draft models."
+
+  - id: v4-pro-dspark-weights
+    type: official
+    title: "DeepSeek-V4-Pro-DSpark on HuggingFace"
+    url: "https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro-DSpark"
+    status: read
+    notes: "Production checkpoint combining DeepSeek-V4-Pro with DSpark draft module."
+
+  - id: v4-flash-dspark-weights
+    type: official
+    title: "DeepSeek-V4-Flash-DSpark on HuggingFace"
+    url: "https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-DSpark"
+    status: read
+    notes: "Production checkpoint combining DeepSeek-V4-Flash with DSpark draft module."
+
+  - id: marktechpost-dspark
+    type: article
+    title: "DeepSeek Releases DSpark: Speculative Decoding Framework"
+    url: "https://www.marktechpost.com/2026/06/27/deepseek-releases-dspark-a-speculative-decoding-framework-that-accelerates-deepseek-v4-per-user-generation-60-85-over-mtp-1/"
+    status: read
+    notes: "News coverage with training hardware requirements (8 GPU, ~38 TB target cache) and supported models."
+
+  - id: eagle3-paper
+    type: paper
+    title: "EAGLE-3: Scaling up Inference Acceleration of Large Language Models via Training-Time Test"
+    url: "https://arxiv.org/abs/2503.01840"
+    status: read
+    notes: "Autoregressive speculative decoding baseline used in DSpark comparisons."
+
+  - id: dflash-paper
+    type: paper
+    title: "DFlash: Block Diffusion for Flash Speculative Decoding"
+    url: "https://arxiv.org/abs/2602.06036"
+    status: read
+    notes: "Parallel draft baseline using block diffusion; DSpark cites it as representative of parallel drafters."
+
+  - id: mtp-paper
+    type: paper
+    title: "Better & Faster Large Language Models via Multi-Token Prediction"
+    url: "https://arxiv.org/abs/2404.19737"
+    status: read
+    notes: "Foundational reference for Multi-Token Prediction (MTP), the production baseline DSpark improves upon."
+
+  - id: dspark_paper
+    type: local-material
+    title: "DSpark_paper.pdf"
+    path: "raw/DSpark_paper.pdf"
+    status: ingested
+    material: ".learnloop/materials/dspark_paper/material.json"
+    chunks: 33
+    figures: 0

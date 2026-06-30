@@ -1,0 +1,8 @@
+sources:
+  - id: deepseek-v4-paper
+    type: paper
+    title: "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence"
+    path: "raw/DeepSeek_V4.pdf"
+    url: "https://huggingface.co/collections/deepseek-ai/deepseek-v4"
+    status: read
+    notes: "主要来源：架构、CSA/HCA、mHC、Muon、训练基础设施、评估结果。"

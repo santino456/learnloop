@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基础 —— 为什么需要语言世界模型？ | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/perspective/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m1</span><span class="top-nav-template">perspective</span></nav>
+<article class="lesson" data-course-id="qwen-agentworld" data-module-id="m1">
+  <header class="lesson-header">
+    <p class="eyebrow">Qwen-AgentWorld</p>
+    <h1>基础 —— 为什么需要语言世界模型？</h1>
+    <p class="lede">理解世界模型与策略模型的分工、Qwen-AgentWorld 的七大领域，以及 Decouple 与 Unify 两种范式。</p>
+  </header>
+  <section><h2 data-section-id="m1-foundations" data-section-title="为什么需要语言世界模型？">为什么需要语言世界模型？ <button class="ask-btn" data-ask-section="m1-foundations" data-ask-title="为什么需要语言世界模型？">提问</button></h2>
+<p>在智能体与环境的交互循环中，两个互补组件缺一不可：</p>
+<ul><li><strong>策略（policy）</strong>：把状态映射为动作，即 &quot;看到什么就做什么&quot;。</li><li><strong>世界模型（world model）</strong>：把 &quot;状态 + 动作&quot; 映射为 &quot;下一状态&quot;，即 &quot;做了之后环境会变成什么样&quot;。</li></ul>
+<p>当前大语言模型（LLM）智能体的研究几乎只聚焦在策略一侧。本模块解释：世界模型不仅是&quot;有用&quot;的，而是通向通用智能体过程中<strong>必要</strong>的缺失拼图。</p>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>世界模型（World Model）</h4><p class="concept-why">只有能预测环境反馈，智能体才能在做动作之前进行内部推演。</p><div class="concept-body"><p>世界模型是一个条件文本生成器：给定交互历史和当前动作，预测下一个环境观察（observation）。形式化地，语言世界模型 LWM <span class="math inline">$f_θ$</span> 输出：</p>
+<p><div class="math block">$$ô_{t+1} = f_θ(c, o_{≤t}, a_{≤t})$$</div></p>
+<p>其中 c 是系统提示，<span class="math inline">$o_t$</span> 是第 t 步的观察，<span class="math inline">$a_t$</span> 是第 t 步的动作。训练目标就是真实观察 <span class="math inline">$o_{t+1}$</span>。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S2.SS3" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §2.3</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>仅策略智能体训练（Policy-only Agent Training）</h4><p class="concept-why">只优化动作会让智能体学会&quot;行动&quot;，但学不会&quot;预见后果&quot;。</p><div class="concept-body"><p>仅策略智能体训练：只优化状态到动作的映射，没有显式的下一状态预测。智能体学会行动，但无法预见自己行为的后果。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §1</a></p></div></section>
+<section class="ll-compare"><span class="learning-block-label">对比</span><table><thead><tr><th>维度</th><th>仅策略智能体</th><th>世界模型增强智能体</th></tr></thead><tbody><tr><th>维度</th><td>仅策略智能体</td><td>世界模型增强智能体</td></tr><tr><th>核心目标</th><td>最大化任务奖励</td><td>预测下一状态 + 最大化任务奖励</td></tr><tr><th>典型失败</th><td>重复犯错，直到环境惩罚</td><td>在行动前预判错误</td></tr><tr><th>规划 horizon</th><td>单步或启发式</td><td>通过心智模拟做多步规划</td></tr><tr><th>可扩展性</th><td>受限于真实环境访问</td><td>可通过模拟 rollout 扩展</td></tr><tr><th>训练数据</th><td>智能体轨迹</td><td>环境轨迹 + 智能体轨迹</td></tr></tbody></table></section></section>
+<section><h2 data-section-id="m1-domains" data-section-title="Qwen-AgentWorld 的七大领域">Qwen-AgentWorld 的七大领域 <button class="ask-btn" data-ask-section="m1-domains" data-ask-title="Qwen-AgentWorld 的七大领域">提问</button></h2>
+<p>Qwen-AgentWorld 把七类交互环境模拟统一到一个语言世界模型中。下表列出每个领域的动作表示、观察表示，以及下一状态预测所锻炼的核心能力。</p>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-table-1.png" alt="表 1：Qwen-AgentWorld 覆盖的七大领域，含动作、观察与核心能力三列。" loading="lazy"><figcaption><span>表 1：Qwen-AgentWorld 覆盖的七大领域及其动作、观察、核心能力。</span></figcaption></figure>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>有状态环境 vs. 无状态环境</h4><p class="concept-why">不同环境的状态维护方式不同，但 LWM 都以相同的观察序列作为输入。</p><div class="concept-body"><p>有状态环境 vs. 无状态环境：在无状态环境（如 Search）中，状态隐含在对话历史中；在有状态环境（如 Terminal、OS）中，存在随动作演化的显式内部状态。无论哪种情况，LWM 都基于同一套观察序列进行预测。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S2.SS3" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §2.3</a></p></div></section></section>
+<section><h2 data-section-id="m1-paradigms" data-section-title="两种互补范式：Decouple 与 Unify">两种互补范式：Decouple 与 Unify <button class="ask-btn" data-ask-section="m1-paradigms" data-ask-title="两种互补范式：Decouple 与 Unify">提问</button></h2>
+<p>Qwen-AgentWorld 探索了把世界建模用于增强语言智能体的两条互补路径。</p>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-1.png" alt="图 1：Qwen-AgentWorld 概览。上方为跨七大领域的统一原生语言世界模型；下方为 Decouple 与 Unify 两种应用策略。" loading="lazy"><figcaption><span>图 1：Qwen-AgentWorld 概览。上方：跨七大领域的统一语言世界模型；下方：Decouple（作为环境模拟器）与 Unify（作为智能体基础模型）两种互补策略。</span></figcaption></figure>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>Decouple（解耦 / 模拟器）</h4><p class="concept-why">把世界模型独立出来，可以获得规模化和可控性。</p><div class="concept-body"><p>Decouple（模拟器）：世界模型作为独立的环境模拟器，策略智能体与世界模型是两套模型。这种方式带来两个优势：</p>
+<ul><li><strong>可扩展性（scalability）</strong>：无需专用基础设施即可在 turn 级别扩展多样化环境。</li><li><strong>可控性（controllability）</strong>：可以有针对性地注入扰动，暴露智能体弱点。</li></ul>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S6.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.1</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>Unify（统一 / 基础模型）</h4><p class="concept-why">让同一个模型既选动作又预测状态，能把世界建模内化为推理习惯。</p><div class="concept-body"><p>Unify（基础模型）：同一个模型既负责选择动作，也负责预测环境状态。世界模型训练作为一种 &quot;热身&quot;（warm-up），通过预测驱动的动作细化来提升下游智能体表现。下一状态预测被内化为一种面向未来的元级思考模式，类似于 &quot;反思&quot;，但方向朝前。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S6.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.2</a></p></div></section>
+<section class="ll-decision"><div class="decision-prompt"><p>什么时候选择 Decouple，什么时候选择 Unify？</p></div><div class="decision-reveal" hidden><section class="decision-perspective"><h4>视角</h4><p>依据：基于可扩展性、可控性、基础设施复杂度和推理内化的权衡。</p>
+<p><strong>选择 Decouple 当：</strong></p>
+<ul><li>需要把环境规模扩展到真实基础设施无法支撑的程度（例如数千个并行训练环境）。</li><li>需要可控模拟，以注入针对性扰动或构建虚构世界。</li><li>模拟器与智能体的最优架构或规模不同。</li></ul>
+<p><strong>选择 Unify 当：</strong></p>
+<ul><li>希望智能体把心智模拟内化为推理习惯。</li><li>偏好基础设施简单（一个模型而非两个）。</li><li>同一模型规模足以同时满足策略和世界模型质量要求。</li></ul>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §1</a>, §6</p></section></div><button class="decision-toggle" type="button" aria-expanded="false">显示判断视角</button></section></section>
+<section><h2 data-section-id="m1-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m1-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>世界模型预测环境动态；对通用智能体而言，它在理论上是必要的（Richens et al., 2025）。</li><li>Qwen-AgentWorld 覆盖七大领域（MCP、Search、Terminal、SWE、Android、Web、OS），用统一的文本表示跨域建模。</li><li>Decouple（模拟器）与 Unify（基础模型）是两条互补路径，分别对应 &quot;外部规模化模拟&quot; 和 &quot;内部推理内化&quot;。</li></ul>
+<div class="exercise" data-kind="perspective">
+<div class="exercise-task judgment-task">
+<p><strong>视角练习</strong>：你正在设计一个科研智能体，它需要读论文、跑实验、写报告。你会把它做成 <strong>Decouple</strong> 系统（独立的世界模型模拟器）还是 <strong>Unify</strong> 系统（单一智能体基础模型）？</p>
+</div>
+<textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>
+<div class="judgment-reveal" hidden>
+<section class="judgment-section perspective" hidden><h4>作者视角</h4>
+<p>依据：取决于瓶颈是可扩展的模拟基础设施，还是内化的推理能力。</p>
+<ul><li><strong>Decouple</strong> 适合：需要大量廉价的模拟论文评审或实验设计 rollout 来压力测试智能体，或模拟器可被多个智能体变体共享。</li><li><strong>Unify</strong> 适合：智能体在真实部署时必须自带类世界模型的预判能力，且维护两个大模型不现实。</li></ul>
+<p>没有 universally 最优解；成熟流程可能在训练阶段用 Decouple，在推理阶段用 Unify。</p>
+</section>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-compare" type="button">对比作者视角</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div>
+<p><strong>检查点</strong>：你能解释为什么下一状态预测是通用智能体的必要认知机制，并用一个具体用例对比 Decouple 与 Unify 吗？</p></section>
+  <footer class="next-prev"><span></span><a href="m2.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/perspective/runtime.js"></script>
+</body>
+</html>

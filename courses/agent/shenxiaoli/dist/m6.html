@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工具生态：搜索、技能与人格系统 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m6</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="shenxiaoli" data-module-id="m6">
+  <header class="lesson-header">
+    <p class="eyebrow">深小理：全栈架构透视</p>
+    <h1>工具生态：搜索、技能与人格系统</h1>
+    <p class="lede">ToolRegistry 注册机制、BM25 中文搜索实现、Skill 加载流程、PersonalityLoader 缓存与截断。</p>
+  </header>
+  <section><h2 data-section-id="m6-tools" data-section-title="ToolRegistry：7 个工具的注册与分发">ToolRegistry：7 个工具的注册与分发 <button class="ask-btn" data-ask-section="m6-tools" data-ask-title="ToolRegistry：7 个工具的注册与分发">提问</button></h2>
+<p><code>ToolRegistry</code> 是深小理的工具中枢——把 Python 函数注册为 Agent 可调用的 tool definition。</p>
+<h3>工具清单</h3>
+<table><thead><tr><th>工具</th><th>参数</th><th>返回</th><th>隐私敏感</th></tr></thead><tbody><tr><td><code>read_file</code></td><td><code>path</code></td><td>文件内容</td><td>否</td></tr><tr><td><code>search</code></td><td><code>query</code></td><td>BM25 搜索结果（top-5）</td><td>否</td></tr><tr><td><code>list_files</code></td><td><code>dir</code></td><td>目录列表</td><td>否</td></tr><tr><td><code>execute</code></td><td><code>script_name, args</code></td><td>脚本输出</td><td>否</td></tr><tr><td><code>ask_user</code></td><td><code>question, component, options, multi, max_score, context</code></td><td>暂停等待用户</td><td>否（但会中断 Agent 循环）</td></tr><tr><td><code>record_observation</code></td><td><code>content, category</code></td><td>确认消息</td><td><strong>是</strong></td></tr><tr><td><code>update_user_memory</code></td><td><code>content</code></td><td>确认消息</td><td><strong>是</strong></td></tr></tbody></table>
+<p>工具注册时自动生成 OpenAI 兼容的 <code>tool_definition</code>：</p>
+<pre><code class="language-python">{
+    &quot;type&quot;: &quot;function&quot;,
+    &quot;function&quot;: {
+        &quot;name&quot;: &quot;search&quot;,
+        &quot;description&quot;: &quot;搜索知识库&quot;,
+        &quot;parameters&quot;: {
+            &quot;type&quot;: &quot;object&quot;,
+            &quot;properties&quot;: {
+                &quot;query&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;搜索关键词&quot;}
+            },
+            &quot;required&quot;: [&quot;query&quot;]
+        }
+    }
+}</code></pre></section>
+<section><h2 data-section-id="m6-bm25" data-section-title="BM25 搜索：一个轻量中文检索引擎">BM25 搜索：一个轻量中文检索引擎 <button class="ask-btn" data-ask-section="m6-bm25" data-ask-title="BM25 搜索：一个轻量中文检索引擎">提问</button></h2>
+<p><code>search</code> 工具背后是一套手写的 BM25 搜索引擎——<strong>没有 Elasticsearch，没有向量数据库</strong>。</p>
+<h3>架构</h3>
+<pre><code class="language-">知识库 Markdown 文件
+  ↓
+按 ## / ### 标题切分为 chunks（带 breadcrumb）
+  ↓
+中文 2-gram + 英文单词 分词
+  ↓
+BM25 打分（k1=1.5, b=0.75）
+  ↓
+排序 + 去重 + 过滤 → top-5 结果</code></pre>
+<h3>打分策略</h3>
+<table><thead><tr><th>因素</th><th>方式</th><th>权重</th></tr></thead><tbody><tr><td>BM25</td><td>TF-IDF 变体</td><td>基准</td></tr><tr><td>标题命中</td><td>chunk 标题包含查询词</td><td>+5</td></tr><tr><td>文件名命中</td><td>来源文件名包含查询词</td><td>+3</td></tr><tr><td>短内容惩罚</td><td>chunk 内容 &lt; 50 字符</td><td>×0.7</td></tr><tr><td>去重</td><td>同一 breadcrumb 最多 2 条</td><td>-</td></tr><tr><td>分数门槛</td><td>低于最高分 20% 的结果丢弃</td><td>-</td></tr></tbody></table>
+<h3>为什么不用向量检索</h3>
+<ul><li>知识库规模：几百篇文章，BM25 精度足够</li><li>没有 GPU 依赖：BM25 纯 CPU 计算</li><li>部署零成本：一段 Python 代码，不需要单独的服务</li><li>中文好处理：2-gram 分词对任意中文文本都有效，不需要分词词典</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>BM25 和向量检索的核心区别是什么？什么场景下 BM25 不够用？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>BM25 依赖词频匹配——用户问&quot;图书馆&quot;就找含&quot;图书馆&quot;的文档。向量检索依赖语义相似——用户问&quot;学习的地方&quot;，即使没出现&quot;图书馆&quot;这个词，也能通过向量相似度找到相关文档。</p>
+<p>BM25 不够用的场景：1) 同义词/近义词查询（&quot;借书&quot; vs &quot;图书馆&quot;）；2) 跨语言查询；3) 大规模文档（成千上万篇）时 BM25 稀疏性导致召回不足。深小理的知识库只有几百篇中文文章，BM25 足够。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-skills" data-section-title="Skill 系统：场景化能力扩展">Skill 系统：场景化能力扩展 <button class="ask-btn" data-ask-section="m6-skills" data-ask-title="Skill 系统：场景化能力扩展">提问</button></h2>
+<p>Skill 是比 Tool 更高层的抽象——一个 Skill 包含多个工具、脚本和参考资料。</p>
+<h3>加载机制</h3>
+<pre><code class="language-">workspace/skills/
+├── admission-consultant/   ← 招生咨询
+│   ├── SKILL.md           ← 被 PersonalityLoader 加载到 system prompt
+│   └── (可选: scripts/, references/, assets/)
+├── campus-info/            ← 校园资讯
+├── campus-tour/            ← 校园导览
+├── poetry/                 ← 写诗
+└── story/                  ← 讲故事</code></pre>
+<p><code>SkillRegistry</code> 在启动时自动扫描 <code>workspace/skills/</code> 目录。每个包含 <code>SKILL.md</code> 的目录被识别为一个 Skill。解析 YAML 风格 frontmatter（手写解析器，不依赖 PyYAML）提取 <code>name</code> 和 <code>description</code>。</p>
+<p>生成的 manifest 注入到 system prompt 中：</p>
+<pre><code class="language-">可用技能：
+- admission-consultant: 招生咨询、录取分数、专业选择...
+- campus-info: 校园活动、学术讲座、新闻动态...
+...
+重要：使用任何技能之前，必须先用 read_file 加载其 SKILL.md。</code></pre>
+<h3>Skill 的结构模式</h3>
+<p>所有 Skill 的 <code>SKILL.md</code> 遵循相似结构：</p>
+<pre><code class="language-">---
+name: skill-name
+description: when to trigger
+---
+
+# Skill Title
+Persona and behavioral instructions...
+
+## Core capabilities / workflow
+## Red lines (hard bans)</code></pre>
+<ul><li><strong>Persona</strong>：这个 Skill 激活时 Agent 的身份和行为</li><li><strong>Workflow</strong>：标准操作流程（先查什么、再做什么、怎么组织回答）</li><li><strong>Red lines</strong>：绝对不能做的行为（如招生 skill 不能承诺录取）</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>阅读 <code>workspace/skills/campus-tour/SKILL.md</code>（用 read_file 工具），然后回答：这个 Skill 的 Persona 是什么？Red lines 有哪些？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>Persona: 校园向导，用图片 + 互动引导展示校园，每条消息最多 2-3 张图片。 Red lines: 1) 不能编造图片路径；2) 不能在没有图片的情况下说&quot;请看这张图&quot;；3) 不能在未知位置的情况下猜测图片存在。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-personality" data-section-title="PersonalityLoader：分层人格">PersonalityLoader：分层人格 <button class="ask-btn" data-ask-section="m6-personality" data-ask-title="PersonalityLoader：分层人格">提问</button></h2>
+<p><code>PersonalityLoader</code> 负责加载和缓存工作区文件。每个文件有字符上限，超出则截断：</p>
+<table><thead><tr><th>文件</th><th>上限</th><th>作用</th></tr></thead><tbody><tr><td><code>SOUL.md</code></td><td>1000</td><td>核心人格定义</td></tr><tr><td><code>SUAT.md</code></td><td>6000</td><td>校园事实数据</td></tr><tr><td><code>MEMORY.md</code></td><td>3500</td><td>Agent 经验记忆</td></tr><tr><td><code>MESSAGE_FORMAT.md</code></td><td>1500</td><td>输出格式规范</td></tr><tr><td><code>interaction_policy.md</code></td><td>(无限制)</td><td>交互原则</td></tr><tr><td><code>tool_guidelines.md</code></td><td>(无限制)</td><td>工具使用规范</td></tr></tbody></table>
+<p>截断策略：在最后一个完整的行处截断，追加 <code>...(已截断)</code>——保证不切在句子中间。</p>
+<p>缓存策略：按文件 mtime 缓存。文件修改后下次加载自动刷新。</p></section>
+<section><h2 data-section-id="m6-filesecurity" data-section-title="FileManager：文件访问安全">FileManager：文件访问安全 <button class="ask-btn" data-ask-section="m6-filesecurity" data-ask-title="FileManager：文件访问安全">提问</button></h2>
+<p><code>FileManager</code> 是所有文件操作的中转站。安全策略：</p>
+<ul><li><strong>路径解析</strong>：相对路径 → 绝对路径（基于 workspace 根目录）</li><li><strong>逃逸防护</strong>：<code>resolved.relative_to(workspace_root)</code> 如果抛出 <code>ValueError</code>，说明路径试图逃逸</li><li><strong>执行限制</strong>：<code>execute</code> 只允许 <code>skills/</code> 目录下的 <code>.py</code> 文件</li><li><strong>超时</strong>：脚本执行 30 秒超时，<code>asyncio.create_subprocess_exec</code> + <code>asyncio.wait_for</code></li></ul></section>
+<section><h2 data-section-id="m6-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>ToolRegistry：7 个工具，注册时自动生成 OpenAI tool definition。</li><li>BM25 搜索：自研中文检索引擎——没有 ES，没有向量数据库，几百篇文章场景精度够用。</li><li>Skill：场景化能力扩展（招生、校园、写诗、讲故事），启动时自动扫描注册。</li><li>PersonalityLoader：分层人格文件，mtime 缓存 + 按行截断。</li><li>FileManager：路径安全守卫，禁止逃逸 workspace。</li></ul></section>
+  <footer class="next-prev"><a href="m5.html">上一节</a><a href="m7.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

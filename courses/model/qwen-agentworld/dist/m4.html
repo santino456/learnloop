@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentWorldBench —— 评估世界模型 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m4</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="qwen-agentworld" data-module-id="m4">
+  <header class="lesson-header">
+    <p class="eyebrow">Qwen-AgentWorld</p>
+    <h1>AgentWorldBench —— 评估世界模型</h1>
+    <p class="lede">学习构建五维 rubric、reference-grounded LLM judge、差异化匹配标准，并解读主实验结果。</p>
+  </header>
+  <section><h2 data-section-id="m4-bench" data-section-title="AgentWorldBench：综合 LWM 评测基准">AgentWorldBench：综合 LWM 评测基准 <button class="ask-btn" data-ask-section="m4-bench" data-ask-title="AgentWorldBench：综合 LWM 评测基准">提问</button></h2>
+<p>AgentWorldBench 用于在七大智能体交互领域上评估语言世界模型。它包含 2170 个 turn-level 评测样本，来自 5 个前沿模型在 9 个已有基准上生成的轨迹。</p>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-6.png" alt="图 6：AgentWorldBench 构成概览，含领域分布、源基准、评测维度与汇总统计。" loading="lazy"><figcaption><span>图 6：AgentWorldBench 概览。左：七大领域分布、映射到各领域的源基准、五维评测指标；右：汇总统计、每领域平均上下文长度与轨迹深度。所有真值观察都来自真实环境执行。</span></figcaption></figure>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>构建原则</h4><p class="concept-why">评测基准的质量决定了后续结论的可信度。</p><div class="concept-body"><p><strong>构建原则</strong>：</p>
+<ol><li><strong>广泛使用的问题</strong>：所有任务查询都来自已有高质量智能体基准。</li><li><strong>前沿智能体轨迹</strong>：所有轨迹由前沿模型智能体生成。</li><li><strong>真实观察</strong>：每条轨迹都配有真实环境执行得到的真值观察。</li><li><strong>分布外划分</strong>：训练数据与基准查询在数据源层面分开。</li></ol>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S4.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §4.1</a></p></div></section></section>
+<section><h2 data-section-id="m4-protocol" data-section-title="评测协议">评测协议 <button class="ask-btn" data-ask-section="m4-protocol" data-ask-title="评测协议">提问</button></h2>
+<p>AgentWorldBench 通过开放式 rubric 评估模拟质量：LLM 裁判对每个预测观察在五个维度上打分。</p>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>五维评测指标</h4><p class="concept-why">单一分数无法区分格式错误、事实错误和一致性问题。</p><div class="concept-body"><p><strong>五维评测指标</strong>（每项 1–5 分，归一化到 0–100）：</p>
+<ul><li><strong>Format</strong>：领域结构约定（JSON schema 合规、shell 提示模式）。</li><li><strong>Factuality</strong>：陈述事实的正确性（文件内容、搜索结果、工具返回值）。</li><li><strong>Consistency</strong>：内部一致性，及与前面 turn 的一致性。</li><li><strong>Realism</strong>：真实环境的行为特征（响应模式、风格惯例、值合理性）。</li><li><strong>Quality</strong>：相对真值的完整性与简洁性。</li></ul>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S4.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §4.2</a></p></div></section></section>
+<section><h2 data-section-id="m4-judging" data-section-title="Reference-Grounded LLM 评判">Reference-Grounded LLM 评判 <button class="ask-btn" data-ask-section="m4-judging" data-ask-title="Reference-Grounded LLM 评判">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>Reference-Grounded Judging</h4><p class="concept-why">把开放式质量判断转化为事实比较，可显著降低裁判幻觉。</p><div class="concept-body"><p><strong>Reference-grounded judging</strong>：裁判同时获得真值环境观察与模型预测观察，并通过比较两者对每个维度打分。这把评测从开放式质量判断转化为事实比较，大幅压缩了裁判幻觉或误判的空间。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S4.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §4.2</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>差异化匹配标准</h4><p class="concept-why">不是所有内容都需要精确匹配，否则会把不可复现细节误判为错误。</p><div class="concept-body"><p><strong>差异化匹配标准</strong>：评测前先把内容分为三类：</p>
+<ul><li><strong>确定性内容</strong>（回声输出、文件读取、计算结果）：必须精确匹配。</li><li><strong>预存在环境内容</strong>（预装软件版本、轨迹未创建的文件内容）：只验证格式与合理性。</li><li><strong>运行时元数据</strong>（时间戳、PID、内存地址）：只验证格式与范围。</li></ul>
+<p>这种三分法让裁判在不惩罚不可复现细节的前提下，奖励正确的结构与语义行为。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S4.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §4.2</a></p></div></section></section>
+<section><h2 data-section-id="m4-calibration" data-section-title="通过双盲图灵测试校准裁判">通过双盲图灵测试校准裁判 <button class="ask-btn" data-ask-section="m4-calibration" data-ask-title="通过双盲图灵测试校准裁判">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>双盲图灵测试校准</h4><p class="concept-why">裁判必须能区分真实观察与忠实但错误的模拟，才能给出准确 rubric 分数。</p><div class="concept-body"><p><strong>双盲图灵测试校准</strong>：给定交互历史和当前动作，裁判在随机顺序下看到两个候选观察——一个来自真实环境，一个来自世界模型——并判断哪个是真实的。图灵测试准确率高的裁判，必然关注忠实模拟与看似合理但错误模拟之间的细微差异，这正是准确 rubric 评分所需的判别能力。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S4.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §4.2</a></p></div></section>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>跨裁判一致性：Gemini 3 Flash、Claude Sonnet 4.5、GPT-5.2 三个前沿模型被比较作为裁判候选。尽管绝对分数存在系统性差异（Gemini 最宽松，GPT-5.2 最严格），两两 Spearman 秩相关系数 ρ = 0.92–0.99（所有 p &lt; 10^-5），表明三个裁判对哪些模型产生更高保真预测达成高度一致。GPT-5.2 因平均图灵测试准确率最高被选为最终裁判。</strong></p><p class="evidence-basis">论文 §4.2 的跨裁判一致性与图灵测试结果。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S4.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §4.2</a></span></footer></aside></section>
+<section><h2 data-section-id="m4-results" data-section-title="主要结果与解读">主要结果与解读 <button class="ask-btn" data-ask-section="m4-results" data-ask-title="主要结果与解读">提问</button></h2>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-7.png" alt="图 7：AgentWorldBench 主实验结果，按领域展示各模型的五维 rubric 均值。" loading="lazy"><figcaption><span>图 7：AgentWorldBench 主实验结果。Qwen-AgentWorld-397B-A17B 在所有被评估模型中取得最高整体平均分，在文本领域优势明显，在 GUI 领域也有竞争力。</span></figcaption></figure>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-table-5.png" alt="表 5：五维 rubric 均值跨七大领域汇总，每领域最高与次高得分分别用粗体和下划线标出。" loading="lazy"><figcaption><span>表 5：AgentWorldBench 主实验结果：五维 rubric 均值（↑）按领域展示。每领域最高与次高得分分别用粗体和下划线标出。</span></figcaption></figure>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>关键结果：Qwen-AgentWorld-397B-A17B 整体平均分 58.71，超过 GPT-5.4（58.25）和 Claude Opus 4.6（57.80）。文本领域 Qwen-AgentWorld 平均 58.07（GPT-5.4 为 56.84）。GUI 领域 Claude Opus 4.8 领先（60.93），Qwen-AgentWorld 排名第五（59.69），差距被归因于多模态预训练优势，但该解释未做实验隔离。Search 是所有模型最弱领域：最佳 37.82，而 SWE 为 68.49。世界模型训练把 Qwen3.5-35B-A3B 从 47.73 提升到 56.39（+8.66）；在 397B 规模从 54.74 提升到 58.71（+3.97）。</strong></p><p class="evidence-basis">论文 §5.2 与表 5 的实验数据。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S5.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §5.2</a></span></footer></aside>
+<section class="ll-compare"><span class="learning-block-label">对比</span><table><thead><tr><th>维度</th><th>Qwen-AgentWorld-397B-A17B</th><th>最佳前沿基线 GPT-5.4</th></tr></thead><tbody><tr><th>维度</th><td>Qwen-AgentWorld-397B-A17B</td><td>GPT-5.4</td></tr><tr><th>整体平均</th><td>58.71</td><td>58.25</td></tr><tr><th>文本平均</th><td>58.07</td><td>56.84</td></tr><tr><th>GUI 平均</th><td>59.69</td><td>60.47</td></tr></tbody></table></section></section>
+<section><h2 data-section-id="m4-exercise" data-section-title="练习：设计一个裁判提示">练习：设计一个裁判提示 <button class="ask-btn" data-ask-section="m4-exercise" data-ask-title="练习：设计一个裁判提示">提问</button></h2>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p><strong>任务</strong>：按照五维框架，为 MCP 领域设计一个领域感知的 rubric 裁判提示。</p>
+<p><strong>要求</strong>：</p>
+<ol><li>用 MCP 领域的术语定义五个维度（Format、Factuality、Consistency、Realism、Quality）。</li><li>包含至少三种内容类型及其验证标准的内容类型分类表。</li><li>为确定性内容与非确定性内容指定差异化匹配标准。</li></ol>
+</div>
+<div class="exercise-answer" hidden>
+<p><strong>验证标准</strong>：Factuality 维度应强调 JSON schema 合规与工具执行正确性；Consistency 维度应要求跨 turn 资源引用完整性（例如前面 turn 创建的 ID 在后面必须一致）。</p>
+<p>完整答案应包含：</p>
+<ul><li><strong>Format</strong>：MCP 工具调用是否符合约定的 JSON 结构；返回结果是否包含预期的字段层级。</li><li><strong>Factuality</strong>：工具名、参数名、参数值是否正确；资源 URI、server name 是否与动作一致。</li><li><strong>Consistency</strong>：跨 turn 的 resource ID、user ID、parent-child 引用是否保持一致。</li><li><strong>Realism</strong>：错误信息风格是否符合真实 MCP server（如 <code>Method not found</code> vs. 自定义错误）。</li><li><strong>Quality</strong>：相对真值是否完整且简洁，没有过度省略或冗余。</li><li><strong>内容类型分类</strong>：</li></ul>
+<p>- 确定性内容：工具名、schema 字段名、由动作直接决定的结果值 → 精确匹配。 - 预存在环境内容：server 描述、预置资源摘要 → 格式与合理性验证。 - 运行时元数据：timestamp、UUID、session ID → 格式与范围验证。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#A4.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §4.2, Appendix D.2</a></p>
+<p>---</p>
+<p><strong>模块小结</strong>：AgentWorldBench 通过 reference-grounded 五维 rubric 评判和差异化匹配标准评估世界模型。跨裁判一致性高（ρ = 0.92–0.99），验证了基准可靠性。Qwen-AgentWorld 在文本领域领先；GUI 差距可能来自多模态预训练优势。</p></section>
+  <footer class="next-prev"><a href="m3.html">上一节</a><a href="m5.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>记忆的艺术：从会话到人格 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/practice/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m3</span><span class="top-nav-template">practice</span></nav>
+<article class="lesson" data-course-id="shenxiaoli" data-module-id="m3">
+  <header class="lesson-header">
+    <p class="eyebrow">深小理：全栈架构透视</p>
+    <h1>记忆的艺术：从会话到人格</h1>
+    <p class="lede">session 记忆 vs 持久记忆、冷热分层（2h idle）、摘要压缩（240K token）、Dreaming 引擎双阶段自进化。</p>
+  </header>
+  <section><h2 data-section-id="m3-two-memories" data-section-title="两种记忆，两种生命周期">两种记忆，两种生命周期 <button class="ask-btn" data-ask-section="m3-two-memories" data-ask-title="两种记忆，两种生命周期">提问</button></h2>
+<p>深小理有两套记忆系统，职责和生命周期完全不同：</p>
+<table><thead><tr><th></th><th>Session 记忆</th><th>持久记忆</th></tr></thead><tbody><tr><td><strong>存储</strong></td><td><code>conversations</code> 表的 messages（JSONB）</td><td><code>users.user_md</code>（Markdown）+ <code>agent_observations</code> 表</td></tr><tr><td><strong>作用</strong></td><td>在单次对话中记住上下文</td><td>跨会话记住用户是谁、经历过什么</td></tr><tr><td><strong>生命周期</strong></td><td>随会话</td><td>随用户账号</td></tr><tr><td><strong>谁在管</strong></td><td>Agent 循环自动管理</td><td>Dreaming 引擎 + 用户手动编辑</td></tr><tr><td><strong>更新方式</strong></td><td>每轮对话追加 messages</td><td><code>update_user_memory</code> 工具（需用户确认）</td></tr></tbody></table></section>
+<section><h2 data-section-id="m3-hot-cold" data-section-title="冷热分层：不是工程执念，是 token 预算管理">冷热分层：不是工程执念，是 token 预算管理 <button class="ask-btn" data-ask-section="m3-hot-cold" data-ask-title="冷热分层：不是工程执念，是 token 预算管理">提问</button></h2>
+<p>核心概念：<strong>热会话和冷会话用不同的策略加载历史</strong>。</p>
+<pre><code class="language-">                      ┌──────────────────┐
+新消息 ───→ 查上次活跃时间  │ &gt; 2小时？          │
+                      └───────┬──────────┘
+                              │
+                    ┌─────────┴─────────┐
+                    │                   │
+                    ▼                   ▼
+              热会话（Hot）        冷会话（Cold）
+         ┌──────────────────┐ ┌──────────────────┐
+         │ 加载全部历史      │ │ 1. 生成/复用摘要  │
+         │ 消息完整保留      │ │ 2. 只加载最后 8 轮 │
+         └──────────────────┘ │ 3. 摘要注入 prompt │
+                              └──────────────────┘</code></pre>
+<p>关键阈值：</p>
+<table><thead><tr><th>参数</th><th>默认值</th><th>作用</th></tr></thead><tbody><tr><td><code>chat_cold_resume_idle_seconds</code></td><td>7200（2小时）</td><td>判定冷/热的空闲时间</td></tr><tr><td><code>chat_cold_resume_max_turns</code></td><td>8</td><td>冷恢复保留的最大轮数</td></tr><tr><td><code>chat_hot_summary_turn_threshold</code></td><td>50</td><td>热会话中触发背景摘要的轮数</td></tr><tr><td><code>chat_force_summary_token_threshold</code></td><td>240000</td><td>强制触发摘要的 token 阈值</td></tr></tbody></table>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>一个用户早上 9 点聊了 60 轮，然后 12 点回来继续聊。他的会话是热还是冷？会发生什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>12 点距离上次活跃 3 小时（&gt; 2h），是<strong>冷会话</strong>。 发生的过程：1) 检查是否有摘要，如果没有则生成摘要；2) 摘要注入系统提示词；3) 只加载最后 8 轮消息。前 52 轮的内容通过摘要&quot;压缩&quot;保留。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-summary" data-section-title="摘要是怎么做的">摘要是怎么做的 <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="摘要是怎么做的">提问</button></h2>
+<p>当触发摘要时，Agent 用独立的 LLM 调用生成结构化摘要。摘要指令期望的输出格式：</p>
+<pre><code class="language-markdown">当前主题: ...
+用户目标: ...
+已确认事实:
+- ...
+关键工具结论:
+- ...
+未解决事项:
+- ...
+连续性线索: ...</code></pre>
+<p>摘要存在 <code>session_state</code> 表，下次冷恢复时直接复用，不需要重新生成。</p></section>
+<section><h2 data-section-id="m3-dreaming" data-section-title="Dreaming：让 Agent 自我进化">Dreaming：让 Agent 自我进化 <button class="ask-btn" data-ask-section="m3-dreaming" data-ask-title="Dreaming：让 Agent 自我进化">提问</button></h2>
+<p>Dreaming 是深小理最特别的设计之一——Agent 不只是被动的，它会在后台&quot;反思&quot;。</p>
+<h3>数据来源：Observations</h3>
+<p>在对话过程中，Agent 可以通过 <code>record_observation</code> 工具记录<strong>自我观察</strong>。每条 observation 分四类：</p>
+<ul><li><code>insight</code>：发现了什么规律</li><li><code>feedback</code>：用户给了什么反馈</li><li><code>fact</code>：确认了什么事实</li><li><code>emotion</code>：感知到了什么情绪</li></ul>
+<h3>双阶段处理</h3>
+<p><strong>Phase 1 — 日记生成</strong>（手动触发或定时器）：</p>
+<ol><li>取 20 条未处理的 observations</li><li>去重（<code>difflib.SequenceMatcher</code>，相似度 &gt; 0.80）</li><li>按类别分组</li><li>加载 SOUL.md / MEMORY.md / SUAT.md 作为锚定上下文</li><li>LLM（temperature=0.8，鼓励创造性反思）根据 prompt 模板生成日记</li><li>写入 <code>workspace/dairy/YYYY-MM-DD.md</code>（如已存在则追加&quot;续篇&quot;）</li></ol>
+<p><strong>Phase 2 — 记忆更新</strong>：</p>
+<ol><li>读最近 5 篇日记</li><li>LLM（temperature=0.7）根据模板生成新的 MEMORY.md</li><li><strong>备份</strong>当前 MEMORY.md → <code>.memory_backups/{timestamp}_MEMORY.md</code></li><li>覆盖写入 <code>workspace/MEMORY.md</code></li><li>更新 <code>changelog.jsonl</code>（每次变更的审计日志）</li></ol>
+<div class="exercise" data-kind="open" data-has-answer="false">
+<div class="exercise-task">
+<p>追踪一个完整的 Dreaming 双阶段流程。假设深小理今天有 15 条未处理的 observations（8 insight + 4 feedback + 3 emotion），描述 Phase 1 和 Phase 2 各做了什么。每个阶段的关键输入和输出是什么？</p>
+</div>
+
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-summary-section" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m3-summary-section" data-ask-title="模块小结">提问</button></h2>
+<ul><li>两套记忆：session 记忆跟随对话生命周期，持久记忆跨会话存在。</li><li>冷热分层的本质是 token 预算管理——不是存储问题，是 LLM 上下文窗口约束。</li><li>摘要用结构化 Markdown 格式，确保关键信息密度。</li><li>Dreaming 引擎是 Agent 的&quot;反思系统&quot;——双阶段 + 备份 + 审计日志，把自我进化做成可控过程。</li></ul></section>
+  <footer class="next-prev"><a href="m2.html">上一节</a><a href="m4.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/practice/runtime.js"></script>
+</body>
+</html>

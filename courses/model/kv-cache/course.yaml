@@ -1,0 +1,31 @@
+id: kv-cache
+title: "KV Cache 深入浅出"
+subtitle: "从自回归生成的重复计算出发，理解大模型推理中 KV Cache 的原理、量化分析与工程取舍。"
+audience: "了解 Transformer 基础、想深入理解大模型推理效率的开发者。"
+default_port: 8788
+template: tutorial
+modules:
+  - id: m1
+    title: "为什么需要 KV Cache"
+    file: "modules/01.md"
+    summary: "从自回归生成的重复计算问题出发，理解 KV Cache 要解决的核心矛盾。"
+  - id: m2
+    title: "KV Cache 的工作机制"
+    file: "modules/02.md"
+    summary: "拆解 K、V 矩阵如何在逐 token 生成中被缓存和复用，区分 prefill 与 decode。"
+  - id: m3
+    title: "显存与计算开销分析"
+    file: "modules/03.md"
+    summary: "量化 KV Cache 的显存占用和它带来的计算节省，理解空间换时间的真实代价。"
+  - id: m4
+    title: "MQA 与 GQA：减少 KV 头数"
+    file: "modules/04.md"
+    summary: "从 MHA 到 MQA 再到 GQA，理解减少 KV 头数的权衡与主流模型的选择。"
+  - id: m5
+    title: "PagedAttention 与显存管理"
+    file: "modules/05.md"
+    summary: "用操作系统的分页思想解决 KV Cache 的显存碎片与动态分配问题。"
+  - id: m6
+    title: "边界与判断"
+    file: "modules/06.md"
+    summary: "什么时候该为 KV Cache 投入工程精力，什么时候不必。"

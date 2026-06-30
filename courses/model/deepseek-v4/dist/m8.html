@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>评估结果、能力边界与判断 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/perspective/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m8</span><span class="top-nav-template">perspective</span></nav>
+<article class="lesson" data-course-id="deepseek-v4" data-module-id="m8">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek-V4 系列论文解读</p>
+    <h1>评估结果、能力边界与判断</h1>
+    <p class="lede">综合看 DeepSeek-V4-Pro 与 Flash 的能力差异，学会在什么场景选择什么模型。</p>
+  </header>
+  <section><h2 data-section-id="m8-pretraining" data-section-title="预训练规模">预训练规模 <button class="ask-btn" data-ask-section="m8-pretraining" data-ask-title="预训练规模">提问</button></h2>
+<p>DeepSeek-V4 系列在预训练阶段使用了：</p>
+<ul><li><strong>DeepSeek-V4-Flash</strong>：32T token。</li><li><strong>DeepSeek-V4-Pro</strong>：33T token。</li></ul>
+<p>预训练完成后，两个基础模型都能原生、高效地支持 1M 长度上下文。内部评估显示，V4-Flash-Base 已经能在多数基准上超过 V3.2-Base；V4-Pro-Base 则进一步刷新了 DeepSeek 基础模型的标准。</p>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 4 节与第 1 节。</div></section>
+<section><h2 data-section-id="m8-posttraining" data-section-title="后训练：专家培养 + 统一蒸馏">后训练：专家培养 + 统一蒸馏 <button class="ask-btn" data-ask-section="m8-posttraining" data-ask-title="后训练：专家培养 + 统一蒸馏">提问</button></h2>
+<p>后训练采用两阶段范式：</p>
+<ol><li><strong>专家培养（Specialist Training）</strong>：在数学、代码、agent、指令遵循等领域分别训练专家模型，先用 SFT 建立基础能力，再用 GRPO 强化学习优化领域行为。</li><li><strong>统一蒸馏（On-Policy Distillation）</strong>：把多个专家模型的能力蒸馏到一个统一模型中，学生模型通过优化反向 KL 散度向多个教师学习。</li></ol>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 5.1 节。</div></section>
+<section><h2 data-section-id="m8-results" data-section-title="核心评估结果">核心评估结果 <button class="ask-btn" data-ask-section="m8-results" data-ask-title="核心评估结果">提问</button></h2>
+<table><thead><tr><th>能力维度</th><th>DeepSeek-V4-Pro-Max</th><th>关键对比</th></tr></thead><tbody><tr><td>知识</td><td>SimpleQA、Chinese-SimpleQA 领先开源模型</td><td>接近 Gemini-3.1-Pro，仍有差距</td></tr><tr><td>推理</td><td>优于 GPT-5.2、Gemini-3.0-Pro</td><td>略逊于 GPT-5.4、Gemini-3.1-Pro，约落后 3-6 个月</td></tr><tr><td>Agent</td><td>与 Kimi-K2.6、GLM-5.1 相当</td><td>略弱于顶级闭源模型</td></tr><tr><td>长上下文</td><td>1M token 场景超过 Gemini-3.1-Pro（学术基准）</td><td>表现强劲</td></tr></tbody></table>
+<p>DeepSeek-V4-Flash-Max：</p>
+<ul><li>知识评估因参数规模较小而落后。</li><li>推理任务在给予更大思考预算时，可与 GPT-5.2 / Gemini-3.0-Pro 相当。</li><li>Agent 任务在部分基准上与 Pro-Max 持平，但复杂高难度任务仍有差距。</li></ul>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 1 节与第 5.3 节。</div></section>
+<section><h2 data-section-id="m8-realworld" data-section-title="真实任务表现">真实任务表现 <button class="ask-btn" data-ask-section="m8-realworld" data-ask-title="真实任务表现">提问</button></h2>
+<p>论文还评估了中文写作、搜索、白领任务和代码 agent 等真实场景，验证了模型在 1M 上下文和 agentic workflow 中的可用性。</p>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 5.4 节。</div></section>
+<section><h2 data-section-id="m8-choose" data-section-title="如何选择 Pro 与 Flash">如何选择 Pro 与 Flash <button class="ask-btn" data-ask-section="m8-choose" data-ask-title="如何选择 Pro 与 Flash">提问</button></h2>
+<section class="ll-decision"><div class="decision-prompt"><p>你的场景更适合 V4-Pro 还是 V4-Flash？</p>
+<ul><li>A. 需要最强知识和复杂 agent 能力，预算充足 -&gt; V4-Pro</li><li>B. 需要高吞吐、低成本，推理任务为主 -&gt; V4-Flash</li><li>C. 需要 1M token 长上下文但希望最小化 KV Cache -&gt; V4-Flash</li></ul></div><div class="decision-reveal" hidden><section class="decision-perspective"><h4>视角</h4><p>依据：论文第 1 节和第 5 节的评估结果。</p>
+<p>A 适合对能力上限敏感的场景；B 和 C 适合对效率和成本敏感、但仍需强推理或长上下文的场景。没有绝对好坏，关键是看任务对知识深度、agent 复杂度和推理成本的权衡。</p></section></div><button class="decision-toggle" type="button" aria-expanded="false">显示判断视角</button></section></section>
+<section><h2 data-section-id="m8-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m8-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>V4-Pro 在知识和复杂任务上更强，V4-Flash 在效率和成本上更优。</li><li>后训练采用“专家培养 + 统一蒸馏”的两阶段范式。</li><li>长上下文是 V4 系列最突出的工程能力，推理 FLOPs 和 KV Cache 都大幅下降。</li><li>选型时应根据任务对能力、延迟、成本和上下文长度的需求综合判断。</li></ul>
+<div class="exercise" data-kind="perspective">
+<div class="exercise-task judgment-task">
+<p>假设你要为公司选择一个长上下文模型做“跨百份文档的知识问答 + 代码辅助”系统。团队技术负责人倾向 V4-Flash 以降低成本，产品经理倾向 V4-Pro 以获得最强能力。你会怎么建议？先写下你的主要判断依据。</p>
+</div>
+<textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>
+<div class="judgment-reveal" hidden>
+<section class="judgment-section perspective" hidden><h4>作者视角</h4>
+<p>依据：论文第 1 节、第 5.3 节和第 5.4 节的评估结果，以及本课程对 CSA/HCA 效率优势的分析。</p>
+<p>这个系统同时涉及长上下文（跨百份文档）和代码辅助两类任务。如果文档问答以检索和总结为主，且代码辅助以常见编程任务为主，V4-Flash 在 1M token 场景下的 KV Cache 和 FLOPs 优势可以显著降低部署成本，同时其推理能力在给予足够思考预算时并不弱。如果系统需要处理高难度的知识推理或复杂 agent 流程，V4-Pro 的能力上限更值得考虑。实际决策还需要结合具体 benchmark、延迟 SLI 和成本预算做验证。</p>
+</section>
+<section class="judgment-section tradeoffs" hidden><h4>取舍与 trade-offs</h4>
+<ul><li>V4-Pro：知识、复杂 agent 和长上下文综合能力更强，但单 token 成本和 KV Cache 更高。</li><li>V4-Flash：1M 上下文效率极高，推理任务性价比好，但高难度知识和复杂 agent 任务可能落后。</li><li>混合方案：对延迟敏感或简单的查询走 Flash，对高难度推理走 Pro，但会增加系统复杂度。</li></ul>
+</section>
+<section class="judgment-section pitfalls" hidden><h4>常见误区</h4>
+<ul><li>不要仅因为“参数更大”就选择 Pro，要先定义任务的能力阈值。</li><li>不要假设 Flash 在所有长上下文任务上都足够，高难度知识问答需要实测。</li><li>不要忽略推理时的思考预算：Flash 在更大思考预算下推理能力会提升，成本模型要据此调整。</li></ul>
+</section>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-compare" type="button">对比作者视角</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+  <footer class="next-prev"><a href="m7.html">上一节</a><span></span></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/perspective/runtime.js"></script>
+</body>
+</html>

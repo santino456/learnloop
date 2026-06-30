@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安全、沙箱与二次开发决策 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/perspective/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m8</span><span class="top-nav-template">perspective</span></nav>
+<article class="lesson" data-course-id="pi-agent" data-module-id="m8">
+  <header class="lesson-header">
+    <p class="eyebrow">Pi Agent 深度解析与二次开发</p>
+    <h1>安全、沙箱与二次开发决策</h1>
+    <p class="lede">默认权限模型、容器化方案、供应链加固策略，以及何时扩展、何时 fork、何时另起炉灶。</p>
+  </header>
+  <section><h2 data-section-id="m8-default-permissions" data-section-title="默认权限模型">默认权限模型 <button class="ask-btn" data-ask-section="m8-default-permissions" data-ask-title="默认权限模型">提问</button></h2>
+<p>Pi 没有内置权限系统。默认情况下，它拥有启动用户和进程的全部权限：可以读写文件、执行任意命令、访问网络、读取环境变量中的凭证。</p>
+<p>这意味着：</p>
+<ul><li>不要把 Pi 当成一个默认安全的沙箱；</li><li>来自不可信来源的 extension、skill、prompt template 都可能执行任意代码；</li><li>在敏感项目或生产环境中，必须显式做隔离。</li></ul>
+<div class="callout">来源：[packages/coding-agent/docs/containerization.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/containerization.md) 与 [Pi README — Permissions &amp; Containerization](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/README.md#permissions--containerization)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Pi 默认是否提供文件系统/进程/网络隔离？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>否。Pi 默认以启动用户权限运行，没有内置权限系统。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m8-containerization" data-section-title="三种容器化方案">三种容器化方案 <button class="ask-btn" data-ask-section="m8-containerization" data-ask-title="三种容器化方案">提问</button></h2>
+<p>Pi 文档推荐了三种隔离模式：</p>
+<table><thead><tr><th>模式</th><th>隔离对象</th><th>最佳场景</th></tr></thead><tbody><tr><td><strong>Gondolin extension</strong></td><td>内置工具和 <code>!</code> 命令</td><td>本地微 VM 隔离，同时把 auth 留在宿主机</td></tr><tr><td><strong>Plain Docker</strong></td><td>整个 <code>pi</code> 进程</td><td>简单本地隔离</td></tr><tr><td><strong>OpenShell</strong></td><td>整个 <code>pi</code> 进程</td><td>策略控制的本地或远程沙箱</td></tr></tbody></table>
+<h3>Gondolin</h3>
+<p>[Gondolin](https://github.com/earendil-works/gondolin) 是一个本地 Linux micro-VM。Pi 提供示例 extension，把 <code>read</code>、<code>write</code>、<code>edit</code>、<code>bash</code>、<code>grep</code>、<code>find</code>、<code>ls</code> 以及 <code>!</code> 命令都路由到 VM 内，同时 API key 仍留在宿主机。</p>
+<h3>Plain Docker</h3>
+<p>把整个 <code>pi</code> 进程放进 Docker 容器，API key 通过环境变量传入。适合快速搭建隔离环境。</p>
+<h3>OpenShell</h3>
+<p>NVIDIA OpenShell 提供策略控制的沙箱，可以限制文件系统、进程、网络、凭证和推理访问。适合需要细粒度策略或远程管理的场景。</p>
+<div class="callout">来源：[packages/coding-agent/docs/containerization.md — Choose a pattern](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/containerization.md#choose-a-pattern)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>哪种方案能让 Pi 主体在宿主机运行，但把危险操作路由到隔离环境？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>Gondolin extension。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m8-supply-chain" data-section-title="供应链加固">供应链加固 <button class="ask-btn" data-ask-section="m8-supply-chain" data-ask-title="供应链加固">提问</button></h2>
+<p>Pi 对 npm 依赖的处理非常谨慎：</p>
+<ul><li>直接外部依赖钉死到精确版本；</li><li><code>.npmrc</code> 设置 <code>save-exact=true</code> 和 <code>min-release-age=2</code>；</li><li><code>package-lock.json</code> 是唯一依赖真相；</li><li>预提交钩子默认阻止 lockfile 提交，除非 <code>PI_ALLOW_LOCKFILE_CHANGE=1</code>；</li><li><code>npm run check</code> 会验证直接依赖是否钉死、TypeScript 导入是否兼容、shrinkwrap 是否最新；</li><li>发布包包含 <code>npm-shrinkwrap.json</code>，让 npm 用户的传递依赖也被钉死；</li><li>发布前做本地 smoke test（Node 和 Bun 安装）；</li><li>CI 使用 <code>npm ci --ignore-scripts</code>，并定期跑 <code>npm audit</code>。</li></ul>
+<div class="callout">来源：[Pi README — Supply-chain hardening](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/README.md#supply-chain-hardening)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么 <code>packages/coding-agent/npm-shrinkwrap.json</code> 对用户很重要？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>它把 Pi 的传递依赖也钉死，确保 npm 用户安装时不会引入未经审核的新版本。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m8-perspective" data-section-title="二次开发决策框架">二次开发决策框架 <button class="ask-btn" data-ask-section="m8-perspective" data-ask-title="二次开发决策框架">提问</button></h2>
+<p>基于前面的内容，什么时候应该选择哪种二次开发路径？</p>
+<h3>使用 Extension</h3>
+<p>适合：</p>
+<ul><li>增加自定义 tool（如调用内部 API、执行项目脚本）；</li><li>增加项目特定命令或快捷键；</li><li>做权限门、审计、安全检查；</li><li>自定义 compaction 或 UI。</li></ul>
+<p>风险：</p>
+<ul><li>extension 以你的权限运行，代码来自不可信来源时要小心；</li><li>项目级 extension 只在信任后加载。</li></ul>
+<h3>使用 Skill</h3>
+<p>适合：</p>
+<ul><li>封装领域工作流程或检查清单；</li><li>共享提示词模板；</li><li>不需要改运行时的场景。</li></ul>
+<p>优势：</p>
+<ul><li>不直接执行代码，风险低于 extension；</li><li>可以跨 agent harness 共享（符合 Agent Skills 标准）。</li></ul>
+<h3>Fork / 改源码</h3>
+<p>适合：</p>
+<ul><li>要改 agent loop 核心行为（ steering/follow-up 队列策略、context transform 等）；</li><li>要替换或重写 <code>pi-tui</code> 的渲染层；</li><li>要长期维护一个与 Pi 主路线不同的分支。</li></ul>
+<p>代价：</p>
+<ul><li>需要跟踪上游更新；</li><li>发布和维护成本更高。</li></ul>
+<h3>另起炉灶，只复用底层包</h3>
+<p>适合：</p>
+<ul><li>你要做一个完全不同的产品形态（Web IDE、后台服务、自动化流水线）；</li><li>不需要 Pi 的 TUI 和 CLI。</li></ul>
+<p>优势：</p>
+<ul><li>可以只取 <code>pi-ai</code> 和 <code>pi-agent-core</code>，自己搭上层；</li><li>不受 Pi CLI 的假设约束。</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>如果你只是想给团队共享一套“代码审查检查清单”，应该优先用 Extension 还是 Skill？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>Skill。它不需要改运行时，且符合 Agent Skills 标准，容易跨工具共享。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m8-security-practices" data-section-title="安全实践清单">安全实践清单 <button class="ask-btn" data-ask-section="m8-security-practices" data-ask-title="安全实践清单">提问</button></h2>
+<p>基于以上，二次开发时建议遵循：</p>
+<ol><li><strong>审查所有 extension/skill 来源</strong>，不要安装不可信包。</li><li><strong>敏感项目使用 Gondolin/Docker/OpenShell 隔离</strong>。</li><li><strong>项目级扩展只在信任后加载</strong>；不要给任意项目自动信任。</li><li><strong>自定义 tool 参数用 TypeBox 严格校验</strong>，不要相信模型输出的参数。</li><li><strong>避免在 extension 中硬编码凭证</strong>，优先用环境变量或 credential store。</li><li><strong>发布 Pi Package 时钉死依赖</strong>，并跑本地 smoke test。</li><li><strong>定期关注上游安全公告和 AGENTS.md 更新</strong>。</li></ol>
+<div class="callout">来源：本地 m6《Extensions：扩展 Pi 的行为》、m7《Skills 与 Pi Packages》；外部 [Pi README — Supply-chain hardening](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/README.md#supply-chain-hardening)、[packages/coding-agent/docs/containerization.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/containerization.md)。</div></section>
+<section><h2 data-section-id="m8-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m8-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>Pi 默认没有权限隔离，必须以用户权限运行，因此 extension/skill 来源必须可信。</li><li>三种推荐隔离方案：Gondolin（工具路由到 VM）、Docker（整个进程容器化）、OpenShell（策略控制沙箱）。</li><li>Pi 的供应链策略非常严格：钉死依赖、lockfile 保护、shrinkwrap、ignore-scripts、发布前 smoke test。</li><li>二次开发路径选择：Extension 改运行时、Skill 封装提示词工作流、Fork 改核心、只复用底层包做新产品。</li><li>安全实践：审查来源、隔离敏感项目、严格校验 tool 参数、不硬编码凭证、钉死发布依赖。</li></ul>
+<div class="callout">来源：本地 m1–m7；外部 [Pi README](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/README.md)、[packages/coding-agent/docs/containerization.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/containerization.md)。</div></section>
+  <footer class="next-prev"><a href="m7.html">上一节</a><span></span></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/perspective/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>设计一个最小 MCP Server | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/practice/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m3</span><span class="top-nav-template">practice</span></nav>
+<article class="lesson" data-course-id="mcp-fundamentals" data-module-id="m3">
+  <header class="lesson-header">
+    <p class="eyebrow">MCP Fundamentals</p>
+    <h1>设计一个最小 MCP Server</h1>
+    <p class="lede">从一个校园日程助手出发，练习选择 tool/resource/prompt。</p>
+  </header>
+  <section><h2 data-section-id="m3-scenario" data-section-title="场景：CampusSchedule">场景：CampusSchedule <button class="ask-btn" data-ask-section="m3-scenario" data-ask-title="场景：CampusSchedule">提问</button></h2>
+<p>假设你要给一个 AI 助手接入校园日程系统。系统里有三类能力：</p>
+<ul><li>读取某一天的课程表。</li><li>查询某个教室的预约状态。</li><li>生成一段“今天该怎么安排学习”的建议模板。</li></ul>
+<p>这个练习不要求你真的写 SDK 代码。目标是训练一个更基本的能力：<strong>把需求分配到正确的 MCP 原语</strong>。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>如果只是把“课程表 schema”给模型看，这是 tool 还是 resource？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>更像 resource。它是上下文数据，不是让模型执行的动作。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-pick-primitives" data-section-title="先分清读、做、模板">先分清读、做、模板 <button class="ask-btn" data-ask-section="m3-pick-primitives" data-ask-title="先分清读、做、模板">提问</button></h2>
+<p>把 CampusSchedule 拆成这三类：</p>
+<table><thead><tr><th>需求</th><th>更合适的原语</th><th>理由</th></tr></thead><tbody><tr><td>读取课程表 schema</td><td>Resource</td><td>给模型理解数据结构</td></tr><tr><td>查询某天课程</td><td>Tool</td><td>需要带参数调用外部系统</td></tr><tr><td>查询教室状态</td><td>Tool</td><td>需要执行查询动作</td></tr><tr><td>生成学习安排建议</td><td>Prompt</td><td>这是用户可选择的工作流模板</td></tr></tbody></table>
+<div class="exercise" data-kind="choice" data-answer="B">
+<div class="exercise-task">
+<p>下面哪个设计更合理？</p>
+</div>
+<form class="exercise-choices">
+<label class="choice-option" data-choice="A"><input type="radio" name="choice" value="A"> <span>把 get_schedule、get_room_status、daily_study_plan_prompt 都做成 tools。</span></label>
+<label class="choice-option" data-choice="B"><input type="radio" name="choice" value="B"> <span>把 schema 做成 resource，把两个查询做成 tools，把学习安排建议做成 prompt。</span></label>
+<label class="choice-option" data-choice="C"><input type="radio" name="choice" value="C"> <span>把所有内容都写进 server description，让模型自己猜。</span></label>
+</form>
+<div class="exercise-feedback" role="status" hidden></div>
+<div class="exercise-answer" hidden>
+<p>B</p>
+<p>依据：MCP 官方文档把 resources、tools、prompts 分成不同原语。schema 是上下文，查询是动作，学习安排是可复用交互模板。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-check" type="button">检查</button>
+  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-tool-shape" data-section-title="Tool 的 shape 要让模型不容易误用">Tool 的 shape 要让模型不容易误用 <button class="ask-btn" data-ask-section="m3-tool-shape" data-ask-title="Tool 的 shape 要让模型不容易误用">提问</button></h2>
+<p>一个好的 tool 名称应该表达动作和对象。比如：</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;campus_schedule_get_day&quot;,
+  &quot;title&quot;: &quot;Get Daily Campus Schedule&quot;,
+  &quot;description&quot;: &quot;Return classes and events for one date in the campus schedule system.&quot;,
+  &quot;inputSchema&quot;: {
+    &quot;type&quot;: &quot;object&quot;,
+    &quot;properties&quot;: {
+      &quot;date&quot;: {
+        &quot;type&quot;: &quot;string&quot;,
+        &quot;description&quot;: &quot;Date in YYYY-MM-DD format&quot;
+      }
+    },
+    &quot;required&quot;: [&quot;date&quot;]
+  }
+}</code></pre>
+<p>这不是官方示例，而是基于官方 tools 字段整理出的教学样例。真正实现时要按所用 SDK 的 API 写。</p>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>改写这个糟糕工具名，让它更适合模型选择：</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;query&quot;,
+  &quot;description&quot;: &quot;query things&quot;
+}</code></pre>
+</div>
+<div class="exercise-answer" hidden>
+<p>可以改成 <code>campus_room_get_availability</code>，description 写清楚它查询某个教室在某段时间是否可用。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-resource-shape" data-section-title="Resource 不应该偷偷做动作">Resource 不应该偷偷做动作 <button class="ask-btn" data-ask-section="m3-resource-shape" data-ask-title="Resource 不应该偷偷做动作">提问</button></h2>
+<p>Resource 的价值是让 host 或模型拿到上下文。比如：</p>
+<pre><code class="language-json">{
+  &quot;uri&quot;: &quot;campus://schedule/schema&quot;,
+  &quot;name&quot;: &quot;schedule_schema&quot;,
+  &quot;title&quot;: &quot;Campus Schedule Schema&quot;,
+  &quot;description&quot;: &quot;Fields and meanings for the campus schedule database&quot;,
+  &quot;mimeType&quot;: &quot;application/json&quot;
+}</code></pre>
+<p>如果读取这个 URI 会触发写入、发送通知、改变预约状态，那它就不再是一个干净的 resource。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么“读取 resource 时顺便刷新远程缓存”是危险信号？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>因为 resource 应该主要提供上下文数据。如果读取动作隐藏副作用，host 和用户就很难理解当前操作的真实风险。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-prompt-shape" data-section-title="Prompt 是把成熟工作流交给用户选择">Prompt 是把成熟工作流交给用户选择 <button class="ask-btn" data-ask-section="m3-prompt-shape" data-ask-title="Prompt 是把成熟工作流交给用户选择">提问</button></h2>
+<p>一个 prompt 可以是：</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;daily_study_plan&quot;,
+  &quot;title&quot;: &quot;Plan Today’s Study&quot;,
+  &quot;description&quot;: &quot;Use today’s campus schedule and user goals to draft a study plan.&quot;,
+  &quot;arguments&quot;: [
+    {
+      &quot;name&quot;: &quot;goal&quot;,
+      &quot;description&quot;: &quot;What the learner wants to focus on today&quot;,
+      &quot;required&quot;: true
+    }
+  ]
+}</code></pre>
+<p>Prompt 的好处是它保留用户主动性：用户知道自己选择了一个工作流，而不是模型在背后随便套模板。</p></section>
+<section><h2 data-section-id="m3-review" data-section-title="自查：你的 server 是否过度暴露">自查：你的 server 是否过度暴露 <button class="ask-btn" data-ask-section="m3-review" data-ask-title="自查：你的 server 是否过度暴露">提问</button></h2>
+<section class="ll-decision"><div class="decision-prompt"><p>CampusSchedule 要不要提供 <code>campus_sql_query</code>，允许模型传任意 SQL？</p>
+<ul><li>A. 可以，模型更灵活。</li><li>B. 不建议，先提供边界清楚的查询 tools。</li><li>C. 可以，但只给只读数据库。</li></ul></div><div class="decision-reveal" hidden><section class="decision-perspective"><h4>视角</h4><p>依据：基于本章对 tool 边界、副作用和用户可理解性的练习；实际系统还要结合权限、审计和 SQL sandbox 验证。</p>
+<p>B 是更好的默认判断。任意 SQL 把太多策略推给模型，用户也很难理解一次调用的真实范围。只读数据库能降低写入风险，但仍可能带来隐私、性能和越权查询问题。</p></section></div><button class="decision-toggle" type="button" aria-expanded="false">显示判断视角</button></section></section>
+  <footer class="next-prev"><a href="m2.html">上一节</a><a href="m4.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/practice/runtime.js"></script>
+</body>
+</html>

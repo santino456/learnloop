@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>技术栈速查 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/reference/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m9</span><span class="top-nav-template">reference</span></nav>
+<article class="lesson" data-course-id="shenxiaoli" data-module-id="m9">
+  <header class="lesson-header">
+    <p class="eyebrow">深小理：全栈架构透视</p>
+    <h1>技术栈速查</h1>
+    <p class="lede">前端、后端、Agent、数据库、存储与部署各层技术点的密集参考。内容整理自官方文档与权威资料，可直接作为深入学习入口。</p>
+  </header>
+  <section class="card" data-section-id="m9-frontend" data-section-title="前端层参考">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">前端层参考</span>
+    <button class="ask-btn" data-ask-section="m9-frontend" data-ask-title="前端层参考">提问</button>
+  </div>
+  <div class="card-summary">React 是用于构建用户界面的声明式组件库。深小理用它构建聊天界面、会话列表和消息流。</div>
+  <div class="card-body"><div class="card-inner">
+<h3>React 18</h3>
+<p>React 是用于构建用户界面的声明式组件库。深小理用它构建聊天界面、会话列表和消息流。</p>
+<div class="callout">来源：<a href="https://react.dev/learn/thinking-in-react" target="_blank" rel="noopener noreferrer">React 官方文档 — Thinking in React</a>、<a href="https://react.dev/learn/state-a-components-memory" target="_blank" rel="noopener noreferrer">State: A Component&#x27;s Memory</a>、<a href="https://react.dev/blog/2022/03/29/react-v18" target="_blank" rel="noopener noreferrer">React 18 发布说明</a>。</div>
+<p><strong>核心抽象</strong></p>
+<table><thead><tr><th>概念</th><th>定义</th><th>为什么重要</th></tr></thead><tbody><tr><td>组件</td><td>接收 props、管理 state、返回 UI 描述的函数</td><td>把界面拆成可复用、可测试的单元</td></tr><tr><td>JSX</td><td>JavaScript 的语法扩展，允许在 JS 里写标签</td><td>让 UI 结构和渲染逻辑写在一起</td></tr><tr><td>单向数据流</td><td>数据自顶向下传递，子组件通过回调影响父组件</td><td>状态变化可预测，调试路径清晰</td></tr><tr><td>虚拟 DOM</td><td>React 维护的内存中 UI 表示，diff 后最小化真实 DOM 操作</td><td>减少直接操作 DOM 的性能开销和错误</td></tr></tbody></table>
+<p><strong>Hooks（函数组件的状态与副作用）</strong></p>
+<table><thead><tr><th>Hook</th><th>用途</th><th>典型误用</th></tr></thead><tbody><tr><td><code>useState</code></td><td>组件内部状态</td><td>把不该触发重渲染的数据放进 state</td></tr><tr><td><code>useEffect</code></td><td>同步外部系统（订阅、DOM 操作、数据获取）</td><td>没写依赖数组或 cleanup 函数，导致重复执行或内存泄漏</td></tr><tr><td><code>useReducer</code></td><td>复杂状态逻辑</td><td>简单状态强行用 reducer，增加认知负担</td></tr><tr><td><code>useRef</code></td><td>保存不触发渲染的引用</td><td>用 ref 代替 state 做 UI 响应</td></tr><tr><td><code>useMemo</code> / <code>useCallback</code></td><td>缓存计算和函数引用</td><td>过早优化，反而增加比较开销</td></tr></tbody></table>
+<p><strong>React 18 并发特性</strong></p>
+<ul><li><strong>Concurrent Rendering</strong>：React 可以在渲染过程中中断和恢复，优先响应高优先级交互（如用户输入）。</li><li><strong>Transitions</strong>：用 <code>useTransition</code> 标记低优先级更新，避免阻塞 UI。</li><li><strong>Suspense</strong>：声明式异步边界，让组件在数据准备好之前显示 fallback。</li><li><strong>Automatic Batching</strong>：多个 setState 合并为一次渲染，减少重绘。</li></ul>
+<p>深小理里，消息流持续更新时用户仍能输入，靠的就是并发渲染把输入响应放在高优先级。</p>
+<h3>Vite</h3>
+<p>Vite 是下一代前端构建工具，核心思路是<strong>开发时用原生 ESM，生产时用 Rollup 打包</strong>。</p>
+<div class="callout">来源：<a href="https://vitejs.dev/guide/why.html" target="_blank" rel="noopener noreferrer">Vite 官方文档 — Why Vite</a>、<a href="https://vitejs.dev/guide/features.html" target="_blank" rel="noopener noreferrer">Features</a>。</div>
+<table><thead><tr><th>阶段</th><th>做法</th><th>效果</th></tr></thead><tbody><tr><td>开发</td><td>浏览器直接请求 ESM 模块，按需编译</td><td>冷启动快，无论项目多大都是秒级</td></tr><tr><td>预构建</td><td>用 esbuild 把 CommonJS 依赖转成 ESM</td><td>解决浏览器原生 ESM 对 CJS 的支持问题</td></tr><tr><td>生产</td><td>Rollup 打包、代码分割、Tree Shaking</td><td>产物小、加载快</td></tr><tr><td>HMR</td><td>模块级热替换，只更新变化的部分</td><td>改代码后页面即时反馈</td></tr></tbody></table>
+<p>与 Webpack 的关键差异：Webpack 在开发时也要先打包整个依赖图，项目大了启动慢；Vite 跳过这一步，依赖预构建一次后，源码按请求编译。</p>
+<p>深小理选 Vite，是因为聊天应用开发阶段需要频繁调试 UI 和 SSE 交互，HMR 速度直接影响效率。</p>
+<h3>Tailwind CSS</h3>
+<p>Tailwind 是 utility-first CSS 框架。不写 <code>.chat-box { padding: 1rem; }</code>，而是写 <code>class=&quot;p-4&quot;</code>。</p>
+<div class="callout">来源：<a href="https://tailwindcss.com/docs/utility-first" target="_blank" rel="noopener noreferrer">Tailwind CSS 官方文档 — Utility-First Fundamentals</a>、<a href="https://v2.tailwindcss.com/docs/just-in-time-mode" target="_blank" rel="noopener noreferrer">Just-in-Time Mode</a>。</div>
+<p><strong>设计系统内建值</strong></p>
+<table><thead><tr><th>类别</th><th>示例类名</th><th>对应 CSS</th></tr></thead><tbody><tr><td>间距</td><td><code>p-4</code>, <code>m-2</code>, <code>gap-3</code></td><td>padding、margin、gap 的预设步进值</td></tr><tr><td>颜色</td><td><code>bg-blue-500</code>, <code>text-gray-700</code></td><td>设计系统色板</td></tr><tr><td>布局</td><td><code>flex</code>, <code>grid</code>, <code>items-center</code></td><td>Flexbox/Grid 常用组合</td></tr><tr><td>响应式</td><td><code>md:flex-row</code></td><td>在 <code>md</code> 断点下应用样式</td></tr><tr><td>状态</td><td><code>hover:bg-blue-600</code></td><td>伪类样式</td></tr></tbody></table>
+<p><strong>JIT 模式（Just-in-Time）</strong></p>
+<ul><li>开发时扫描源码，只生成实际用到的类。</li><li>支持任意值：<code>w-[123px]</code>、<code>bg-[#1da1f2]</code>。</li><li>产物大小与使用的类数量相关，而不是框架总类数。</li></ul>
+<p><strong>tradeoffs</strong></p>
+<ul><li>优点：开发快、风格一致、产物可控。</li><li>缺点：HTML 里 class 字符串长；复杂动画和伪元素仍需要自定义 CSS。</li></ul>
+<h3>TypeScript</h3>
+<p>TypeScript 是 JavaScript 的超集，增加静态类型系统。</p>
+<div class="callout">来源：<a href="https://www.typescriptlang.org/docs/handbook/intro.html" target="_blank" rel="noopener noreferrer">TypeScript 官方文档 — The TypeScript Handbook</a>。</div>
+<p><strong>核心能力</strong></p>
+<ul><li>在编译期发现类型错误，而不是运行时。</li><li>为函数、对象、API 响应定义接口。</li><li>通过 <code>.d.ts</code> 文件描述第三方库类型。</li></ul>
+<p><strong>深小理建议开启的选项</strong></p>
+<pre><code class="language-json">{
+  &quot;compilerOptions&quot;: {
+    &quot;strict&quot;: true,
+    &quot;noImplicitAny&quot;: true,
+    &quot;strictNullChecks&quot;: true,
+    &quot;esModuleInterop&quot;: true
+  }
+}</code></pre>
+<ul><li><code>strict</code>: 开启所有严格类型检查。</li><li><code>noImplicitAny</code>: 不允许隐式 <code>any</code>。</li><li><code>strictNullChecks</code>: <code>null</code> 和 <code>undefined</code> 必须显式处理。</li></ul>
+<p>深小理里，SSE 消息类型、API 响应结构、会话/消息模型都应定义接口。这样后端字段变化时，前端构建会报错，而不是到运行时才出现 <code>undefined</code>。</p>
+  </div></div>
+</section>
+<section class="card" data-section-id="m9-backend" data-section-title="后端层参考">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">后端层参考</span>
+    <button class="ask-btn" data-ask-section="m9-backend" data-ask-title="后端层参考">提问</button>
+  </div>
+  <div class="card-summary">FastAPI 是 Python 的异步 Web 框架，基于 Starlette（ASGI）和 Pydantic（数据校验）。</div>
+  <div class="card-body"><div class="card-inner">
+<h3>FastAPI</h3>
+<p>FastAPI 是 Python 的异步 Web 框架，基于 Starlette（ASGI）和 Pydantic（数据校验）。</p>
+<div class="callout">来源：<a href="https://fastapi.tiangolo.com/tutorial/" target="_blank" rel="noopener noreferrer">FastAPI 官方文档 — Tutorial - User Guide</a>、<a href="https://fastapi.tiangolo.com/async/" target="_blank" rel="noopener noreferrer">Concurrency and async / await</a>。</div>
+<p><strong>核心机制</strong></p>
+<table><thead><tr><th>机制</th><th>说明</th><th>深小理用法</th></tr></thead><tbody><tr><td>Pydantic 模型</td><td>用 Python 类型注解定义请求/响应结构</td><td><code>ChatRequest</code>、<code>UserLogin</code> 等模型自动校验</td></tr><tr><td>依赖注入</td><td><code>Depends()</code> 抽离可复用逻辑</td><td>JWT 校验、数据库连接、quota 检查</td></tr><tr><td><code>async def</code></td><td>路由函数异步执行</td><td>数据库查询、LLM 调用不阻塞线程</td></tr><tr><td><code>StreamingResponse</code></td><td>流式 HTTP 响应</td><td>SSE 把 Agent 输出实时推给前端</td></tr><tr><td>自动 OpenAPI</td><td>访问 <code>/docs</code> 生成交互式文档</td><td>前后端联调、测试接口</td></tr></tbody></table>
+<p><strong>SSE 响应的最小形态</strong></p>
+<pre><code class="language-python">from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+
+app = FastAPI()
+
+@app.post(&quot;/chat&quot;)
+async def chat(request: ChatRequest):
+    async def event_stream():
+        async for chunk in agent.run_stream(request.message):
+            yield f&quot;data: {chunk}\n\n&quot;
+    return StreamingResponse(
+        event_stream(),
+        media_type=&quot;text/event-stream&quot;
+    )</code></pre>
+<p><strong>为什么不是 Flask 或 Django？</strong></p>
+<ul><li>Flask 偏同步，做 SSE 需要额外插件；FastAPI 的 <code>StreamingResponse</code> 是内建的。</li><li>Django 太重型，ORM、admin、form 在深小理这种 API-first + Agent 的项目里是负担。</li><li>深小理的 Agent 层是 Python（LangGraph），后端统一语言降低上下文切换。</li></ul>
+<h3>Python 3.11</h3>
+<p>Python 3.11 是深小理后端的运行版本。</p>
+<div class="callout">来源：<a href="https://docs.python.org/3.11/whatsnew/3.11.html" target="_blank" rel="noopener noreferrer">Python 官方文档 — What&#x27;s New In Python 3.11</a>。</div>
+<p><strong>主要改进</strong></p>
+<ul><li><strong>性能</strong>：CPython 解释器优化，整体提升 10–60%，async 路径受益明显。</li><li><strong>错误信息</strong>：traceback 更精确，能指出表达式中具体出错的位置。</li><li><strong><code>TaskGroup</code></strong>：更优雅地管理多个并发任务，一个失败可以取消其余任务。</li><li><strong><code>ExceptionGroup</code></strong>：把多个异常打包抛出，适合并发场景的错误处理。</li></ul>
+<p>深小理里并发点多：SSE 连接、数据库查询、LLM 流式调用。Python 3.11 的性能和错误信息改善都有实际价值。</p>
+<h3>JWT 认证</h3>
+<p>JWT（JSON Web Token）是无状态认证机制。用户登录后服务端签发 token，后续请求带上 token 即可验证身份。</p>
+<div class="callout">来源：<a href="https://datatracker.ietf.org/doc/html/rfc7519" target="_blank" rel="noopener noreferrer">RFC 7519 — JSON Web Token (JWT)</a>、<a href="https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html" target="_blank" rel="noopener noreferrer">OWASP JWT Cheat Sheet</a>。</div>
+<p><strong>结构</strong></p>
+<pre><code class="language-text">header.payload.signature</code></pre>
+<ul><li><strong>header</strong>：指定签名算法（如 HS256、RS256）。</li><li><strong>payload</strong>：携带声明（claims），如 <code>sub</code>（用户 ID）、<code>exp</code>（过期时间）、<code>iat</code>（签发时间）。</li><li><strong>signature</strong>：用服务端密钥对前两部分签名，防止篡改。</li></ul>
+<p><strong>深小理里的安全实践</strong></p>
+<table><thead><tr><th>项目</th><th>做法</th><th>原因</th></tr></thead><tbody><tr><td>密钥管理</td><td>放在环境变量，不硬编码</td><td>防止代码泄露导致 token 可被伪造</td></tr><tr><td>过期时间</td><td>access token 15–60 分钟，配合 refresh token</td><td>缩短泄露窗口</td></tr><tr><td>算法验证</td><td>服务端显式指定允许的算法</td><td>防止 <code>alg: none</code> 攻击</td></tr><tr><td>敏感声明</td><td>不放权限等敏感信息在 payload</td><td>token 一旦泄露就泄露这些声明</td></tr></tbody></table>
+<p><strong>前端存储位置 tradeoffs</strong></p>
+<table><thead><tr><th>存储位置</th><th>优点</th><th>风险</th></tr></thead><tbody><tr><td>内存</td><td>最安全，XSS 也拿不到</td><td>刷新页面丢失，需重新登录</td></tr><tr><td>localStorage</td><td>刷新不丢，实现简单</td><td>XSS 可读取</td></tr><tr><td>httpOnly cookie</td><td>XSS 拿不到</td><td>需处理 CSRF，跨域配置复杂</td></tr></tbody></table>
+<p>深小理如果走安全优先，推荐 httpOnly cookie；如果走实现简单，可用 localStorage 但需严格控制内联脚本和 XSS 防护。</p>
+<h3>PostgreSQL 14</h3>
+<p>PostgreSQL 是开源关系型数据库。深小理用它存用户、会话、消息、记忆、quota 等。</p>
+<div class="callout">来源：<a href="https://www.postgresql.org/docs/14/datatype-json.html" target="_blank" rel="noopener noreferrer">PostgreSQL 14 官方文档 — JSON Types</a>、<a href="https://www.postgresql.org/docs/14/indexes.html" target="_blank" rel="noopener noreferrer">Indexes</a>。</div>
+<p><strong>为什么选 PostgreSQL？</strong></p>
+<table><thead><tr><th>能力</th><th>说明</th><th>深小理用途</th></tr></thead><tbody><tr><td>ACID 事务</td><td>完整支持原子性、一致性、隔离性、持久性</td><td>quota 扣减、消息写入必须可靠</td></tr><tr><td>JSONB</td><td>二进制 JSON，支持索引和复杂查询</td><td>messages 字段灵活存储</td></tr><tr><td>扩展生态</td><td>PostGIS、pgvector 等</td><td>未来如需向量检索可直接扩展</td></tr><tr><td>连接稳定性</td><td>成熟可靠，裸机部署简单</td><td>减少运维复杂度</td></tr></tbody></table>
+<p><strong>JSONB 关键事实</strong></p>
+<ul><li>JSONB 存储的是解析后的二进制格式，查询时比 JSON 文本更快。</li><li>可以用 GIN 索引加速 JSONB 路径查询：</li></ul>
+<pre><code class="language-sql">CREATE INDEX idx_messages_content ON messages
+USING GIN (content jsonb_path_ops);</code></pre>
+<ul><li>JSONB 不适合存大文件内容；图片/文件应走 OSS。</li><li>高频过滤字段（如 <code>user_id</code>、<code>session_id</code>）应抽成普通列并建 B-tree 索引，比在 JSONB 里查快。</li></ul>
+<h3>psycopg 3</h3>
+<p>psycopg 是 PostgreSQL 的 Python 驱动。psycopg 3 是新一代版本。</p>
+<div class="callout">来源：<a href="https://www.psycopg.org/psycopg3/docs/basic/usage.html" target="_blank" rel="noopener noreferrer">psycopg 3 官方文档 — Basic usage</a>、<a href="https://www.psycopg.org/psycopg3/docs/advanced/async.html" target="_blank" rel="noopener noreferrer">Async support</a>。</div>
+<p><strong>psycopg 3 相对 2 的主要变化</strong></p>
+<ul><li>原生支持异步：<code>psycopg.AsyncConnection</code>、<code>psycopg.AsyncCursor</code>。</li><li>更好的类型转换和参数处理。</li><li>支持 <code>Pipeline</code> 模式批量执行。</li></ul>
+<p><strong>深小理为什么直接用它而不是 SQLAlchemy？</strong></p>
+<ul><li>复杂查询和性能调优时，ORM 生成的 SQL 不透明。</li><li>直接写 SQL 可以精确控制索引使用、批量插入、锁行为。</li><li>但代价是：必须手动管理连接池、手动写参数化查询防止 SQL 注入。</li></ul>
+<p><strong>参数化查询示例</strong></p>
+<pre><code class="language-python"># 安全：数据库驱动把参数当数据处理
+await cur.execute(&quot;SELECT * FROM users WHERE id = %s&quot;, (user_id,))
+
+# 危险：字符串拼接，存在 SQL 注入
+await cur.execute(f&quot;SELECT * FROM users WHERE id = {user_id}&quot;)</code></pre>
+  </div></div>
+</section>
+<section class="card" data-section-id="m9-agent" data-section-title="Agent 层参考">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">Agent 层参考</span>
+    <button class="ask-btn" data-ask-section="m9-agent" data-ask-title="Agent 层参考">提问</button>
+  </div>
+  <div class="card-summary">LangGraph 是 LangChain 生态中的 Agent 编排框架。它把 Agent 执行过程建模成有向状态图。</div>
+  <div class="card-body"><div class="card-inner">
+<h3>LangGraph</h3>
+<p>LangGraph 是 LangChain 生态中的 Agent 编排框架。它把 Agent 执行过程建模成<strong>有向状态图</strong>。</p>
+<div class="callout">来源：<a href="https://langchain-ai.github.io/langgraph/concepts/" target="_blank" rel="noopener noreferrer">LangGraph 官方文档 — Concepts</a>、<a href="https://langchain-ai.github.io/langgraph/how-tos/" target="_blank" rel="noopener noreferrer">How-to Guides</a>。</div>
+<p><strong>核心抽象</strong></p>
+<table><thead><tr><th>概念</th><th>说明</th></tr></thead><tbody><tr><td>State</td><td>整个图共享的状态对象，通常包含 <code>messages</code>、<code>loop_count</code> 等</td></tr><tr><td>Node</td><td>一个执行步骤，如 <code>prepare</code>、<code>model</code>、<code>tools</code></td></tr><tr><td>Edge</td><td>节点之间的转移；可以是固定跳转或条件路由</td></tr><tr><td>Conditional Edge</td><td>根据状态决定下一步走哪个节点</td></tr><tr><td>Checkpoint</td><td>图执行到某一步的快照，支持中断后恢复</td></tr><tr><td>Interrupt</td><td>暂停执行等待外部输入，如用户确认隐私操作</td></tr></tbody></table>
+<p><strong>为什么不用自己写循环？</strong></p>
+<ul><li>自研 ReAct 循环容易把状态、错误处理、工具调用混在一起。</li><li>LangGraph 把循环显式化成图，便于单步调试、加节点、改路由。</li><li>中断/恢复机制内建，适合需要人工确认的隐私场景。</li></ul>
+<h3>ReAct 模式</h3>
+<p>ReAct = Reasoning（推理）+ Acting（行动）。</p>
+<div class="callout">来源：<a href="https://arxiv.org/html/2210.03629" target="_blank" rel="noopener noreferrer">ReAct: Synergizing Reasoning and Acting in Language Models</a>（Yao et al., 2022）。</div>
+<p>基本循环：</p>
+<pre><code class="language-text">Thought: 用户问的是... 我需要先...
+Action: 调用 search_kb(query=&quot;...&quot;)
+Observation: 搜索结果返回 ...
+Thought: 根据结果，下一步应该...
+Final Answer: ...</code></pre>
+<p>在深小理的 LangGraph 实现里，这对应：</p>
+<ul><li><code>prepare</code>：整理上下文和系统提示。</li><li><code>model</code>：调用 LLM，决定生成回答或调用工具。</li><li><code>tools</code>：执行模型选择的工具。</li><li><code>should_continue</code>：判断是继续循环还是结束，通常检查 <code>loop_count</code> 是否超限。</li></ul>
+<h3>LLM API 与流式</h3>
+<p>深小理使用 OpenAI 兼容 API，意味着接口格式遵循 OpenAI 的 <code>/chat/completions</code> 规范。</p>
+<div class="callout">来源：<a href="https://platform.openai.com/docs/guides/chat-completions" target="_blank" rel="noopener noreferrer">OpenAI API 文档 — Chat Completions</a>、<a href="https://platform.openai.com/docs/guides/function-calling" target="_blank" rel="noopener noreferrer">Function Calling</a>。</div>
+<p><strong>关键参数</strong></p>
+<table><thead><tr><th>参数</th><th>作用</th><th>典型设置</th></tr></thead><tbody><tr><td><code>model</code></td><td>指定模型 ID</td><td><code>gpt-4o</code>、<code>gpt-3.5-turbo</code> 或兼容接口的模型名</td></tr><tr><td><code>messages</code></td><td>对话历史</td><td>system / user / assistant / tool 消息列表</td></tr><tr><td><code>temperature</code></td><td>控制随机性</td><td>0–2；事实提取用 0，创意生成用 0.7–1</td></tr><tr><td><code>max_tokens</code></td><td>最大生成长度</td><td>根据场景设置，避免截断或浪费</td></tr><tr><td><code>stream</code></td><td>是否流式返回</td><td><code>true</code> 时通过 SSE 逐字返回</td></tr><tr><td><code>tools</code></td><td>可调用工具列表</td><td>每个工具包含名称、描述、参数 schema</td></tr></tbody></table>
+<p><strong>函数调用（Tool Calling）流程</strong></p>
+<ol><li>请求里带 <code>tools</code> 参数，描述可用工具。</li><li>模型决定调用某个工具时，返回 <code>tool_calls</code> 而不是普通内容。</li><li>后端执行工具，把结果以 <code>tool</code> 角色的消息加回 <code>messages</code>。</li><li>再次调用模型，模型基于工具结果生成最终回答。</li></ol>
+<h3>工具注册</h3>
+<p>深小理的工具注册机制让 Agent 动态发现可调用的能力。</p>
+<p>典型实现模式：</p>
+<pre><code class="language-python">@tool_registry.register(description=&quot;搜索知识库&quot;)
+def search_kb(query: str) -&gt; list[dict]:
+    &quot;&quot;&quot;根据 query 搜索知识库并返回相关片段。&quot;&quot;&quot;
+    ...</code></pre>
+<p>LangChain 会自动把函数签名转成 JSON Schema：</p>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;search_kb&quot;,
+  &quot;description&quot;: &quot;搜索知识库&quot;,
+  &quot;parameters&quot;: {
+    &quot;type&quot;: &quot;object&quot;,
+    &quot;properties&quot;: {
+      &quot;query&quot;: {&quot;type&quot;: &quot;string&quot;, &quot;description&quot;: &quot;搜索关键词&quot;}
+    },
+    &quot;required&quot;: [&quot;query&quot;]
+  }
+}</code></pre>
+<p>模型靠 <code>description</code> 和参数 schema 决定什么时候调用、传什么参数。</p>
+  </div></div>
+</section>
+<section class="card" data-section-id="m9-storage" data-section-title="存储层参考">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">存储层参考</span>
+    <button class="ask-btn" data-ask-section="m9-storage" data-ask-title="存储层参考">提问</button>
+  </div>
+  <div class="card-summary">JSONB 是 PostgreSQL 的二进制 JSON 存储类型。</div>
+  <div class="card-body"><div class="card-inner">
+<h3>PostgreSQL JSONB</h3>
+<p>JSONB 是 PostgreSQL 的二进制 JSON 存储类型。</p>
+<div class="callout">来源：<a href="https://www.postgresql.org/docs/14/datatype-json.html" target="_blank" rel="noopener noreferrer">PostgreSQL 14 官方文档 — JSON Types</a>。</div>
+<p><strong>JSONB vs JSON（PostgreSQL 里两种 JSON 类型）</strong></p>
+<table><thead><tr><th>特性</th><th>JSON</th><th>JSONB</th></tr></thead><tbody><tr><td>存储格式</td><td>原始文本</td><td>解析后的二进制</td></tr><tr><td>查询速度</td><td>慢（每次解析）</td><td>快</td></tr><tr><td>索引支持</td><td>不支持</td><td>支持 GIN 索引</td></tr><tr><td>空格/重复键</td><td>保留</td><td>不保留</td></tr><tr><td>写入速度</td><td>快</td><td>稍慢（需解析）</td></tr></tbody></table>
+<p>深小理用 JSONB 存 messages，因为需要查询和索引能力。</p>
+<p><strong>GIN 索引示例</strong></p>
+<pre><code class="language-sql">CREATE INDEX idx_messages_content_type ON messages
+USING GIN (content jsonb_path_ops);</code></pre>
+<p>适用场景：按 JSONB 内部字段过滤或搜索。</p>
+<h3>阿里云 OSS</h3>
+<p>OSS（Object Storage Service）是对象存储服务，适合存图片、文件、备份等大对象。</p>
+<div class="callout">来源：<a href="https://help.aliyun.com/product/31815.html" target="_blank" rel="noopener noreferrer">阿里云对象存储文档</a>。</div>
+<p><strong>核心概念</strong></p>
+<table><thead><tr><th>概念</th><th>说明</th></tr></thead><tbody><tr><td>Bucket</td><td>存储空间，全局唯一命名</td></tr><tr><td>Object</td><td>存储的文件对象，由 key 唯一标识</td></tr><tr><td>Endpoint</td><td>访问域名，分公网/内网/加速域名</td></tr><tr><td>ACL</td><td>访问权限：私有、公共读、公共读写</td></tr><tr><td>Presigned URL</td><td>临时签名链接，用于私有 bucket 临时授权访问</td></tr></tbody></table>
+<p><strong>深小理用法</strong></p>
+<ul><li>用户上传图片 → 后端把图片推送到 OSS → 返回图片 URL 给前端显示。</li><li>避免把图片存在应用服务器本地或数据库里，减轻带宽和存储压力。</li></ul>
+<p><strong>安全注意</strong></p>
+<ul><li>Bucket 默认设为私有，需要访问时生成带签名的临时 URL。</li><li>配置防盗链（Referer 白名单），防止其他站点盗用流量。</li><li>上传接口限制文件大小和类型，防止恶意文件占用存储。</li><li>AccessKey ID/Secret 必须放在服务端，绝不能写进前端代码。</li></ul>
+  </div></div>
+</section>
+<section class="card" data-section-id="m9-deploy" data-section-title="部署层参考">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">部署层参考</span>
+    <button class="ask-btn" data-ask-section="m9-deploy" data-ask-title="部署层参考">提问</button>
+  </div>
+  <div class="card-summary">Nginx 是高性能 Web 服务器和反向代理。深小理用它接收外部请求并转发给 FastAPI。</div>
+  <div class="card-body"><div class="card-inner">
+<h3>Nginx</h3>
+<p>Nginx 是高性能 Web 服务器和反向代理。深小理用它接收外部请求并转发给 FastAPI。</p>
+<div class="callout">来源：<a href="https://nginx.org/en/docs/" target="_blank" rel="noopener noreferrer">Nginx 官方文档</a>、<a href="https://nginx.org/en/docs/http/ngx_http_proxy_module.html" target="_blank" rel="noopener noreferrer">Module ngx_http_proxy_module</a>。</div>
+<p><strong>核心职责</strong></p>
+<table><thead><tr><th>职责</th><th>说明</th></tr></thead><tbody><tr><td>反向代理</td><td>把 80/443 端口请求转发给后端（如 8000 端口）</td></tr><tr><td>静态文件</td><td>直接服务前端构建产物</td></tr><tr><td>SSL 终止</td><td>处理 HTTPS 证书，后端只跑 HTTP</td></tr><tr><td>负载均衡</td><td>多后端实例时分发请求</td></tr><tr><td>限流/压缩</td><td>控制请求速率、启用 gzip</td></tr></tbody></table>
+<p><strong>SSE 关键配置</strong></p>
+<p>SSE 是 HTTP 长连接，Nginx 默认会缓冲响应，导致前端无法实时收到数据。必须关闭缓冲：</p>
+<pre><code class="language-nginx">location /chat {
+    proxy_pass http://127.0.0.1:8000;
+    proxy_http_version 1.1;
+    proxy_set_header Connection &quot;&quot;;
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_read_timeout 3600s;
+}</code></pre>
+<p>关键指令：</p>
+<ul><li><code>proxy_http_version 1.1</code>：HTTP/1.1 支持 keepalive。</li><li><code>proxy_buffering off</code>：不缓冲响应，实时推流。</li><li><code>proxy_read_timeout 3600s</code>：SSE 连接可以保持 1 小时不被断开。</li></ul>
+<h3>systemd</h3>
+<p>systemd 是 Linux 系统和服务管理器。深小理用它把后端进程注册为系统服务。</p>
+<div class="callout">来源：<a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html" target="_blank" rel="noopener noreferrer">systemd 官方文档 — systemd.service</a>、<a href="https://www.freedesktop.org/software/systemd/man/latest/systemd-journald.service.html" target="_blank" rel="noopener noreferrer">systemd-journald.service</a>。</div>
+<p><strong>典型 unit 文件</strong></p>
+<pre><code class="language-ini">[Unit]
+Description=ShenXiaoLi API
+After=network.target postgresql.service
+
+[Service]
+Type=notify
+User=shenxiaoli
+WorkingDirectory=/opt/shenxiaoli
+ExecStart=/opt/shenxiaoli/venv/bin/python -m uvicorn main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p><strong>常用命令</strong></p>
+<pre><code class="language-bash">sudo systemctl start shenxiaoli    # 启动服务
+sudo systemctl stop shenxiaoli     # 停止服务
+sudo systemctl restart shenxiaoli  # 重启服务
+sudo systemctl status shenxiaoli   # 查看状态
+sudo journalctl -u shenxiaoli -f   # 实时查看日志</code></pre>
+<p><strong><code>Restart=on-failure</code> 含义</strong></p>
+<ul><li>服务异常退出时自动重启。</li><li>正常 <code>systemctl stop</code> 不会触发重启。</li><li>配合 <code>RestartSec=5</code> 避免崩溃后疯狂重试。</li></ul>
+<h3>裸机部署 vs 容器化</h3>
+<p>深小理用 Nginx + systemd 裸机部署。下面是不同部署方式的边界。</p>
+<div class="callout">来源：本地 m7《部署与运维：从本机到线上》。</div>
+<table><thead><tr><th>维度</th><th>裸机 + systemd</th><th>Docker Compose</th><th>Kubernetes</th></tr></thead><tbody><tr><td>适用规模</td><td>单体应用</td><td>几个服务</td><td>几十个服务</td></tr><tr><td>环境一致性</td><td>依赖服务器状态</td><td>镜像一致</td><td>强一致</td></tr><tr><td>启动速度</td><td>快</td><td>中等</td><td>慢</td></tr><tr><td>回滚能力</td><td>需脚本</td><td>简单</td><td>原生支持</td></tr><tr><td>排查难度</td><td>低（journalctl）</td><td>中等</td><td>高</td></tr><tr><td>资源隔离</td><td>弱</td><td>中等</td><td>强</td></tr></tbody></table>
+<p>深小理当前阶段是单体应用，裸机部署路径最短。如果未来拆出独立服务（如单独的图片服务、搜索服务、记忆服务），就应评估 Docker Compose 或 K8s。</p>
+  </div></div>
+</section>
+<section class="card" data-section-id="m9-summary" data-section-title="快速索引">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">快速索引</span>
+    <button class="ask-btn" data-ask-section="m9-summary" data-ask-title="快速索引">提问</button>
+  </div>
+  
+  <div class="card-body"><div class="card-inner">
+<table><thead><tr><th>想深入理解</th><th>优先读</th></tr></thead><tbody><tr><td>React 组件、hooks、并发</td><td><a href="https://react.dev/learn/thinking-in-react" target="_blank" rel="noopener noreferrer">React 官方文档</a></td></tr><tr><td>Vite 为什么快、HMR 原理</td><td><a href="https://vitejs.dev/guide/why.html" target="_blank" rel="noopener noreferrer">Vite Why Vite</a></td></tr><tr><td>Tailwind utility-first</td><td><a href="https://tailwindcss.com/docs/utility-first" target="_blank" rel="noopener noreferrer">Tailwind Utility-First</a></td></tr><tr><td>TypeScript 严格类型</td><td><a href="https://www.typescriptlang.org/docs/handbook/intro.html" target="_blank" rel="noopener noreferrer">TypeScript Handbook</a></td></tr><tr><td>FastAPI async、依赖注入、SSE</td><td><a href="https://fastapi.tiangolo.com/async/" target="_blank" rel="noopener noreferrer">FastAPI Async</a></td></tr><tr><td>Python 3.11 新特性</td><td><a href="https://docs.python.org/3.11/whatsnew/3.11.html" target="_blank" rel="noopener noreferrer">What&#x27;s New In Python 3.11</a></td></tr><tr><td>JWT 安全</td><td><a href="https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html" target="_blank" rel="noopener noreferrer">OWASP JWT Cheat Sheet</a></td></tr><tr><td>PostgreSQL JSONB</td><td><a href="https://www.postgresql.org/docs/14/datatype-json.html" target="_blank" rel="noopener noreferrer">PostgreSQL JSON Types</a></td></tr><tr><td>psycopg 3 async</td><td><a href="https://www.psycopg.org/psycopg3/docs/advanced/async.html" target="_blank" rel="noopener noreferrer">psycopg Async</a></td></tr><tr><td>LangGraph 概念</td><td><a href="https://langchain-ai.github.io/langgraph/concepts/" target="_blank" rel="noopener noreferrer">LangGraph Concepts</a></td></tr><tr><td>ReAct 论文</td><td><a href="https://arxiv.org/html/2210.03629" target="_blank" rel="noopener noreferrer">arXiv:2210.03629</a></td></tr><tr><td>OpenAI 函数调用</td><td><a href="https://platform.openai.com/docs/guides/function-calling" target="_blank" rel="noopener noreferrer">OpenAI Function Calling</a></td></tr><tr><td>Nginx 反向代理</td><td><a href="https://nginx.org/en/docs/http/ngx_http_proxy_module.html" target="_blank" rel="noopener noreferrer">Nginx proxy_module</a></td></tr><tr><td>systemd 服务</td><td><a href="https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html" target="_blank" rel="noopener noreferrer">systemd.service</a></td></tr></tbody></table>
+  </div></div>
+</section>
+  <footer class="next-prev"><a href="m8.html">上一节</a><span></span></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/reference/runtime.js"></script>
+</body>
+</html>

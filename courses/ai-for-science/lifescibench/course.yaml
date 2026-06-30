@@ -1,0 +1,31 @@
+id: lifescibench
+title: "LifeSciBench 解读"
+subtitle: "从 OpenAI 的 750 题生命科学研究基准出发，理解 AI 在真实科研任务中的能力边界与使用策略。"
+audience: "关注 AI 在生命科学应用的研究者、开发者、学生，以及对科研自动化感兴趣的产品经理。"
+default_port: 8790
+template: tutorial
+modules:
+  - id: m1
+    title: "为什么需要 LifeSciBench"
+    file: "modules/01.md"
+    summary: "从现有基准的局限出发，理解 LifeSciBench 要解决的核心问题：评估 AI 在真实生命科学研究任务中的可靠性。"
+  - id: m2
+    title: "数据集构建：七个工作流与七个领域"
+    file: "modules/02.md"
+    summary: "拆解 LifeSciBench 的任务分类、专家编写流程、审查机制与数据构成。"
+  - id: m3
+    title: "评分方式与实验设置"
+    file: "modules/03.md"
+    summary: "理解 rubric 评分、pass rate、模型列表与评估协议，为后续结果分析打好基础。"
+  - id: m4
+    title: "主要结果：模型表现如何"
+    file: "modules/04.md"
+    summary: "分析不同模型在整体、工作流和领域层面的相对强弱。"
+  - id: m5
+    title: "剩余能力缺口"
+    file: "modules/05.md"
+    summary: "artifact-heavy 任务、精确输出、部分进展与操作约束是当前模型的主要瓶颈。"
+  - id: m6
+    title: "如何理性使用 AI 做生命科学研究"
+    file: "modules/06.md"
+    summary: "从 LifeSciBench 的结果提炼出人类判断、验证流程与 AI 协作策略。"

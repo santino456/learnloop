@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCP 解决的到底是什么问题 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m1</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="mcp-fundamentals" data-module-id="m1">
+  <header class="lesson-header">
+    <p class="eyebrow">MCP Fundamentals</p>
+    <h1>MCP 解决的到底是什么问题</h1>
+    <p class="lede">用 host/client/server 和 data/transport 两层模型建立第一张地图。</p>
+  </header>
+  <section><h2 data-section-id="m1-problem" data-section-title="先别把 MCP 想成“工具调用框架”">先别把 MCP 想成“工具调用框架” <button class="ask-btn" data-ask-section="m1-problem" data-ask-title="先别把 MCP 想成“工具调用框架”">提问</button></h2>
+<p>如果只说“MCP 让模型调用工具”，很容易学歪。工具只是其中一种能力。</p>
+<p>更准确的说法是：MCP 是一个开放标准，用来让 AI 应用连接外部系统。官方介绍把它描述为连接 AI 应用和外部系统的标准接口，外部系统可以是数据源、工具和工作流；详见 <a href="https://modelcontextprotocol.io/docs/getting-started/intro" target="_blank" rel="noopener noreferrer">What is MCP?</a>。</p>
+<p>这句话里最重要的不是“调用”，而是<strong>连接方式标准化</strong>。没有 MCP 时，每个 AI 应用都要自己定义如何连接数据库、文件、浏览器、SaaS API、内部系统。MCP 的目标是让这些能力用一套共同协议暴露出来。</p>
+<figure class="ll-figure"><img src="course-assets/mcp-architecture.svg" alt="MCP architecture showing a host with one client per server and servers exposing tools resources and prompts" loading="lazy"><figcaption><span>Host 负责用户体验和模型上下文；每个 server 只暴露边界清楚的能力。</span><cite>本地示意图，依据官方 Architecture overview 重画</cite></figcaption></figure></section>
+<section><h2 data-section-id="m1-roles" data-section-title="三个角色：Host、Client、Server">三个角色：Host、Client、Server <button class="ask-btn" data-ask-section="m1-roles" data-ask-title="三个角色：Host、Client、Server">提问</button></h2>
+<p>官方架构文档把 MCP 描述成 client-server architecture：一个 MCP host 会为每个 MCP server 建立一个 MCP client；每个 client 维护到对应 server 的连接，见 <a href="https://modelcontextprotocol.io/docs/learn/architecture" target="_blank" rel="noopener noreferrer">Architecture overview</a>。</p>
+<p>这三个角色要分清：</p>
+<ul><li><strong>Host</strong>：AI 应用本体，比如 IDE、桌面助手、聊天应用。它决定用户看到什么、模型能用什么上下文、工具调用是否要确认。</li><li><strong>Client</strong>：host 里管理某个 server 连接的组件。一个 server 通常对应一个 client。</li><li><strong>Server</strong>：提供上下文或能力的程序。它可以本地运行，也可以远程运行。</li></ul>
+<ol class="ll-flow"><li><span>User asks in Host</span></li><li><span>Host routes through MCP Client</span></li><li><span>MCP Server exposes context or action</span></li><li><span>Host decides what enters the model conversation</span></li></ol>
+<p>这就是为什么学习 MCP 时不要只盯着 server。真正的产品体验通常由 host 决定：权限提示、工具调用 UI、资源选择器、错误恢复、日志展示，都不在 server 一侧单独完成。</p></section>
+<section><h2 data-section-id="m1-layers" data-section-title="两层模型：Data layer 和 Transport layer">两层模型：Data layer 和 Transport layer <button class="ask-btn" data-ask-section="m1-layers" data-ask-title="两层模型：Data layer 和 Transport layer">提问</button></h2>
+<p>官方架构把 MCP 拆成两层：</p>
+<ul><li><strong>Data layer</strong>：JSON-RPC 协议语义，定义初始化、能力协商、tools/resources/prompts、notifications 等。</li><li><strong>Transport layer</strong>：消息怎么传，比如 stdio 或 Streamable HTTP。</li></ul>
+<p>把这两层分开之后，很多困惑会消失。<code>tools/list</code> 是 data layer 的事情；stdio 是 transport layer 的事情。你可以通过 stdio 传 <code>tools/list</code>，也可以通过 HTTP 传同一种 JSON-RPC 消息。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>如果一个 MCP server 用 stdio 传输，它暴露 <code>tools/list</code> 的事实属于 data layer 还是 transport layer？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>tools/list</code> 属于 data layer。stdio 只是承载 JSON-RPC 消息的 transport layer。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m1-first-map" data-section-title="第一张学习地图">第一张学习地图 <button class="ask-btn" data-ask-section="m1-first-map" data-ask-title="第一张学习地图">提问</button></h2>
+<p>你可以先用这张地图记 MCP：</p>
+<ol><li>Host 连接一个或多个 server。</li><li>Host 内部为每个 server 建立 client。</li><li>Client 和 server 先 <code>initialize</code>，协商协议版本和能力。</li><li>Server 暴露 tools、resources、prompts。</li><li>Client 也可能提供 roots、sampling、elicitation 等能力。</li><li>Transport 决定消息走 stdio 还是 Streamable HTTP。</li></ol>
+<p>这门课后面会按这张地图展开：先查原语，再练设计，再看传输和安全，最后讨论什么时候 MCP 值得用。</p></section>
+  <footer class="next-prev"><span></span><a href="m2.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

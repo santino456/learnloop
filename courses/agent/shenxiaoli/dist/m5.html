@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>会说话的前端：SSE 流式与交互设计 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/perspective/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m5</span><span class="top-nav-template">perspective</span></nav>
+<article class="lesson" data-course-id="shenxiaoli" data-module-id="m5">
+  <header class="lesson-header">
+    <p class="eyebrow">深小理：全栈架构透视</p>
+    <h1>会说话的前端：SSE 流式与交互设计</h1>
+    <p class="lede">SSE 两阶段 pipeline、纯函数状态 reducer、断流恢复、RichContent Markdown-to-Block、UI 交互细节。</p>
+  </header>
+  <section><h2 data-section-id="m5-communication" data-section-title="为什么是 SSE">为什么是 SSE <button class="ask-btn" data-ask-section="m5-communication" data-ask-title="为什么是 SSE">提问</button></h2>
+<p>深小理的前后端通信只用了两种模式：</p>
+<table><thead><tr><th>模式</th><th>方向</th><th>用途</th></tr></thead><tbody><tr><td>HTTP POST</td><td>前端 → 后端</td><td>用户发送消息</td></tr><tr><td>SSE (Server-Sent Events)</td><td>后端 → 前端</td><td>Agent 思考/回答/工具调用 流式推送</td></tr></tbody></table>
+<p>没有 WebSocket、没有轮询。选择 SSE 的原因：</p>
+<ul><li><strong>单向足够</strong>：前端只需要收 Agent 的响应，不需要持续双向通信</li><li><strong>Nginx 兼容</strong>：<code>proxy_buffering off</code> 一行配置搞定</li><li><strong>协议简单</strong>：纯 HTTP 文本流，Chrome DevTools 可以直接看</li><li><strong>断线处理简单</strong>：HTTP 连接断开 = 流结束，立即可以重试</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>什么场景下 SSE 不够用，必须用 WebSocket？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>当需要前端<strong>频繁主动发送</strong>消息且需要后端即时响应时。比如：协同编辑（每个人每次按键都推送）、实时游戏（高频双向状态同步）、语音/视频通话（需要全双工）。深小理是问答式交互，用户每次只发一条消息然后等回复，SSE 完全够用。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m5-pipeline" data-section-title="SSE 两阶段 Pipeline">SSE 两阶段 Pipeline <button class="ask-btn" data-ask-section="m5-pipeline" data-ask-title="SSE 两阶段 Pipeline">提问</button></h2>
+<pre><code class="language-">后端 Agent 循环 ──→ asyncio.Queue ──→ SSE Generator ──→ 前端 EventSource
+                        │
+                  ┌─────┴──────┐
+                  │            │
+              Stage 1       Stage 2
+         (Agent 运行时)   (Agent 完成后)
+         thinking         sentence chunks
+         reasoning        (打字机效果, 16char/chunk, 25ms间隔)
+         tool_calls       done (完整内容)
+         tool_result
+         chunk</code></pre>
+<p><strong>Stage 1</strong>：实时推送。Agent 每产生一个事件（思考、推理、工具调用、文本片段），立即通过 Queue 流向 SSE。</p>
+<p><strong>Stage 2</strong>：Agent 循环结束后。最终回复被拆成句子级别的 chunk（16 字符），25ms 间隔逐块推送——制造&quot;AI 在打字&quot;的体验。最后发 <code>done</code> 事件带完整内容。</p>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>如果你想改打字机效果的参数——比如改成 8 字符 / 40ms 间隔——你会改后端的哪一行？</p>
+<p>提示：去看 <code>backend/app/main.py</code> 中 SSE streaming 的 Stage 2 逻辑。</p>
+</div>
+<div class="exercise-answer" hidden>
+<p>需要改 <code>app/main.py</code> 中生成 sentence chunks 的参数：<code>chunk_size</code> 和 <code>asyncio.sleep</code> 的时间。具体位置在 <code>/chat/stream</code> 端点中，Agent 完成后、yield SSE events 的那段代码。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m5-reducer" data-section-title="前端状态管理：纯函数 Reducer">前端状态管理：纯函数 Reducer <button class="ask-btn" data-ask-section="m5-reducer" data-ask-title="前端状态管理：纯函数 Reducer">提问</button></h2>
+<p>前端用了一个<strong>纯函数状态 reducer</strong> 来消费 SSE 事件流——和 React 的 <code>useReducer</code> 模式一致，但独立于组件生命周期：</p>
+<pre><code class="language-">SSE Event → reduceChatStreamEvent(currentState, event) → newState → React setState</code></pre>
+<p>这个 reducer 处理所有事件类型：</p>
+<table><thead><tr><th>事件</th><th>Reducer 行为</th></tr></thead><tbody><tr><td><code>thinking</code></td><td>累加 loop counter，为新一轮 ReAct 创建 assistant placeholder</td></tr><tr><td><code>reasoning</code></td><td>累加到当前 thinking 内容</td></tr><tr><td><code>tool_calls</code></td><td>在当前 assistant 后面插入 tool message（去重 by tool_call_id）</td></tr><tr><td><code>tool_result</code></td><td>更新 tool 状态，确保后面有 assistant placeholder</td></tr><tr><td><code>chunk</code></td><td>累加到当前 assistant 的 content</td></tr><tr><td><code>ask_user</code></td><td>插入交互式 survey 组件</td></tr><tr><td><code>privacy_confirm</code></td><td>插入隐私确认对话框</td></tr><tr><td><code>done</code></td><td>标记完成，填充 message ID</td></tr><tr><td><code>error</code> / <code>quota_exceeded</code> / <code>service_busy</code></td><td>终端错误状态</td></tr></tbody></table></section>
+<section><h2 data-section-id="m5-recovery" data-section-title="断流恢复：recoverSessionTurn">断流恢复：recoverSessionTurn <button class="ask-btn" data-ask-section="m5-recovery" data-ask-title="断流恢复：recoverSessionTurn">提问</button></h2>
+<p>SSE 连接断开时（网络波动、服务器重启），前端不会丢失数据。<code>recoverSessionTurn()</code> 方法：</p>
+<ol><li>检测到 SSE 流中断</li><li>调 REST API 重新获取会话消息</li><li>对比本地状态——如果这一轮已经保存了，就用服务端的</li><li>无缝接上</li></ol>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么 SSE 断开后不能简单地重连 SSE 继续收？为什么必须从 REST API 重新拉？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>因为 SSE 是单向推送——断连期间的事件已经丢失了。如果只重连 SSE，Server 会从头开始推（新请求），中间丢的事件找不回来。REST API 是&quot;拉&quot;模式，可以获取到断连期间服务端已经写入数据库的完整消息。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m5-richcontent" data-section-title="RichContent：从 Markdown 到 Block">RichContent：从 Markdown 到 Block <button class="ask-btn" data-ask-section="m5-richcontent" data-ask-title="RichContent：从 Markdown 到 Block">提问</button></h2>
+<p><code>RichContent.tsx</code> 不是简单的 Markdown 渲染器——它是一个 <strong>Markdown-to-Block 管线</strong>：</p>
+<pre><code class="language-">输入: 一段混合文本 + 图片路径
+  ↓
+splitIntoSegments() — 按 \n\n 分段，保留代码块
+  ↓
+逐段解析类型
+  ├── 首段有图？ → Hero block（全宽大图 + 点击放大）
+  ├── &gt; 📍 开头？ → Location card（地点卡片）
+  ├── 2+ 连续链接？ → Links block（标签按钮组）
+  ├── 2+ 图片？ → Gallery block（图片堆叠）
+  └── 其他 → ReactMarkdown（GFM + 中文友好分行）
+  ↓
+mergeGalleries() — 合并相邻图库
+  ↓
+输出: Block 列表 → React 组件渲染</code></pre>
+<h3>关键渲染决策</h3>
+<ul><li><strong>表格</strong>：<code>overflow-x: auto</code> + 斑马纹 + sticky header</li><li><strong>代码块</strong>：<code>pre</code> 带深色背景 + 语言标签</li><li><strong>H2 标题</strong>：紫色左边框强调</li><li><strong>图片</strong>：<code>cursor: pointer</code> + <code>onClick</code> 在新 tab 打开原图</li><li><strong>引用块</strong>：左侧棕色边框，做地点卡片的语义标记</li></ul></section>
+<section><h2 data-section-id="m5-oss" data-section-title="图片解析：resolveImageUrl">图片解析：resolveImageUrl <button class="ask-btn" data-ask-section="m5-oss" data-ask-title="图片解析：resolveImageUrl">提问</button></h2>
+<p>生产环境中，图片不经过 ECS 带宽。<code>/kb/campus/images/...</code> 和 <code>/skills/...</code> 路径被重写为 OSS 直连 URL：</p>
+<pre><code class="language-">/kb/campus/images/buildings/library.jpg
+  → https://shenxiaoli-assets.oss-cn-shenzhen.aliyuncs.com/campus/buildings/library.jpg
+
+/skills/campus-info/assets/images/2026-06/map.png
+  → https://shenxiaoli-assets.oss-cn-shenzhen.aliyuncs.com/skills/campus-info/assets/images/2026-06/map.png</code></pre>
+<p>开发环境中两个 base URL 为空字符串，图片从本地磁盘加载。</p>
+<p>OSS 启用 Referer 防盗链：只允许 <code>*shenxiaoli.cn</code>，禁止空 Referer（防止直接 curl 下载）。</p></section>
+<section><h2 data-section-id="m5-ux" data-section-title="交互细节：几个不在 PRD 里的设计">交互细节：几个不在 PRD 里的设计 <button class="ask-btn" data-ask-section="m5-ux" data-ask-title="交互细节：几个不在 PRD 里的设计">提问</button></h2>
+<h3>Fork Turn（分叉对话）</h3>
+<p>长按用户消息 450ms 或右键，弹出&quot;从这一轮分叉&quot;按钮。分叉 = 复制当前会话到这条消息之前的所有历史，创建新会话。</p>
+<p>用处：用户可以说&quot;A 方案和 B 方案哪个好&quot;，Agent 推荐后，用户可以叉掉，换个问法再试。</p>
+<h3>呼吸动画</h3>
+<p>工具组（ToolGroup）在&quot;正在查资料&quot;状态下有一个脉动圆点动画 (<code>animate-activity-breathe</code>)。这不是装饰——它告诉用户 Agent 正在干活，不是卡了。</p>
+<h3>Tool Limit Warning</h3>
+<p>当 Agent 循环超过工具调用上限，一个琥珀色横幅从顶部滑入。5 秒后自动消失。对比静默失败，这个设计让用户知道发生了什么。</p>
+<div class="exercise" data-kind="perspective">
+<div class="exercise-task judgment-task">
+<p>打开深小理，仔细观察这三个交互细节。然后想：如果去掉其中两个，用户体验会差在哪里？每个细节你给几分（1-10），为什么？</p>
+</div>
+<textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>
+<div class="judgment-reveal" hidden>
+<section class="judgment-section perspective" hidden><h4>作者视角</h4>
+<p>依据：基于深小理前端实际实现和用户行为观察。</p>
+<p>这些细节的共同特点是：<strong>花很少的代码解决了一个可能让用户困惑的问题</strong>。Fork turn 在不破坏当前对话的前提下给用户探索空间；呼吸动画用 3 行 CSS 解决了&quot;工具在跑还是卡了&quot;的疑虑；tool limit warning 比静默截断体面得多。</p>
+<p>好产品的 UX 不是功能多，是在每个用户可能困惑的节点上放一个提示。</p>
+</section>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-compare" type="button">对比作者视角</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m5-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m5-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>SSE 够用——单向推送 + Nginx 兼容 + 协议简单。</li><li>两阶段 pipeline：Stage 1 实时推送 Agent 事件，Stage 2 打字机效果。</li><li>纯函数 reducer 消费 SSE 事件流，状态可追溯。</li><li><code>recoverSessionTurn</code> 处理断流恢复——SSE 断了用 REST API 补。</li><li>RichContent 不是 Markdown 渲染器，是 Markdown → Block 转换管线。</li><li>OSS 直连解放 ECS 带宽，防盗链保护资源。</li><li>UX 细节决定体验：fork turn、呼吸动画、tool limit warning。</li></ul></section>
+  <footer class="next-prev"><a href="m4.html">上一节</a><a href="m6.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/perspective/runtime.js"></script>
+</body>
+</html>

@@ -41,6 +41,7 @@ class CourseEntry:
     id: str
     title: str
     subtitle: str
+    category: str
     module_count: int
     error: str | None = None
 
@@ -49,6 +50,7 @@ def find_available_port(start: int) -> int:
     port = start
     while port < start + 100:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
                 sock.bind((HOST, port))
                 return port
@@ -59,6 +61,7 @@ def find_available_port(start: int) -> int:
 
 def ensure_port_available(port: int) -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             sock.bind((HOST, port))
         except OSError as exc:
@@ -72,12 +75,16 @@ def serve_course(course_dir: Path, port: int | None = None, auto_port: bool = Fa
     serve_library(course_dir, port=port, auto_port=auto_port)
 
 
+class ReuseAddrThreadingHTTPServer(ThreadingHTTPServer):
+    allow_reuse_address = True
+
+
 def serve_library(root: Path, port: int | None = None, auto_port: bool = False) -> None:
     library = CourseLibrary(root)
     requested_port = port or library.default_port()
     selected_port = find_available_port(requested_port) if auto_port else ensure_port_available(requested_port)
     handler = make_handler(library, selected_port)
-    server = ThreadingHTTPServer((HOST, selected_port), handler)
+    server = ReuseAddrThreadingHTTPServer((HOST, selected_port), handler)
 
     print(f"LearnLoop library serving {library.root}", flush=True)
     print(f"URL: http://{HOST}:{selected_port}/", flush=True)
@@ -109,9 +116,9 @@ class CourseLibrary:
         if not self.root.exists():
             raise LearnLoopError(f"Courses root does not exist: {self.root}")
         return sorted(
-            path
-            for path in self.root.iterdir()
-            if path.is_dir() and (path / "course.yaml").exists()
+            path.parent
+            for path in self.root.rglob("course.yaml")
+            if path.parent.is_dir() and path.parent != self.root
         )
 
     def entries(self) -> list[CourseEntry]:
@@ -134,12 +141,18 @@ class CourseLibrary:
             if course_id in seen:
                 error = f"Duplicate course id: {course_id}"
             seen.add(course_id)
+            try:
+                rel_parts = course_root.relative_to(self.root).parts
+                category = rel_parts[0] if len(rel_parts) > 1 else ""
+            except ValueError:
+                category = ""
             entries.append(
                 CourseEntry(
                     root=course_root,
                     id=course_id,
                     title=title,
                     subtitle=subtitle,
+                    category=category,
                     module_count=module_count,
                     error=error,
                 )
@@ -428,6 +441,7 @@ def course_to_json(entry: CourseEntry) -> dict[str, Any]:
         "id": entry.id,
         "title": entry.title,
         "subtitle": entry.subtitle,
+        "category": entry.category,
         "module_count": entry.module_count,
         "url": f"/course/{entry.id}/",
         "root": str(entry.root),
@@ -437,18 +451,25 @@ def course_to_json(entry: CourseEntry) -> dict[str, Any]:
     }
 
 
-def render_library_home(library: CourseLibrary) -> str:
-    entries = library.entries()
-    cards = []
-    for entry in entries:
-        status = "配置错误" if entry.error else ("已构建" if (entry.root / "dist" / "index.html").exists() else "待构建")
-        action = (
-            f'<a class="ll-home-action" href="/course/{entry.id}/">进入课程</a>'
-            if not entry.error
-            else '<span class="ll-home-error">需要修复 course.yaml</span>'
-        )
-        cards.append(
-            f"""<article class="ll-home-card">
+CATEGORY_LABELS = {
+    "agent": "智能体与协议",
+    "model": "模型与架构",
+    "ai-for-science": "AI for Science",
+}
+
+
+def _category_label(category: str) -> str:
+    return CATEGORY_LABELS.get(category, category or "其他")
+
+
+def _render_course_card(entry: CourseEntry) -> str:
+    status = "配置错误" if entry.error else ("已构建" if (entry.root / "dist" / "index.html").exists() else "待构建")
+    action = (
+        f'<a class="ll-home-action" href="/course/{entry.id}/">进入课程</a>'
+        if not entry.error
+        else '<span class="ll-home-error">需要修复 course.yaml</span>'
+    )
+    return f"""<article class="ll-home-card">
   <div>
     <span class="ll-home-status">{escape_html(status)}</span>
     <h2>{escape_html(entry.title)}</h2>
@@ -457,8 +478,25 @@ def render_library_home(library: CourseLibrary) -> str:
   </div>
   {action}
 </article>"""
+
+
+def render_library_home(library: CourseLibrary) -> str:
+    entries = library.entries()
+    grouped: dict[str, list[CourseEntry]] = {}
+    for entry in entries:
+        grouped.setdefault(entry.category, []).append(entry)
+    order = [c for c in CATEGORY_LABELS if c in grouped] + sorted(c for c in grouped if c not in CATEGORY_LABELS)
+    sections = []
+    for category in order:
+        cards = "".join(_render_course_card(e) for e in grouped[category])
+        sections.append(
+            f"""<section class="ll-home-category">
+  <h2 class="ll-home-category-title">{escape_html(_category_label(category))}</h2>
+  <div class="ll-home-grid">{cards}</div>
+</section>"""
         )
     empty = '<p class="ll-home-empty">没有发现课程。把包含 course.yaml 的课程目录放到 courses/ 下，然后刷新。</p>'
+    body = "".join(sections) if sections else empty
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -474,9 +512,7 @@ def render_library_home(library: CourseLibrary) -> str:
       <h1>本地课程库</h1>
       <span>{escape_html(str(library.root))}</span>
     </header>
-    <section class="ll-home-grid">
-      {''.join(cards) if cards else empty}
-    </section>
+    {body}
   </main>
 </body>
 </html>"""
@@ -523,6 +559,8 @@ body { margin:0; background:linear-gradient(90deg, rgba(15,118,110,.04) 1px, tra
 .ll-home-action:hover { background:var(--accent-strong); }
 .ll-home-error { color:var(--accent-strong); font-size:13px; }
 .ll-home-empty { background:var(--paper); border:1px dashed var(--line); border-radius:8px; padding:22px; color:var(--muted); }
+.ll-home-category { margin-bottom:32px; }
+.ll-home-category-title { margin:0 0 14px; padding-bottom:8px; border-bottom:2px solid var(--accent); font-size:20px; line-height:1.3; color:var(--accent-strong); }
 .ll-error { white-space:pre-wrap; background:#18211f; color:#f6fbf8; border-radius:8px; padding:18px; overflow:auto; }
 @media (max-width: 680px) { .ll-home-card { align-items:flex-start; flex-direction:column; } .ll-home-action { width:100%; text-align:center; } }
 """

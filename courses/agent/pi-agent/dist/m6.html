@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Extensions：扩展 Pi 的行为 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/practice/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m6</span><span class="top-nav-template">practice</span></nav>
+<article class="lesson" data-course-id="pi-agent" data-module-id="m6">
+  <header class="lesson-header">
+    <p class="eyebrow">Pi Agent 深度解析与二次开发</p>
+    <h1>Extensions：扩展 Pi 的行为</h1>
+    <p class="lede">Extension API 生命周期、自定义 tool/command/UI、事件拦截，手写一个权限门扩展。</p>
+  </header>
+  <section><h2 data-section-id="m6-what" data-section-title="Extension 是什么">Extension 是什么 <button class="ask-btn" data-ask-section="m6-what" data-ask-title="Extension 是什么">提问</button></h2>
+<p>Extension 是 TypeScript 模块，用来扩展 <code>pi-coding-agent</code> 的行为。它可以：</p>
+<ul><li>订阅并拦截 agent 生命周期事件；</li><li>注册自定义 tool（让 LLM 调用）；</li><li>注册自定义命令（<code>/</code> 命令）；</li><li>注册自定义 UI 组件和快捷键；</li><li>持久化状态到 session；</li><li>自定义 tool 渲染、compaction、权限控制等。</li></ul>
+<div class="callout">来源：[packages/coding-agent/docs/extensions.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Extension 不能直接做什么？</p>
+<p>A. 注册自定义 tool B. 替换 Pi 底层 LLM API 实现 C. 注册自定义命令 D. 拦截 tool_call 事件</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。Extension 运行在 <code>pi-coding-agent</code> 层，不能直接替换 <code>pi-ai</code> 底层实现；但它可以注册 provider、自定义 streamFn 等间接影响。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-lifecycle" data-section-title="Extension 生命周期">Extension 生命周期 <button class="ask-btn" data-ask-section="m6-lifecycle" data-ask-title="Extension 生命周期">提问</button></h2>
+<p>Extension 导出默认工厂函数，接收 <code>ExtensionAPI</code>：</p>
+<pre><code class="language-typescript">import type { ExtensionAPI } from &quot;@earendil-works/pi-coding-agent&quot;;
+
+export default function (pi: ExtensionAPI) {
+  pi.on(&quot;session_start&quot;, async (_event, ctx) =&gt; {
+    ctx.ui.notify(&quot;Extension loaded!&quot;, &quot;info&quot;);
+  });
+}</code></pre>
+<p>Extension 通过 [jiti](https://github.com/unjs/jiti) 加载，因此可以直接写 TypeScript，无需预编译。</p>
+<p>常见事件类型包括：</p>
+<table><thead><tr><th>事件</th><th>说明</th></tr></thead><tbody><tr><td><code>session_start</code> / <code>session_end</code></td><td>会话开始/结束</td></tr><tr><td><code>resources_discover</code></td><td>发现 skills/extensions 等资源</td></tr><tr><td><code>tool_call</code></td><td>工具调用前，可阻断</td></tr><tr><td><code>tool_result</code></td><td>工具结果生成后</td></tr><tr><td><code>message_*</code></td><td>消息生命周期</td></tr><tr><td><code>agent_*</code></td><td>agent loop 生命周期</td></tr></tbody></table>
+<div class="callout">来源：[packages/coding-agent/docs/extensions.md — Writing an Extension](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md#writing-an-extension) 与 [packages/coding-agent/docs/extensions.md — Events](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md#events)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Extension 为什么能直接写 TypeScript 而不用 tsc 编译？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>因为 Pi 使用 jiti 在运行时加载 TypeScript。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-custom-tool" data-section-title="自定义 Tool">自定义 Tool <button class="ask-btn" data-ask-section="m6-custom-tool" data-ask-title="自定义 Tool">提问</button></h2>
+<p>注册一个 tool 需要：</p>
+<ol><li>用 TypeBox 定义参数；</li><li>提供 <code>execute</code> 函数；</li><li>返回 <code>content</code> 和可选的 <code>details</code>。</li></ol>
+<pre><code class="language-typescript">import { Type } from &quot;typebox&quot;;
+
+pi.registerTool({
+  name: &quot;greet&quot;,
+  label: &quot;Greet&quot;,
+  description: &quot;Greet someone by name&quot;,
+  parameters: Type.Object({
+    name: Type.String({ description: &quot;Name to greet&quot; }),
+  }),
+  async execute(toolCallId, params, signal, onUpdate, ctx) {
+    return {
+      content: [{ type: &quot;text&quot;, text: `Hello, ${params.name}!` }],
+      details: {},
+    };
+  },
+});</code></pre>
+<div class="callout">来源：[packages/coding-agent/docs/extensions.md — Custom Tools](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md#custom-tools)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>自定义 tool 的参数类型用什么定义？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>TypeBox。<code>typebox</code> 是 extension 运行时可用的依赖之一。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-custom-command" data-section-title="自定义命令">自定义命令 <button class="ask-btn" data-ask-section="m6-custom-command" data-ask-title="自定义命令">提问</button></h2>
+<pre><code class="language-typescript">pi.registerCommand(&quot;hello&quot;, {
+  description: &quot;Say hello&quot;,
+  handler: async (args, ctx) =&gt; {
+    ctx.ui.notify(`Hello ${args || &quot;world&quot;}!`, &quot;info&quot;);
+  },
+});</code></pre>
+<p>注册后，在交互模式下输入 <code>/hello</code> 即可触发。</p>
+<div class="callout">来源：[packages/coding-agent/docs/extensions.md — Quick Start](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md#quick-start)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>注册自定义命令后，用户在交互模式下如何触发？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>输入 <code>/命令名</code>，例如 <code>/hello</code>。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-practice" data-section-title="练习：写一个简单的权限门扩展">练习：写一个简单的权限门扩展 <button class="ask-btn" data-ask-section="m6-practice" data-ask-title="练习：写一个简单的权限门扩展">提问</button></h2>
+<p>目标：拦截所有 <code>bash</code> 工具调用，如果命令包含 <code>rm -rf</code>，先弹窗确认。</p>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>在 <code>~/.pi/agent/extensions/guard.ts</code> 中实现该扩展。</p>
+</div>
+<div class="exercise-answer" hidden>
+<pre><code class="language-typescript">import type { ExtensionAPI } from &quot;@earendil-works/pi-coding-agent&quot;;
+
+export default function (pi: ExtensionAPI) {
+  pi.on(&quot;tool_call&quot;, async (event, ctx) =&gt; {
+    if (event.toolName === &quot;bash&quot; &amp;&amp; event.input.command?.includes(&quot;rm -rf&quot;)) {
+      const ok = await ctx.ui.confirm(&quot;Dangerous command&quot;, &quot;Allow rm -rf?&quot;);
+      if (!ok) {
+        return { block: true, reason: &quot;Blocked by guard extension&quot; };
+      }
+    }
+  });
+}</code></pre>
+<p>启动时加载：</p>
+<pre><code class="language-bash">pi -e ~/.pi/agent/extensions/guard.ts</code></pre>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div>
+<div class="callout">来源：[packages/coding-agent/docs/extensions.md — Quick Start](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md#quick-start)。</div></section>
+<section><h2 data-section-id="m6-ui" data-section-title="自定义 UI">自定义 UI <button class="ask-btn" data-ask-section="m6-ui" data-ask-title="自定义 UI">提问</button></h2>
+<p>Extension 可以通过 <code>ctx.ui</code> 做多种交互：</p>
+<ul><li><code>ctx.ui.notify(message, type)</code>：通知；</li><li><code>ctx.ui.confirm(title, body)</code>：确认框；</li><li><code>ctx.ui.select(title, options)</code>：选择列表；</li><li><code>ctx.ui.input(title, options)</code>：输入框；</li><li><code>ctx.ui.custom(component)</code>：完整自定义 TUI 组件（基于 pi-tui）。</li></ul>
+<div class="callout">来源：[packages/coding-agent/docs/extensions.md — Custom UI](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md#custom-ui)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>如果要在 extension 里实现一个复杂的多步骤向导界面，应该使用哪个 API？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>ctx.ui.custom()</code>，它允许你直接用 pi-tui 组件构建完整 UI。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-locations" data-section-title="Extension 加载位置">Extension 加载位置 <button class="ask-btn" data-ask-section="m6-locations" data-ask-title="Extension 加载位置">提问</button></h2>
+<p>Pi 自动发现 extension 的位置：</p>
+<table><thead><tr><th>位置</th><th>作用域</th></tr></thead><tbody><tr><td><code>~/.pi/agent/extensions/*.ts</code></td><td>全局</td></tr><tr><td><code>~/.pi/agent/extensions/*/index.ts</code></td><td>全局（子目录）</td></tr><tr><td><code>.pi/extensions/*.ts</code></td><td>项目级（需信任）</td></tr><tr><td><code>.pi/extensions/*/index.ts</code></td><td>项目级（需信任）</td></tr><tr><td>通过 <code>settings.json</code> 显式配置</td><td>任意路径或 npm/git 包</td></tr><tr><td>CLI <code>-e ./path.ts</code></td><td>一次性测试</td></tr></tbody></table>
+<p>注意：只有放在自动发现位置的 extension 才能通过 <code>/reload</code> 热重载；<code>-e</code> 路径仅用于临时测试。</p>
+<div class="callout">来源：[packages/coding-agent/docs/extensions.md — Extension Locations](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md#extension-locations)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>哪种 extension 加载方式支持 <code>/reload</code> 热重载？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>放在 <code>~/.pi/agent/extensions/</code> 或 <code>.pi/extensions/</code> 自动发现位置的 extension。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>Extension 是 TypeScript 模块，通过默认工厂函数接收 <code>ExtensionAPI</code>。</li><li>可以注册自定义 tool、command、shortcut、flag、provider、UI。</li><li>通过事件机制可以拦截 tool_call、修改消息、持久化状态。</li><li>常用 <code>ctx.ui</code> 做用户交互；复杂 UI 用 <code>ctx.ui.custom()</code> 基于 pi-tui 实现。</li><li>自动发现位置支持 <code>/reload</code> 热重载；<code>-e</code> 仅用于临时测试。</li></ul>
+<div class="callout">来源：本地 m5《pi-coding-agent：交互层与会话模型》；外部 [packages/coding-agent/docs/extensions.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md)。</div></section>
+  <footer class="next-prev"><a href="m5.html">上一节</a><a href="m7.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/practice/runtime.js"></script>
+</body>
+</html>

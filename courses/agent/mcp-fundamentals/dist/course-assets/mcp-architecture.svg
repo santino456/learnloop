@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="520" viewBox="0 0 1120 520" role="img" aria-labelledby="title desc">
+  <title id="title">MCP host client server architecture</title>
+  <desc id="desc">An AI application host creates one MCP client for each MCP server connection. Servers expose tools, resources, and prompts through a data layer over a transport layer.</desc>
+  <rect width="1120" height="520" fill="#fffefb"/>
+  <rect x="54" y="62" width="292" height="340" rx="8" fill="#f8faf8" stroke="#bac8c2" stroke-width="2"/>
+  <text x="200" y="112" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="700" fill="#1d2422">MCP Host</text>
+  <text x="200" y="150" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" fill="#66736f">AI application</text>
+  <rect x="104" y="202" width="192" height="64" rx="8" fill="#e0f1ee" stroke="#0f766e"/>
+  <rect x="104" y="294" width="192" height="64" rx="8" fill="#e0f1ee" stroke="#0f766e"/>
+  <text x="200" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="18" fill="#0e4f49">MCP Client A</text>
+  <text x="200" y="332" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="18" fill="#0e4f49">MCP Client B</text>
+  <rect x="778" y="112" width="284" height="124" rx="8" fill="#f8faf8" stroke="#bac8c2" stroke-width="2"/>
+  <rect x="778" y="286" width="284" height="124" rx="8" fill="#f8faf8" stroke="#bac8c2" stroke-width="2"/>
+  <text x="920" y="158" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="700" fill="#1d2422">MCP Server A</text>
+  <text x="920" y="332" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="700" fill="#1d2422">MCP Server B</text>
+  <g font-family="Inter, Arial, sans-serif" font-size="17" fill="#46514e" text-anchor="middle">
+    <text x="920" y="194">tools / resources / prompts</text>
+    <text x="920" y="368">tools / resources / prompts</text>
+  </g>
+  <g stroke="#0f766e" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M306 234 C450 234 590 174 762 174"/>
+    <path d="M306 326 C470 326 590 348 762 348"/>
+  </g>
+  <g font-family="JetBrains Mono, monospace" font-size="16" fill="#0e4f49" text-anchor="middle">
+    <text x="535" y="184">JSON-RPC data layer</text>
+    <text x="535" y="374">stdio or Streamable HTTP</text>
+  </g>
+  <text x="560" y="462" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="20" fill="#c97818">Host owns the user experience; servers provide bounded capabilities.</text>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto">
+      <path d="M2 2 L11 6 L2 10 Z" fill="#0f766e"/>
+    </marker>
+  </defs>
+</svg>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>评分方式与实验设置 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/practice/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m3</span><span class="top-nav-template">practice</span></nav>
+<article class="lesson" data-course-id="lifescibench" data-module-id="m3">
+  <header class="lesson-header">
+    <p class="eyebrow">LifeSciBench 解读</p>
+    <h1>评分方式与实验设置</h1>
+    <p class="lede">理解 rubric 评分、pass rate、模型列表与评估协议，为后续结果分析打好基础。</p>
+  </header>
+  <section><h2 data-section-id="m3-metrics" data-section-title="两个互补指标">两个互补指标 <button class="ask-btn" data-ask-section="m3-metrics" data-ask-title="两个互补指标">提问</button></h2>
+<p>LifeSciBench 用两个指标报告模型表现：</p>
+<table><thead><tr><th>指标</th><th>定义</th><th>用途</th></tr></thead><tbody><tr><td>Normalized rubric score</td><td>每道题得分除以该题满分，再取平均</td><td>捕捉部分正确，适合开放式任务</td></tr><tr><td>Task pass rate</td><td>模型回答达到或超过 70% 满分的任务比例</td><td>更严格，反映任务级成功</td></tr></tbody></table>
+<p>为什么要两个指标？因为开放式任务中，模型可能答对一部分科学要求，但还没达到可以实际采用的程度。Pass rate 比平均分更严格。</p>
+<div class="callout">来源：LifeSciBench preprint Section 5.2 Metrics。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>如果一道题满分 100，模型得了 65 分，它对 pass rate 和 normalized score 分别有什么贡献？</p>
+<p>A. 贡献 pass rate；贡献 0.65 到 normalized score B. 不贡献 pass rate；贡献 0.65 到 normalized score C. 不贡献 pass rate；贡献 0.0 到 normalized score D. 贡献 pass rate；贡献 0.0 到 normalized score</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。65 分未达到 70% 的 pass threshold，所以不贡献 pass rate；但 normalized score 为 0.65，会被计入平均分。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-rubrics" data-section-title="Rubric 设计原则">Rubric 设计原则 <button class="ask-btn" data-ask-section="m3-rubrics" data-ask-title="Rubric 设计原则">提问</button></h2>
+<p>每道题都配有一个专家编写的 rubric，遵循以下原则：</p>
+<ol><li><strong>Specificity</strong>：每条标准描述一个具体属性。</li><li><strong>Atomicity</strong>：每条标准只评估一个主张、计算、决策或约束。</li><li><strong>Evaluability</strong>：仅根据模型回答就能判断是否满足。</li><li><strong>Grounding</strong>：标准基于任务提示、artifact、公认科学事实或专家共识。</li><li><strong>Non-redundancy</strong>：避免重复计分。</li><li><strong>Operational usefulness</strong>：奖励对科研决策有用的回答，而非孤立正确。</li></ol>
+<div class="callout">来源：LifeSciBench preprint Appendix C Rubric Writing Guidelines。</div></section>
+<section><h2 data-section-id="m3-models" data-section-title="评估的模型">评估的模型 <button class="ask-btn" data-ask-section="m3-models" data-ask-title="评估的模型">提问</button></h2>
+<p>论文评估了 5 个前沿模型：</p>
+<table><thead><tr><th>模型</th><th>类型</th></tr></thead><tbody><tr><td>GPT-5.4</td><td>通用大模型</td></tr><tr><td>GPT-5.5</td><td>通用大模型</td></tr><tr><td>GPT-Rosalind</td><td>生命科学领域专门化模型</td></tr><tr><td>Gemini 3.1 Pro</td><td>通用大模型</td></tr><tr><td>Grok 4.3</td><td>通用大模型</td></tr></tbody></table>
+<p>所有模型都在<strong>单轮设置</strong>下评估：模型收到任务提示和 artifact 后，必须一次性给出最终回答，允许使用互联网浏览。</p>
+<div class="callout">来源：LifeSciBench preprint Section 5 Experimental Setup。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>LifeSciBench 的评估设置是否允许模型与评测者进行多轮对话？</p>
+<p>A. 是，模型可以提问澄清 B. 否，所有任务都是单轮评估 C. 只有部分模型可以多轮 D. 只有 GPT-Rosalind 可以多轮</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。论文明确说明是 single-turn setting：模型收到任务和 artifact 后必须一次性给出最终回答。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-grader" data-section-title="评分者验证">评分者验证 <button class="ask-btn" data-ask-section="m3-grader" data-ask-title="评分者验证">提问</button></h2>
+<p>由于任务开放且 rubric 复杂，论文还做了评分者一致性验证：独立专家用相同 rubric 对分层抽样的模型回答打分，再与自动 rubric 评分比较，报告相关性、平均绝对误差、通过/不通过一致性等。</p>
+<div class="callout">来源：LifeSciBench preprint Section 5.3 Grader Validation。</div></section>
+<section><h2 data-section-id="m3-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>用 normalized rubric score 捕捉部分正确，用 task pass rate 衡量任务级成功。</li><li>Rubric 设计强调具体、可评估、与科研决策相关。</li><li>5 个模型在单轮设置下评估，允许使用互联网。</li><li>评分者验证用于控制 rubric 打分的可靠性。</li></ul>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>假设某模型在 10 道题上的 normalized score 分别为：0.8、0.9、0.5、0.4、0.7、0.6、0.85、0.3、0.75、0.65。哪些题贡献 pass rate？pass rate 是多少？</p>
+</div>
+<div class="exercise-answer" hidden>
+<p>达到或超过 0.7 的题有：0.8、0.9、0.7、0.85、0.75，共 5 道。pass rate = 5 / 10 = 50%。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+  <footer class="next-prev"><a href="m2.html">上一节</a><a href="m4.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/practice/runtime.js"></script>
+</body>
+</html>

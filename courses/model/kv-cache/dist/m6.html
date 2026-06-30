@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>边界与判断 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/perspective/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m6</span><span class="top-nav-template">perspective</span></nav>
+<article class="lesson" data-course-id="kv-cache" data-module-id="m6">
+  <header class="lesson-header">
+    <p class="eyebrow">KV Cache 深入浅出</p>
+    <h1>边界与判断</h1>
+    <p class="lede">什么时候该为 KV Cache 投入工程精力，什么时候不必。</p>
+  </header>
+  <section><h2 data-section-id="m6-when" data-section-title="什么时候需要优化 KV Cache">什么时候需要优化 KV Cache <button class="ask-btn" data-ask-section="m6-when" data-ask-title="什么时候需要优化 KV Cache">提问</button></h2>
+<p>不是每个场景都值得投入 KV Cache 的优化。以下是值得投入的信号：</p>
+<table><thead><tr><th>信号</th><th>说明</th></tr></thead><tbody><tr><td>多并发服务</td><td>batch size &gt; 1 时，KV Cache 常成为显存瓶颈</td></tr><tr><td>长上下文</td><td>seq_len &gt; 8K 时，KV Cache 增长显著</td></tr><tr><td>显存不足</td><td>模型能加载，但一跑就 OOM</td></tr><tr><td>吞吐量不达标</td><td>GPU 利用率低，但显存满了</td></tr></tbody></table>
+<p>如果你的场景是单请求、短序列、本地跑 demo，那么标准 Hugging Face 的 <code>use_cache=True</code> 已经足够。</p>
+<div class="callout">依据：工程实践观察。单请求短序列下，KV Cache 优化（如 PagedAttention）的管理 overhead 往往超过收益。</div></section>
+<section><h2 data-section-id="m6-decision" data-section-title="优化路径选择">优化路径选择 <button class="ask-btn" data-ask-section="m6-decision" data-ask-title="优化路径选择">提问</button></h2>
+<p>当确定需要优化时，按以下顺序考虑：</p>
+<ol><li><strong>GQA/MQA</strong>：如果还在选型阶段，优先选择原生支持 GQA 的模型（如 Llama-2-70B、Mistral）。这是零成本的显存节省。</li><li><strong>量化 KV Cache</strong>：把 FP16/BF16 的 KV Cache 量化到 INT8 甚至更低，显存直接减半。代价是轻微的质量下降。依据：多项研究表明 INT8 KV Cache 量化对生成质量影响很小（unverified：具体论文名和版本建议查阅最新文献）。</li><li><strong>PagedAttention</strong>：如果运行推理服务，使用 vLLM 或类似框架。这是系统级的优化，不需要改模型。</li><li><strong>自定义驱逐策略</strong>：对于超长上下文（&gt;100K），考虑滑动窗口、H2O（Heavy Hitter Oracle）等 token 驱逐策略。依据：这些策略在特定任务上有效，但通用性不如前三种方案稳定。</li></ol>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>以下哪种优化不需要修改模型结构或权重？</p>
+<p>A. 从 MHA 切换到 GQA B. 使用 PagedAttention C. 使用 MQA 训练新模型 D. 把模型从 FP16 改为 INT8 量化</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。PagedAttention 是系统级优化，通过改进 KV Cache 的分配和管理来提升效率，不需要修改模型结构或权重。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-smells" data-section-title="常见的坏味道">常见的坏味道 <button class="ask-btn" data-ask-section="m6-smells" data-ask-title="常见的坏味道">提问</button></h2>
+<ul><li><strong>过度优化</strong>：在 batch=1、seq_len=512 的场景下折腾 PagedAttention，收益微乎其微。</li><li><strong>忽视 prefill</strong>：只优化 decode 阶段的 KV Cache，但 prefill 阶段才是用户首次等待的延迟来源。</li><li><strong>硬编码最大长度</strong>：预分配固定长度的 KV Cache，既不灵活又浪费显存。</li><li><strong>忽略 dtype</strong>：没意识到 FP32 和 FP16 的 KV Cache 显存差一倍。</li></ul>
+<div class="callout">依据：作者经验与社区常见问题总结。这些坏味道在实际项目中反复出现。</div></section>
+<section><h2 data-section-id="m6-ai" data-section-title="什么时候用 AI 辅助决策">什么时候用 AI 辅助决策 <button class="ask-btn" data-ask-section="m6-ai" data-ask-title="什么时候用 AI 辅助决策">提问</button></h2>
+<p>AI（包括 LLM）在 KV Cache 优化中可以帮助：</p>
+<ul><li><strong>快速估算</strong>：给定模型参数和硬件配置，估算 KV Cache 显存和 batch size 上限。</li><li><strong>方案对比</strong>：整理不同优化方案的 tradeoff 表格。</li><li><strong>代码生成</strong>：生成基础的 KV Cache 管理代码或集成 vLLM 的脚本。</li></ul>
+<p>但 AI 的输出需要验证：</p>
+<ul><li><strong>不要轻信性能数字</strong>：AI 可能给出过时的或特定场景下的数字，当作通用结论。</li><li><strong>确认版本兼容性</strong>：vLLM、Transformers 等库的版本差异很大，AI 的知识可能滞后。</li><li><strong>实际 benchmark</strong>：任何优化方案都应该在你的实际 workload 上跑 benchmark，而不是凭理论判断。</li></ul>
+<div class="callout">依据：needs-human-review。AI 辅助决策的价值在于加速信息整理，但最终决策应基于实际测量。</div></section>
+<section><h2 data-section-id="m6-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>KV Cache 优化值得投入的信号：多并发、长上下文、显存瓶颈、吞吐量不达标。</li><li>优化路径：先选型 GQA 模型 → 量化 KV Cache → PagedAttention → 自定义驱逐策略。</li><li>常见坏味道：过度优化、忽视 prefill、硬编码最大长度、忽略 dtype。</li><li>AI 可以辅助估算和对比，但关键数字需要实际 benchmark 验证。</li></ul>
+<div class="exercise" data-kind="perspective">
+<div class="exercise-task judgment-task">
+<p>判断以下场景是否值得投入 KV Cache 优化，并说明理由。</p>
+<p>场景：一个 4 卡 A100 推理服务，使用 Llama-2-70B，平均 batch=16，seq_len=8192，当前吞吐量只有目标的一半，且 GPU 显存经常占满。</p>
+</div>
+<textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>
+<div class="judgment-reveal" hidden>
+<section class="judgment-section perspective" hidden><h4>作者视角</h4>
+<p>依据：基于本章关于 KV Cache 显存瓶颈和优化路径的 verified claims。</p>
+<p>值得投入。信号明确：多并发（batch=16）、长上下文（seq=8192）、显存瓶颈（GPU 显存占满）、吞吐量不达标（只有目标一半）。优化路径应该是：确认模型已用 GQA（Llama-2-70B 原生支持）→ 尝试 INT8 KV Cache 量化 → 迁移到 vLLM 的 PagedAttention → 如果仍不足，考虑滑动窗口等驱逐策略。</p>
+</section>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-compare" type="button">对比作者视角</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>在以下场景中，哪种优化方案最应该先尝试？</p>
+<p>A. 单用户本地运行 7B 模型，seq_len=1024 B. 推理服务，batch=32，seq_len=4096，使用 Llama-2-70B C. 训练新模型，希望减少推理显存 D. 边缘设备部署，显存极度受限</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。推理服务、多并发、长序列、大模型，这正是 PagedAttention 和 GQA 组合最能发挥价值的场景。A 场景不需要复杂优化；C 和 D 涉及模型结构或训练阶段的决策，不在 KV Cache 运行时优化范围内。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+  <footer class="next-prev"><a href="m5.html">上一节</a><span></span></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/perspective/runtime.js"></script>
+</body>
+</html>

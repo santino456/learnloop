@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pi Agent 深度解析与二次开发 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <header class="hero">
+  <p class="eyebrow">LearnLoop 课程</p>
+  <h1>Pi Agent 深度解析与二次开发</h1>
+  <p class="lede">从 pi-ai 统一 API 到 pi-coding-agent 扩展机制，掌握 Pi 工具链的架构、事件模型与可扩展设计，为二次开发打下基础。</p>
+</header>
+<nav class="modules"><a class="module-card" href="m1.html">
+  <span class="module-number">01</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>Pi 是什么，为什么值得二次开发</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>Pi 的四层架构、设计哲学、与 Claude Code/Codex 的差异，以及为什么它的可扩展性值得开发者关注。</em>
+  </span>
+</a><a class="module-card" href="m2.html">
+  <span class="module-number">02</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>pi-ai：统一 LLM API</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>Models 集合、provider 工厂、Context/Message/Tool 抽象、流式事件、认证解析与自定义 provider。</em>
+  </span>
+</a><a class="module-card" href="m3.html">
+  <span class="module-number">03</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>pi-agent-core：状态化 Agent Loop</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>AgentMessage 与 LLM Message 的分离、事件流、tool 执行模式、生命周期 hooks。</em>
+  </span>
+</a><a class="module-card" href="m4.html">
+  <span class="module-number">04</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>pi-tui：终端 UI 与差分渲染</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>差分渲染的终端 UI 库，Pi 如何利用它构建响应式交互界面。</em>
+  </span>
+</a><a class="module-card" href="m5.html">
+  <span class="module-number">05</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>pi-coding-agent：交互层与会话模型</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>四种运行模式、JSONL session 结构、分支、压缩、命令与设置体系。</em>
+  </span>
+</a><a class="module-card" href="m6.html">
+  <span class="module-number">06</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>Extensions：扩展 Pi 的行为</strong>
+      <span class="module-template">PRACTICE</span>
+    </span>
+    <em>Extension API 生命周期、自定义 tool/command/UI、事件拦截，手写一个权限门扩展。</em>
+  </span>
+</a><a class="module-card" href="m7.html">
+  <span class="module-number">07</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>Skills 与 Pi Packages</strong>
+      <span class="module-template">PRACTICE</span>
+    </span>
+    <em>Agent Skills 标准、SKILL.md 规范、渐进式加载，以及 Pi Package 的分发机制。</em>
+  </span>
+</a><a class="module-card" href="m8.html">
+  <span class="module-number">08</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>安全、沙箱与二次开发决策</strong>
+      <span class="module-template">PERSPECTIVE</span>
+    </span>
+    <em>默认权限模型、容器化方案、供应链加固策略，以及何时扩展、何时 fork、何时另起炉灶。</em>
+  </span>
+</a></nav>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

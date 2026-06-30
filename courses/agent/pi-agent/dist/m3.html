@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pi-agent-core：状态化 Agent Loop | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m3</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="pi-agent" data-module-id="m3">
+  <header class="lesson-header">
+    <p class="eyebrow">Pi Agent 深度解析与二次开发</p>
+    <h1>pi-agent-core：状态化 Agent Loop</h1>
+    <p class="lede">AgentMessage 与 LLM Message 的分离、事件流、tool 执行模式、生命周期 hooks。</p>
+  </header>
+  <section><h2 data-section-id="m3-why" data-section-title="为什么需要 pi-agent-core">为什么需要 pi-agent-core <button class="ask-btn" data-ask-section="m3-why" data-ask-title="为什么需要 pi-agent-core">提问</button></h2>
+<p><code>pi-ai</code> 已经能让我们发起一次 LLM 调用并处理流式事件。但一个 coding agent 真正复杂的是：</p>
+<ul><li>维护跨多轮对话的状态；</li><li>处理模型触发的工具调用；</li><li>把工具结果重新喂给模型；</li><li>支持用户中途插入 steering/follow-up 消息；</li><li>允许 UI 监听事件并更新界面；</li><li>处理错误、重试、上下文压缩。</li></ul>
+<p><code>pi-agent-core</code> 把这些封装成一个 <strong>状态化 agent runtime</strong>，并且仍然保持与 UI 解耦：它只发射事件，不假设前端是什么样子。</p>
+<div class="callout">来源：[packages/agent/README.md — @earendil-works/pi-agent-core](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/agent/README.md)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>pi-agent-core 的主要职责是什么？</p>
+<p>A. 渲染终端 UI B. 管理多轮状态、工具调用循环和事件流 C. 下载 npm 包 D. 提供多 provider LLM API</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。pi-agent-core 是状态化 agent runtime，负责多轮对话、工具执行和事件发射。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-message-types" data-section-title="AgentMessage vs LLM Message">AgentMessage vs LLM Message <button class="ask-btn" data-ask-section="m3-message-types" data-ask-title="AgentMessage vs LLM Message">提问</button></h2>
+<p>这是 pi-agent-core 最重要的设计之一：</p>
+<ul><li><strong>AgentMessage</strong>：agent 内部使用的消息类型，可以包含 LLM 无法理解的 UI 消息、自定义消息类型。</li><li><strong>Message</strong>：真正发给 LLM 的消息，只有 <code>user</code>、<code>assistant</code>、<code>toolResult</code> 三种角色。</li></ul>
+<p>转换关系：</p>
+<pre><code class="language-">AgentMessage[] → transformContext() → AgentMessage[] → convertToLlm() → Message[] → LLM</code></pre>
+<p><code>transformContext</code> 用于剪枝、压缩、注入外部上下文；<code>convertToLlm</code> 用于过滤掉 UI-only 消息。</p>
+<div class="callout">来源：[packages/agent/README.md — Core Concepts](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/agent/README.md#core-concepts)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>AgentMessage 与 LLM Message 分离的好处是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>可以在 agent 内部保留 UI 消息、自定义消息类型，而不污染真正发给 LLM 的上下文；同时支持 context pruning 和 compaction。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-event-flow" data-section-title="prompt() 事件序列">prompt() 事件序列 <button class="ask-btn" data-ask-section="m3-event-flow" data-ask-title="prompt() 事件序列">提问</button></h2>
+<p>调用 <code>agent.prompt(&quot;Hello!&quot;)</code> 时，事件按严格顺序发射：</p>
+<pre><code class="language-">agent_start
+├─ turn_start
+│  ├─ message_start (user)
+│  ├─ message_end   (user)
+│  ├─ message_start (assistant)
+│  ├─ message_update (text_delta ...)
+│  ├─ message_end   (assistant)
+│  └─ turn_end
+└─ agent_end</code></pre>
+<p>如果模型调用了工具，流程会继续：</p>
+<pre><code class="language-">... assistant message with toolCall ...
+├─ tool_execution_start
+├─ tool_execution_update (可选，工具流式输出)
+├─ tool_execution_end
+├─ message_start/end (toolResult)
+├─ turn_end
+│
+├─ turn_start
+├─ message_start (assistant response to tool result)
+...</code></pre>
+<div class="callout">来源：[packages/agent/README.md — Event Flow](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/agent/README.md#event-flow)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p><code>turn_start</code> 和 <code>turn_end</code> 之间一定包含哪些事件？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>至少包含 user 和 assistant 的 <code>message_start</code>/<code>message_end</code>，以及可能的 <code>message_update</code> 和工具执行事件。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-loop-impl" data-section-title="agent-loop.ts 的实现骨架">agent-loop.ts 的实现骨架 <button class="ask-btn" data-ask-section="m3-loop-impl" data-ask-title="agent-loop.ts 的实现骨架">提问</button></h2>
+<p>核心循环在 <code>packages/agent/src/agent-loop.ts</code> 中实现。它的主要结构是：</p>
+<pre><code class="language-typescript">export function agentLoop(
+  prompts: AgentMessage[],
+  context: AgentContext,
+  config: AgentLoopConfig,
+  signal?: AbortSignal,
+  streamFn?: StreamFn,
+): EventStream&lt;AgentEvent, AgentMessage[]&gt; { ... }</code></pre>
+<p><code>agentLoop</code> 是一个低层函数，返回 <code>EventStream</code>。它内部启动 <code>runAgentLoop</code>，后者会：</p>
+<ol><li>把 prompts 加入 context；</li><li>发射 <code>agent_start</code>、<code>turn_start</code>、user message 事件；</li><li>进入 <code>runLoop</code>；</li><li>在循环中处理 steering 消息、流式 assistant 响应、工具调用、重试等；</li><li>最终发射 <code>agent_end</code> 并返回新增的消息列表。</li></ol>
+<div class="callout">来源：[packages/agent/src/agent-loop.ts](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/agent/src/agent-loop.ts#L31-L54)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p><code>agentLoop()</code> 返回什么类型？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>EventStream&lt;AgentEvent, AgentMessage[]&gt;</code>。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-tool-execution" data-section-title="Tool 执行模式">Tool 执行模式 <button class="ask-btn" data-ask-section="m3-tool-execution" data-ask-title="Tool 执行模式">提问</button></h2>
+<p>pi-agent-core 支持两种工具执行模式：</p>
+<ul><li><code>parallel</code>（默认）：预检（preflight）工具调用顺序执行，允许的 tool 并发执行，完成后按 assistant 原顺序放回 toolResult。</li><li><code>sequential</code>：按顺序逐个执行。</li></ul>
+<p>模式可以在全局 <code>toolExecution</code> 配置，也可以对每个 tool 设置 <code>executionMode</code>。如果同一批调用中有任何 tool 标记为 <code>sequential</code>，整批都会退化为顺序执行。</p>
+<div class="callout">来源：[packages/agent/README.md — Tool Execution Mode](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/agent/README.md#with-tool-calls)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么某一批工具调用会整体退化为 sequential？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>只要该批次中有一个 tool 显式设置 <code>executionMode: &quot;sequential&quot;</code>，pi-agent-core 就会为了保证正确性而整批顺序执行。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-hooks" data-section-title="生命周期 Hooks">生命周期 Hooks <button class="ask-btn" data-ask-section="m3-hooks" data-ask-title="生命周期 Hooks">提问</button></h2>
+<p>pi-agent-core 提供多个 hook 让扩展代码介入循环：</p>
+<table><thead><tr><th>Hook</th><th>触发时机</th><th>用途</th></tr></thead><tbody><tr><td><code>transformContext</code></td><td>每次发给 LLM 前</td><td>剪枝、压缩、注入外部上下文</td></tr><tr><td><code>convertToLlm</code></td><td><code>transformContext</code> 之后</td><td>过滤自定义消息</td></tr><tr><td><code>beforeToolCall</code></td><td>参数校验后、执行前</td><td>权限门、确认框、阻断危险操作</td></tr><tr><td><code>afterToolCall</code></td><td>执行完成后</td><td>日志、审计、后处理</td></tr><tr><td><code>prepareNextTurn</code></td><td>turn 之间</td><td>动态调整 model/tools/config</td></tr><tr><td><code>shouldStopAfterTurn</code></td><td>turn 结束后</td><td>决定是否继续循环</td></tr></tbody></table>
+<div class="callout">来源：[packages/agent/README.md — Agent Options](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/agent/README.md#agent-options) 与 [packages/agent/src/agent.ts](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/agent/src/agent.ts#L95-L116)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p><code>beforeToolCall</code> 可以做什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>在工具执行前阻断调用、弹出确认框、记录日志、做权限检查等。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-queues" data-section-title="Steering 与 Follow-up 队列">Steering 与 Follow-up 队列 <button class="ask-btn" data-ask-section="m3-queues" data-ask-title="Steering 与 Follow-up 队列">提问</button></h2>
+<p><code>Agent</code> 类维护两个内部队列：</p>
+<ul><li><strong>steeringQueue</strong>：用户在 agent 工作时发送的消息，在当前 turn 的工具执行结束后插入。</li><li><strong>followUpQueue</strong>：用户在 agent 工作时发送的消息，等 agent 完全空闲后才插入。</li></ul>
+<p>两种队列都支持 <code>one-at-a-time</code> 和 <code>all</code> 两种出队模式，对应 Pi CLI 中的 <code>/settings</code> 配置。</p>
+<div class="callout">来源：[packages/agent/src/agent.ts](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/agent/src/agent.ts#L118-L152) 与 [packages/coding-agent/README.md — Message Queue](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/README.md#message-queue)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>steering 消息与 follow-up 消息的关键区别是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>steering 在当前 turn 的工具执行结束后立即生效；follow-up 等 agent 完全空闲后才生效。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li><code>pi-agent-core</code> 在 <code>pi-ai</code> 之上封装了状态化多轮 agent loop。</li><li><code>AgentMessage</code> 与 LLM <code>Message</code> 分离，支持自定义消息、context pruning 和 compaction。</li><li>事件流严格有序：<code>agent_start</code> → <code>turn_start</code> → messages/tool executions → <code>turn_end</code> → <code>agent_end</code>。</li><li>工具执行支持 <code>parallel</code>/<code>sequential</code>，并可通过 hooks 实现权限控制、日志、动态配置。</li><li><code>Agent</code> 类提供 steering 和 follow-up 队列，允许用户在 agent 运行时插入消息。</li></ul>
+<div class="callout">来源：本地 m2《pi-ai：统一 LLM API》；外部 [packages/agent/README.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/agent/README.md)。</div></section>
+  <footer class="next-prev"><a href="m2.html">上一节</a><a href="m4.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

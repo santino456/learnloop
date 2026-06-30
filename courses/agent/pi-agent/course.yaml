@@ -1,0 +1,42 @@
+---
+id: pi-agent
+title: "Pi Agent 深度解析与二次开发"
+subtitle: "从 pi-ai 统一 API 到 pi-coding-agent 扩展机制，掌握 Pi 工具链的架构、事件模型与可扩展设计，为二次开发打下基础。"
+audience: "有 TypeScript/Node.js 基础、想理解 AI coding agent 底层机制并进行扩展或二次开发的工程师。"
+default_port: 8791
+template: tutorial
+modules:
+  - id: m1
+    title: "Pi 是什么，为什么值得二次开发"
+    file: "modules/01.md"
+    summary: "Pi 的四层架构、设计哲学、与 Claude Code/Codex 的差异，以及为什么它的可扩展性值得开发者关注。"
+  - id: m2
+    title: "pi-ai：统一 LLM API"
+    file: "modules/02.md"
+    summary: "Models 集合、provider 工厂、Context/Message/Tool 抽象、流式事件、认证解析与自定义 provider。"
+    template: reference
+  - id: m3
+    title: "pi-agent-core：状态化 Agent Loop"
+    file: "modules/03.md"
+    summary: "AgentMessage 与 LLM Message 的分离、事件流、tool 执行模式、生命周期 hooks。"
+  - id: m4
+    title: "pi-tui：终端 UI 与差分渲染"
+    file: "modules/04.md"
+    summary: "差分渲染的终端 UI 库，Pi 如何利用它构建响应式交互界面。"
+  - id: m5
+    title: "pi-coding-agent：交互层与会话模型"
+    file: "modules/05.md"
+    summary: "四种运行模式、JSONL session 结构、分支、压缩、命令与设置体系。"
+  - id: m6
+    title: "Extensions：扩展 Pi 的行为"
+    file: "modules/06.md"
+    summary: "Extension API 生命周期、自定义 tool/command/UI、事件拦截，手写一个权限门扩展。"
+  - id: m7
+    title: "Skills 与 Pi Packages"
+    file: "modules/07.md"
+    summary: "Agent Skills 标准、SKILL.md 规范、渐进式加载，以及 Pi Package 的分发机制。"
+  - id: m8
+    title: "安全、沙箱与二次开发决策"
+    file: "modules/08.md"
+    summary: "默认权限模型、容器化方案、供应链加固策略，以及何时扩展、何时 fork、何时另起炉灶。"
+    template: perspective

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>深小理：全栈架构透视 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <header class="hero">
+  <p class="eyebrow">LearnLoop 课程</p>
+  <h1>深小理：全栈架构透视</h1>
+  <p class="lede">从一个 AI 辅助构建的全栈项目里，提取可传授的架构知识和判断力。适合回看复习，也适合作为技术分享素材。</p>
+</header>
+<nav class="modules"><a class="module-card" href="m1.html">
+  <span class="module-number">01</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>项目总览：为什么这样搭</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>技术栈全景、全栈职责划分、裸机 vs Docker 取舍、AGENTS.md 作为项目契约。</em>
+  </span>
+</a><a class="module-card" href="m2.html">
+  <span class="module-number">02</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>Agent 大脑：ReAct 循环深度解析</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>LangGraph StateGraph 的 7 节点架构、条件路由、prepare→model→tools 循环、privacy 中断机制、loop_count 硬上限。</em>
+  </span>
+</a><a class="module-card" href="m3.html">
+  <span class="module-number">03</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>记忆的艺术：从会话到人格</strong>
+      <span class="module-template">PRACTICE</span>
+    </span>
+    <em>session 记忆 vs 持久记忆、冷热分层（2h idle）、摘要压缩（240K token）、Dreaming 引擎双阶段自进化。</em>
+  </span>
+</a><a class="module-card" href="m4.html">
+  <span class="module-number">04</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>系统的骨骼：数据库、配置与安全</strong>
+      <span class="module-template">REFERENCE</span>
+    </span>
+    <em>10 张表的 schema 总览、索引策略、quota 原子操作、config.py 设计思路、path traversal 防护、admin 继承隔离、速率限制。</em>
+  </span>
+</a><a class="module-card" href="m5.html">
+  <span class="module-number">05</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>会说话的前端：SSE 流式与交互设计</strong>
+      <span class="module-template">PERSPECTIVE</span>
+    </span>
+    <em>SSE 两阶段 pipeline、纯函数状态 reducer、断流恢复、RichContent Markdown-to-Block、UI 交互细节。</em>
+  </span>
+</a><a class="module-card" href="m6.html">
+  <span class="module-number">06</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>工具生态：搜索、技能与人格系统</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>ToolRegistry 注册机制、BM25 中文搜索实现、Skill 加载流程、PersonalityLoader 缓存与截断。</em>
+  </span>
+</a><a class="module-card" href="m7.html">
+  <span class="module-number">07</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>部署与运维：从本机到线上</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>Nginx + systemd + OSS 架构、SSE 专用代理配置、OSS 防盗链、一键部署脚本、已知短板。</em>
+  </span>
+</a><a class="module-card" href="m8.html">
+  <span class="module-number">08</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>反思录：每一处技术取舍</strong>
+      <span class="module-template">PERSPECTIVE</span>
+    </span>
+    <em>全课程 Perspective 汇总——为什么不用 ORM、session lock 的边界、裸机部署的代价、冷热分层的未竟之路。</em>
+  </span>
+</a><a class="module-card" href="m9.html">
+  <span class="module-number">09</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>技术栈速查</strong>
+      <span class="module-template">REFERENCE</span>
+    </span>
+    <em>深小理涉及的前端、后端、Agent、数据库、LLM、对象存储和部署组件的快速参考。</em>
+  </span>
+</a></nav>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pi 是什么，为什么值得二次开发 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m1</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="pi-agent" data-module-id="m1">
+  <header class="lesson-header">
+    <p class="eyebrow">Pi Agent 深度解析与二次开发</p>
+    <h1>Pi 是什么，为什么值得二次开发</h1>
+    <p class="lede">Pi 的四层架构、设计哲学、与 Claude Code/Codex 的差异，以及为什么它的可扩展性值得开发者关注。</p>
+  </header>
+  <section><h2 data-section-id="m1-confusion" data-section-title="一个值得先问的问题">一个值得先问的问题 <button class="ask-btn" data-ask-section="m1-confusion" data-ask-title="一个值得先问的问题">提问</button></h2>
+<p>市面上的 AI coding agent 已经很多：Claude Code、OpenAI Codex、Cursor、Windsurf 等。它们通常给你一个聊天窗口，让你用自然语言驱动代码修改。但如果你想要：</p>
+<ul><li>把 agent 嵌入自己的工具链；</li><li>自定义模型路由、认证或上下文压缩策略；</li><li>让 agent 遵守项目特定的安全规则；</li><li>把自己的内部系统包装成 agent 可调用的能力；</li></ul>
+<p>这些闭源或高度集成的产品往往只能在其既定框架内使用。</p>
+<p>Pi 的定位是 <strong>minimal terminal coding harness</strong>，核心区别是：它不是让你适应某个固定 workflow，而是让你用 TypeScript 扩展它，甚至把它的底层包拆出来嵌入自己的应用。</p>
+<div class="callout">来源：[Pi README — Philosophy](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/README.md#philosophy)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Pi 与 Claude Code / Codex 最显著的设计差异是什么？</p>
+<p>A. Pi 的模型能力更强 B. Pi 默认支持更多编程语言 C. Pi 把可扩展性作为一等公民，允许用 TypeScript 扩展、嵌入或二次开发 D. Pi 是一个闭源 SaaS 产品</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>C。Pi 强调 adapt pi to your workflows，而不是反过来；其架构拆分为独立包，并支持 extensions、skills、prompt templates、themes 和 pi packages。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m1-architecture" data-section-title="四层架构">四层架构 <button class="ask-btn" data-ask-section="m1-architecture" data-ask-title="四层架构">提问</button></h2>
+<p>Pi 的仓库是一个 TypeScript monorepo，包含四个核心包：</p>
+<table><thead><tr><th>包</th><th>职责</th><th>二次开发价值</th></tr></thead><tbody><tr><td><code>@earendil-works/pi-ai</code></td><td>统一多厂商 LLM API</td><td>如果你想自己搭一个支持 OpenAI/Anthropic/Google 等 provider 的 agent，这是底层引擎</td></tr><tr><td><code>@earendil-works/pi-agent-core</code></td><td>状态化 agent loop + 事件流</td><td>你可以拿它构建自己的 agent 运行时，而不依赖 Pi CLI</td></tr><tr><td><code>@earendil-works/pi-coding-agent</code></td><td>终端 CLI + TUI + sessions + 扩展机制</td><td>直接面向用户的 coding harness，支持扩展</td></tr><tr><td><code>@earendil-works/pi-tui</code></td><td>差分渲染的终端 UI 库</td><td>如果你要做一个复杂 TUI，可以直接复用</td></tr></tbody></table>
+<div class="callout">来源：[Pi README — All Packages](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/README.md#all-packages)。</div>
+<p>这种分层意味着：你可以只取 <code>pi-ai</code> 和 <code>pi-agent-core</code> 做一个后台 agent，也可以基于 <code>pi-coding-agent</code> 做一个带扩展的终端产品，还可以只复用 <code>pi-tui</code> 做界面。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Pi 的四个核心包中，负责“状态化 agent loop 和事件流”的是哪一个？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>@earendil-works/pi-agent-core</code>。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m1-philosophy" data-section-title="设计哲学：少即是多，扩展来补">设计哲学：少即是多，扩展来补 <button class="ask-btn" data-ask-section="m1-philosophy" data-ask-title="设计哲学：少即是多，扩展来补">提问</button></h2>
+<p>Pi  README 里有一段关键描述：</p>
+<div class="callout">&quot;Pi ships with powerful defaults but skips features like sub agents and plan mode. Instead, you can ask pi to build what you want or install a third party pi package that matches your workflow.&quot;</div>
+<p>也就是说，Pi 的核心团队不试图在 CLI 里内置所有高级功能（子 agent、plan mode 等），而是提供可扩展点：</p>
+<ul><li><strong>Extensions</strong>：用 TypeScript 改行为、加 tool、加命令、加 UI；</li><li><strong>Skills</strong>：按 [Agent Skills](https://agentskills.io/specification) 标准封装能力；</li><li><strong>Prompt Templates</strong>：复用提示词模板；</li><li><strong>Themes</strong>：自定义界面主题；</li><li><strong>Pi Packages</strong>：通过 npm 或 git 分发上述能力。</li></ul>
+<div class="callout">来源：[Pi README — Pi is a minimal terminal coding harness](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/README.md)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Pi 为什么不内置 sub agents 和 plan mode？</p>
+<p>A. 因为实现起来太难 B. 因为用户不需要 C. 因为 Pi 选择用扩展机制让用户按需安装，而不是把功能硬编码进 CLI D. 因为模型不支持</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>C。Pi 的哲学是可扩展性优先：核心保持最小，高级能力通过 extensions、skills 或第三方 pi packages 引入。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m1-why-extend" data-section-title="为什么值得二次开发">为什么值得二次开发 <button class="ask-btn" data-ask-section="m1-why-extend" data-ask-title="为什么值得二次开发">提问</button></h2>
+<p>从开发者角度看，Pi 值得投入的原因包括：</p>
+<ol><li><strong>可组合</strong>：底层包可以单独使用，不一定要用完整 CLI。</li><li><strong>可扩展</strong>： extensions 能拦截事件、注册 tool、替换 UI，几乎能改造任意行为。</li><li><strong>可分发</strong>：skills 和 pi packages 让个人或团队的工作流可以复用和共享。</li><li><strong>可审计</strong>：MIT 协议、源代码开放，供应链加固策略写得非常明确。</li><li><strong>可嵌入</strong>：提供 RPC、JSON、SDK 模式，方便接入其他应用（如 [openclaw/openclaw](https://github.com/openclaw/openclaw)）。</li></ol>
+<div class="callout">来源：[Pi README — Modes](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/README.md#programmatic-usage) 与 [AGENTS.md — Releasing](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/AGENTS.md)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>以下哪项不是 Pi 适合二次开发的理由？</p>
+<p>A. 可组合的底层包 B. 闭源但 API 文档完善 C. 可扩展的 extension/skill 机制 D. 支持 SDK/RPC/JSON 等多种嵌入方式</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。Pi 是 MIT 开源，不是闭源。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m1-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m1-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>Pi 是一个分层的 AI agent 工具链，核心包为 <code>pi-ai</code>、<code>pi-agent-core</code>、<code>pi-coding-agent</code>、<code>pi-tui</code>。</li><li>它的设计哲学是“最小核心 + 强大扩展”，而不是把所有功能都内置。</li><li>对开发者来说，最有价值的是：可以单独使用底层包、写 extensions、封装 skills、分发 pi packages。</li><li>后续模块会逐层拆开这四个包，并动手写一个 extension 和一个 skill。</li></ul></section>
+  <footer class="next-prev"><span></span><a href="m2.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

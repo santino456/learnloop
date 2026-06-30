@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基础设施、训练与推理工程 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/reference/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m7</span><span class="top-nav-template">reference</span></nav>
+<article class="lesson" data-course-id="deepseek-v4" data-module-id="m7">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek-V4 系列论文解读</p>
+    <h1>基础设施、训练与推理工程</h1>
+    <p class="lede">概览 EP 通信-计算重叠、TileLang 内核、FP4 QAT、KV Cache 结构与磁盘存储等关键工程。</p>
+  </header>
+  <section class="card" data-section-id="m7-ep" data-section-title="专家并行的通信-计算重叠">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">专家并行的通信-计算重叠</span>
+    <button class="ask-btn" data-ask-section="m7-ep" data-ask-title="专家并行的通信-计算重叠">提问</button>
+  </div>
+  <div class="card-summary">MoE 的专家并行（Expert Parallelism, EP）需要大量跨节点通信。DeepSeek-V4 采用细粒度 EP 方案，把通信和计算融合成一个流水线内核：</div>
+  <div class="card-body"><div class="card-inner">
+<p>MoE 的专家并行（Expert Parallelism, EP）需要大量跨节点通信。DeepSeek-V4 采用<strong>细粒度 EP 方案</strong>，把通信和计算融合成一个流水线内核：</p>
+<ul><li>每个 MoE 层分为四个阶段：Dispatch（通信）、Linear-1（计算）、Linear-2（计算）、Combine（通信）。</li><li>把专家切分成多个 wave。</li><li>当前 wave 计算时，下一个 wave 的 token 传输和已完成 wave 的结果回传可以并行进行。</li></ul>
+<p>这样通信延迟被计算隐藏，系统对互联带宽的要求更低。</p>
+<ol class="ll-flow"><li><span>Token</span></li><li><span>Dispatch All-to-All</span></li><li><span>Linear-1 GEMM</span></li><li><span>SwiGLU + FP8 Cast</span></li><li><span>Linear-2 GEMM</span></li><li><span>Combine All-to-All</span></li></ol>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 3.1 节。</div>
+  </div></div>
+</section>
+<section class="card" data-section-id="m7-tilelang" data-section-title="TileLang 内核开发">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">TileLang 内核开发</span>
+    <button class="ask-btn" data-ask-section="m7-tilelang" data-ask-title="TileLang 内核开发">提问</button>
+  </div>
+  <div class="card-summary">为了在开发效率和运行效率之间取得平衡，DeepSeek-V4 使用 TileLang 这种领域专用语言（DSL）开发高性能内核。TileLang 允许开发者以接近手写 CUDA 的效率表达算子，同时保持较高的开发速度。</div>
+  <div class="card-body"><div class="card-inner">
+<p>为了在开发效率和运行效率之间取得平衡，DeepSeek-V4 使用 <strong>TileLang</strong> 这种领域专用语言（DSL）开发高性能内核。TileLang 允许开发者以接近手写 CUDA 的效率表达算子，同时保持较高的开发速度。</p>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 3.2 节。</div>
+  </div></div>
+</section>
+<section class="card" data-section-id="m7-deterministic" data-section-title="批次不变与确定性内核库">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">批次不变与确定性内核库</span>
+    <button class="ask-btn" data-ask-section="m7-deterministic" data-ask-title="批次不变与确定性内核库">提问</button>
+  </div>
+  <div class="card-summary">训练大模型时，bitwise 可复现性很重要。DeepSeek-V4 提供：</div>
+  <div class="card-body"><div class="card-inner">
+<p>训练大模型时，bitwise 可复现性很重要。DeepSeek-V4 提供：</p>
+<ul><li><strong>Batch-invariant kernel</strong>：不同 batch size 下结果一致。</li><li><strong>Deterministic kernel library</strong>：训练和推理之间按位可复现。</li></ul>
+<p>这对调试训练不稳定、定位精度问题非常关键。</p>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 3.3 节。</div>
+  </div></div>
+</section>
+<section class="card" data-section-id="m7-fp4" data-section-title="FP4 量化感知训练">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">FP4 量化感知训练</span>
+    <button class="ask-btn" data-ask-section="m7-fp4" data-ask-title="FP4 量化感知训练">提问</button>
+  </div>
+  <div class="card-summary">DeepSeek-V4 对以下部分使用 FP4 量化感知训练（QAT）：</div>
+  <div class="card-body"><div class="card-inner">
+<p>DeepSeek-V4 对以下部分使用 <strong>FP4 量化感知训练（QAT）</strong>：</p>
+<ul><li>MoE routed expert 权重</li><li>Indexer 的 QK 路径</li></ul>
+<p>这进一步降低了内存和计算开销。论文提到， routed expert 参数使用 FP4 精度；虽然现有硬件上 FP4×FP8 的峰值 FLOPs 与 FP8×FP8 相同，但未来硬件理论上可以更高效。</p>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 3.4 节与第 1 节。</div>
+  </div></div>
+</section>
+<section class="card" data-section-id="m7-training-framework" data-section-title="训练框架关键优化">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">训练框架关键优化</span>
+    <button class="ask-btn" data-ask-section="m7-training-framework" data-ask-title="训练框架关键优化">提问</button>
+  </div>
+  
+  <div class="card-body"><div class="card-inner">
+<table><thead><tr><th>优化点</th><th>作用</th></tr></thead><tbody><tr><td>Muon 高效实现</td><td>混合 ZeRO 策略，降低显存和通信</td></tr><tr><td>mHC 高效实现</td><td>重计算 + 融合内核</td></tr><tr><td>长上下文注意力</td><td>两阶段上下文并行，管理压缩注意力</td></tr><tr><td>自动微分扩展</td><td>张量级 checkpoint，细粒度重计算控制</td></tr></tbody></table>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 3.5 节。</div>
+  </div></div>
+</section>
+<section class="card" data-section-id="m7-inference" data-section-title="推理框架：KV Cache 与磁盘存储">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">推理框架：KV Cache 与磁盘存储</span>
+    <button class="ask-btn" data-ask-section="m7-inference" data-ask-title="推理框架：KV Cache 与磁盘存储">提问</button>
+  </div>
+  <div class="card-summary">为了支持 1M token 的高效推理，DeepSeek-V4 设计了：</div>
+  <div class="card-body"><div class="card-inner">
+<p>为了支持 1M token 的高效推理，DeepSeek-V4 设计了：</p>
+<ul><li><strong>异构 KV Cache 结构</strong>：不同部分使用不同精度和存储策略。</li><li><strong>On-disk KV Cache 存储</strong>：允许把 KV Cache 放到磁盘，支持共享前缀复用，降低长上下文首次加载成本。</li></ul>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 3.6 节。</div>
+  </div></div>
+</section>
+<section class="card" data-section-id="m7-summary" data-section-title="模块小结">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">模块小结</span>
+    <button class="ask-btn" data-ask-section="m7-summary" data-ask-title="模块小结">提问</button>
+  </div>
+  
+  <div class="card-body"><div class="card-inner">
+<ul><li>细粒度 EP 通过 wave 级流水线隐藏通信延迟。</li><li>TileLang 平衡了内核开发效率与运行效率。</li><li>FP4 QAT、确定性内核、张量级 checkpoint 都是大规模训练可用的关键工程。</li><li>推理侧的异构 KV Cache 和磁盘存储让 1M token 上下文更实用。</li></ul>
+  </div></div>
+</section>
+  <footer class="next-prev"><a href="m6.html">上一节</a><a href="m8.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/reference/runtime.js"></script>
+</body>
+</html>

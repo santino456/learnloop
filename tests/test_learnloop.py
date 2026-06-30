@@ -23,7 +23,7 @@ from learnloop.templates import list_templates, validate_template_support
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SAMPLE = ROOT / "courses" / "acp-fundamentals"
+SAMPLE = ROOT / "courses" / "agent" / "acp-fundamentals"
 
 
 class LearnLoopTests(unittest.TestCase):

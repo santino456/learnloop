@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pi-tui：终端 UI 与差分渲染 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m4</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="pi-agent" data-module-id="m4">
+  <header class="lesson-header">
+    <p class="eyebrow">Pi Agent 深度解析与二次开发</p>
+    <h1>pi-tui：终端 UI 与差分渲染</h1>
+    <p class="lede">差分渲染的终端 UI 库，Pi 如何利用它构建响应式交互界面。</p>
+  </header>
+  <section><h2 data-section-id="m4-why" data-section-title="终端 UI 的痛点">终端 UI 的痛点 <button class="ask-btn" data-ask-section="m4-why" data-ask-title="终端 UI 的痛点">提问</button></h2>
+<p>在终端里做交互式 UI，最常见的两个问题是：</p>
+<ol><li><strong>闪烁</strong>：每次全屏重绘时，屏幕会短暂出现空白或残影。</li><li><strong>性能</strong>：全屏重绘在复杂界面下既慢又费资源。</li></ol>
+<p><code>pi-tui</code> 的定位是 <strong>minimal terminal UI framework with differential rendering and synchronized output for flicker-free interactive CLI applications</strong>。</p>
+<div class="callout">来源：[packages/tui/README.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/tui/README.md)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>pi-tui 主要解决哪两个终端 UI 痛点？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>闪烁和性能。它通过差分渲染和同步输出（CSI 2026）解决。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-differential" data-section-title="差分渲染与同步输出">差分渲染与同步输出 <button class="ask-btn" data-ask-section="m4-differential" data-ask-title="差分渲染与同步输出">提问</button></h2>
+<p>pi-tui 采用三种策略的差分渲染系统，只更新变化的部分，而不是每次都清屏重绘。同时它使用 <strong>CSI 2026</strong> 转义序列实现原子屏幕更新，避免半帧画面被用户看到。</p>
+<p>差分渲染带来的直接好处：</p>
+<ul><li>工具调用日志滚动时更平滑；</li><li>模型流式输出时不会闪屏；</li><li>复杂 overlay（如设置面板、模型选择器）弹出时保持底层内容稳定。</li></ul>
+<div class="callout">来源：[packages/tui/README.md — Features](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/tui/README.md#features)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>CSI 2026 在 pi-tui 中的作用是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>CSI 2026 用于同步输出，让终端把一帧更新作为原子操作处理，避免闪烁。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-component" data-section-title="组件模型">组件模型 <button class="ask-btn" data-ask-section="m4-component" data-ask-title="组件模型">提问</button></h2>
+<p>pi-tui 的组件接口非常轻量：</p>
+<pre><code class="language-typescript">interface Component {
+  render(width: number): string[];
+  handleInput?(data: string): void;
+  invalidate?(): void;
+}</code></pre>
+<ul><li><code>render(width)</code> 返回一个字符串数组，每行一个字符串，且每行不能超过 <code>width</code>。</li><li><code>handleInput</code> 接收原始终端输入（可能包含 ANSI 转义序列）。</li><li><code>invalidate</code> 用于清空缓存的渲染状态。</li></ul>
+<div class="callout">来源：[packages/tui/README.md — Component Interface](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/tui/README.md#component-interface)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>一个 pi-tui 组件最少需要实现哪个方法？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>render(width)</code>。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-focus" data-section-title="Focusable 与硬件光标">Focusable 与硬件光标 <button class="ask-btn" data-ask-section="m4-focus" data-ask-title="Focusable 与硬件光标">提问</button></h2>
+<p>需要显示文本光标的组件可以实现 <code>Focusable</code> 接口。当组件获得焦点时：</p>
+<ol><li>TUI 设置 <code>focused = true</code>；</li><li>扫描渲染输出中的 <code>CURSOR_MARKER</code>（零宽 APC 转义序列）；</li><li>把硬件光标定位到该位置；</li><li>默认隐藏硬件光标，但可开启以兼容 IME。</li></ol>
+<p><code>Editor</code> 和 <code>Input</code> 组件已经实现了这个接口。</p>
+<div class="callout">来源：[packages/tui/README.md — Focusable Interface](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/tui/README.md#focusable-interface-ime-support)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p><code>CURSOR_MARKER</code> 在 pi-tui 中的作用是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>它是一个零宽 APC 转义序列，用于标记硬件光标应该放置的位置。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-overlay" data-section-title="Overlay 系统">Overlay 系统 <button class="ask-btn" data-ask-section="m4-overlay" data-ask-title="Overlay 系统">提问</button></h2>
+<p>pi-tui 支持在底层内容之上渲染 overlay，不替换底层内容。典型用途：</p>
+<ul><li><code>/model</code> 模型选择器；</li><li><code>/settings</code> 设置面板；</li><li>扩展自定义的对话框、菜单。</li></ul>
+<p>Overlay 支持多种定位方式：anchor、百分比、绝对坐标、margin 限制，还可以根据终端尺寸动态决定是否显示。</p>
+<div class="callout">来源：[packages/tui/README.md — Overlays](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/tui/README.md#overlays)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>pi-tui 的 Overlay 为什么不会替换底层内容？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>Overlay 是渲染在现有内容之上的层，适合弹窗、菜单等临时 UI，底层内容保持不变。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-pi-usage" data-section-title="Pi 如何使用 pi-tui">Pi 如何使用 pi-tui <button class="ask-btn" data-ask-section="m4-pi-usage" data-ask-title="Pi 如何使用 pi-tui">提问</button></h2>
+<p><code>pi-coding-agent</code> 的交互界面完全基于 <code>pi-tui</code>：</p>
+<ul><li>顶部 header、消息列表、编辑器、底部状态栏都是组件；</li><li>流式文本输出通过 <code>Text</code> 组件增量更新；</li><li>工具调用结果通过自定义渲染组件展示；</li><li><code>/model</code>、<code>/settings</code>、扩展自定义 UI 都使用 overlay；</li><li>快捷键、思考块折叠、工具输出折叠都通过 <code>handleInput</code> 处理。</li></ul>
+<p>理解 <code>pi-tui</code> 有助于你在写 extension 时自定义 UI（例如用 <code>ctx.ui.custom()</code> 实现复杂交互）。</p>
+<div class="callout">来源：[packages/coding-agent/README.md — Interactive Mode](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/README.md#interactive-mode) 与 [packages/coding-agent/docs/extensions.md — Custom UI](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md#custom-ui)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>在 extension 中，哪个 API 允许你使用 pi-tui 构建复杂自定义 UI？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>ctx.ui.custom()</code>。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m4-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li><code>pi-tui</code> 是 Pi 的终端 UI 库，核心特性是差分渲染和 CSI 2026 同步输出。</li><li>组件接口极简：<code>render(width)</code>、<code>handleInput</code>、<code>invalidate</code>。</li><li><code>Focusable</code> 接口支持硬件光标定位和 IME；<code>Editor</code>/<code>Input</code> 已内置实现。</li><li>Overlay 系统支持弹窗、菜单等临时 UI，不影响底层内容。</li><li><code>pi-coding-agent</code> 的所有交互界面都建立在 <code>pi-tui</code> 之上，extension 可以通过 <code>ctx.ui.custom()</code> 复用它。</li></ul>
+<div class="callout">来源：本地 m3《pi-agent-core：状态化 Agent Loop》；外部 [packages/tui/README.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/tui/README.md)。</div></section>
+  <footer class="next-prev"><a href="m3.html">上一节</a><a href="m5.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

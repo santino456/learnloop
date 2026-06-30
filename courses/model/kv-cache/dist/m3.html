@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>显存与计算开销分析 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/practice/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m3</span><span class="top-nav-template">practice</span></nav>
+<article class="lesson" data-course-id="kv-cache" data-module-id="m3">
+  <header class="lesson-header">
+    <p class="eyebrow">KV Cache 深入浅出</p>
+    <h1>显存与计算开销分析</h1>
+    <p class="lede">量化 KV Cache 的显存占用和它带来的计算节省，理解空间换时间的真实代价。</p>
+  </header>
+  <section><h2 data-section-id="m3-formula" data-section-title="显存占用公式">显存占用公式 <button class="ask-btn" data-ask-section="m3-formula" data-ask-title="显存占用公式">提问</button></h2>
+<p>KV Cache 的显存占用可以用一个公式概括：</p>
+<pre><code class="language-text">KV Cache 显存 = 2 × L × H × d_head × seq_len × batch_size × dtype_size</code></pre>
+<p>各项含义：</p>
+<table><thead><tr><th>符号</th><th>含义</th><th>典型值</th></tr></thead><tbody><tr><td>2</td><td>K 和 V 两个矩阵</td><td>固定</td></tr><tr><td>L</td><td>Transformer 层数</td><td>32 ~ 80</td></tr><tr><td>H</td><td>注意力头数</td><td>32 ~ 64</td></tr><tr><td>d_head</td><td>每个头的维度</td><td>64 ~ 128</td></tr><tr><td>seq_len</td><td>序列长度</td><td>2048 ~ 128K</td></tr><tr><td>batch_size</td><td>并发请求数</td><td>1 ~ 256</td></tr><tr><td>dtype_size</td><td>每个元素的字节数</td><td>2（FP16/BF16）</td></tr></tbody></table>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>KV Cache 显存公式中的 &quot;2&quot; 代表什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>代表 K 和 V 两个矩阵都需要缓存。每个 token 在每层每个头都有一份 K 和一份 V。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-example" data-section-title="实际计算">实际计算 <button class="ask-btn" data-ask-section="m3-example" data-ask-title="实际计算">提问</button></h2>
+<p>以 Llama-2-7B 为例：</p>
+<table><thead><tr><th>参数</th><th>值</th></tr></thead><tbody><tr><td>L（层数）</td><td>32</td></tr><tr><td>H（头数）</td><td>32</td></tr><tr><td>d_head（头维度）</td><td>128</td></tr><tr><td>模型权重显存（FP16）</td><td>~14 GB</td></tr></tbody></table>
+<p>计算 batch_size=1、seq_len=4096、FP16 下的 KV Cache 显存：</p>
+<pre><code class="language-text">= 2 × 32 × 32 × 128 × 4096 × 1 × 2 字节
+= 2 × 32 × 32 × 128 × 4096 × 2
+= 2,147,483,648 字节
+= 2 GB</code></pre>
+<p>单请求 2 GB。如果 batch_size=32，就是 64 GB——远超模型权重。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>同样是 Llama-2-7B、seq_len=4096、FP16，batch_size 从 1 增加到 32，KV Cache 显存从 2 GB 变成多少？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>64 GB。KV Cache 显存和 batch_size 成正比，32 × 2 GB = 64 GB。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-vs-weights" data-section-title="和模型权重的对比">和模型权重的对比 <button class="ask-btn" data-ask-section="m3-vs-weights" data-ask-title="和模型权重的对比">提问</button></h2>
+<table><thead><tr><th>模型</th><th>权重（FP16）</th><th>KV Cache/请求（seq=4096）</th><th>batch 何时超过权重</th></tr></thead><tbody><tr><td>7B</td><td>~14 GB</td><td>~2 GB</td><td>batch ≈ 7</td></tr><tr><td>13B</td><td>~26 GB</td><td>~3 GB</td><td>batch ≈ 9</td></tr><tr><td>70B</td><td>~140 GB</td><td>~10 GB</td><td>batch ≈ 14</td></tr></tbody></table>
+<div class="callout">关键观察：KV Cache 的显存占用随 batch size 线性增长。在多并发场景下，KV Cache 往往成为显存瓶颈，而非模型权重。</div></section>
+<section><h2 data-section-id="m3-compute" data-section-title="计算节省">计算节省 <button class="ask-btn" data-ask-section="m3-compute" data-ask-title="计算节省">提问</button></h2>
+<p>没有 KV Cache 时，生成第 N 个 token 的注意力计算量：</p>
+<pre><code class="language-text">Q·K^T: N × d × N = N² × d 次乘加
+softmax·V: N × N × d = N² × d 次乘加
+总计: 2 × N² × d</code></pre>
+<p>有 KV Cache 时：</p>
+<pre><code class="language-text">Q·K^T: 1 × d × N = N × d 次乘加
+softmax·V: 1 × N × d = N × d 次乘加
+总计: 2 × N × d</code></pre>
+<p>计算量从 O(N²) 降到 O(N)，但更重要的是省去了前 N-1 个 token 的全部前向传播（包括 FFN 等），这才是实际加速的主要来源。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>有 KV Cache 时，生成第 N 个 token 的注意力计算量从 O(N² × d) 降到了什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>O(N × d)。只需要 1 个新 token 的 Q 和 N 个缓存 K 做点积，再对 N 个 V 加权求和。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-throughput" data-section-title="对吞吐的影响">对吞吐的影响 <button class="ask-btn" data-ask-section="m3-throughput" data-ask-title="对吞吐的影响">提问</button></h2>
+<p>KV Cache 对吞吐的影响有两面性：</p>
+<ul><li><strong>正面</strong>：减少了每步计算量，单 token 生成更快。</li><li><strong>负面</strong>：占用了更多显存，限制了能同时处理的 batch size。</li></ul>
+<p>当显存是瓶颈时（通常在长上下文或多并发场景），KV Cache 的显存占用直接决定了最大吞吐量。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>KV Cache 对吞吐的负面影响是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>KV Cache 占用显存，限制了能同时加载的 batch size。当显存成为瓶颈时，能并发的请求数减少，最大吞吐量受限。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>KV Cache 显存 = 2 × L × H × d_head × seq_len × batch × dtype_size。</li><li>7B 模型单请求 seq=4096 的 KV Cache 约 2 GB，batch=32 时达 64 GB。</li><li>KV Cache 显存随 batch 线性增长，多并发下常超过模型权重。</li><li>计算量从 O(N²) 降到 O(N)，但实际加速主要来自避免重复前向传播。</li><li>KV Cache 是用显存换算力，显存限制反过来制约吞吐。</li></ul>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>一个 32 层、32 头、头维度 128 的模型，batch_size=8，seq_len=2048，使用 FP16。KV Cache 占用多少显存？</p>
+</div>
+<div class="exercise-answer" hidden>
+<p>8 GB</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div>
+<div class="exercise" data-kind="choice" data-answer="C">
+<div class="exercise-task">
+<p>以下哪种情况会导致 KV Cache 显存占用最大？</p>
+</div>
+<form class="exercise-choices">
+<label class="choice-option" data-choice="A"><input type="radio" name="choice" value="A"> <span>batch=1, seq_len=2048, 7B 模型</span></label>
+<label class="choice-option" data-choice="B"><input type="radio" name="choice" value="B"> <span>batch=4, seq_len=4096, 7B 模型</span></label>
+<label class="choice-option" data-choice="C"><input type="radio" name="choice" value="C"> <span>batch=1, seq_len=8192, 70B 模型</span></label>
+<label class="choice-option" data-choice="D"><input type="radio" name="choice" value="D"> <span>batch=8, seq_len=4096, 7B 模型</span></label>
+</form>
+<div class="exercise-feedback" role="status" hidden></div>
+<div class="exercise-answer" hidden>
+<p>C</p>
+<p>70B 模型层数和头数远多于 7B（L≈80, H≈64），即使 batch=1，seq_len=8192 下的 KV Cache 也约为 2 × 80 × 64 × 128 × 8192 × 1 × 2 ≈ 20 GB，远超其他选项。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-check" type="button">检查</button>
+  <button class="exercise-toggle" type="button" aria-expanded="false" hidden>显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+  <footer class="next-prev"><a href="m2.html">上一节</a><a href="m4.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/practice/runtime.js"></script>
+</body>
+</html>

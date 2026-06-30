@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>协议原语速查 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/reference/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m2</span><span class="top-nav-template">reference</span></nav>
+<article class="lesson" data-course-id="mcp-fundamentals" data-module-id="m2">
+  <header class="lesson-header">
+    <p class="eyebrow">MCP Fundamentals</p>
+    <h1>协议原语速查</h1>
+    <p class="lede">把 tools、resources、prompts、roots、sampling、elicitation 的边界放到一张表里。</p>
+  </header>
+  <section class="card" data-section-id="m2-map" data-section-title="一张表区分六类原语">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">一张表区分六类原语</span>
+    <button class="ask-btn" data-ask-section="m2-map" data-ask-title="一张表区分六类原语">提问</button>
+  </div>
+  <div class="card-summary">MCP 最常见的误用，是把所有东西都塞进 tool。其实官方规范把能力分成 server 侧和 client 侧：server 可以提供 resources、prompts、tools；client 可以提供 roots、sampling…</div>
+  <div class="card-body"><div class="card-inner">
+<p>MCP 最常见的误用，是把所有东西都塞进 tool。其实官方规范把能力分成 server 侧和 client 侧：server 可以提供 resources、prompts、tools；client 可以提供 roots、sampling、elicitation。总览见 <a href="https://modelcontextprotocol.io/specification/2025-11-25" target="_blank" rel="noopener noreferrer">MCP Specification</a>。</p>
+<figure class="ll-figure"><img src="course-assets/mcp-primitives.svg" alt="MCP primitives split into server offered tools resources prompts and client offered roots sampling elicitation" loading="lazy"><figcaption><span>原语的第一判断不是“能不能做”，而是谁提供、谁控制、谁批准。</span><cite>本地示意图，依据官方 Specification 和 Architecture overview 重画</cite></figcaption></figure>
+<table><thead><tr><th>原语</th><th>谁提供</th><th>谁控制</th><th>主要用途</th><th>典型方法</th></tr></thead><tbody><tr><td>Tools</td><td>Server</td><td>Model-controlled，host 应保留人类确认</td><td>让模型执行动作、查询 API、计算、写入外部系统</td><td><code>tools/list</code>、<code>tools/call</code></td></tr><tr><td>Resources</td><td>Server</td><td>Application-driven，由 host 决定如何纳入上下文</td><td>暴露文件、数据库 schema、API 响应等上下文</td><td><code>resources/list</code>、<code>resources/read</code></td></tr><tr><td>Prompts</td><td>Server</td><td>User-controlled，通常由用户显式选择</td><td>暴露可复用的交互模板、slash command、工作流入口</td><td><code>prompts/list</code>、<code>prompts/get</code></td></tr><tr><td>Roots</td><td>Client</td><td>Client-controlled</td><td>告诉 server 可操作的文件系统边界</td><td><code>roots/list</code></td></tr><tr><td>Sampling</td><td>Client</td><td>Client-controlled，通常需要用户审核</td><td>server 请求 host 侧 LLM 生成，不直接持有模型密钥</td><td><code>sampling/createMessage</code></td></tr><tr><td>Elicitation</td><td>Client</td><td>Client-controlled，用户可拒绝</td><td>server 通过 client 向用户请求补充信息</td><td><code>elicitation/create</code></td></tr></tbody></table>
+  </div></div>
+</section>
+<section class="card" data-section-id="m2-tools" data-section-title="Tools：模型可以请求执行的动作">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">Tools：模型可以请求执行的动作</span>
+    <button class="ask-btn" data-ask-section="m2-tools" data-ask-title="Tools：模型可以请求执行的动作">提问</button>
+  </div>
+  <div class="card-summary">官方 tools 规范说，MCP server 可以暴露可由语言模型调用的工具；工具有唯一 name，并包含描述输入 schema 的 metadata，见 &lt;a href=&quot;https://modelcontextprotocol.io…</div>
+  <div class="card-body"><div class="card-inner">
+<p>官方 tools 规范说，MCP server 可以暴露可由语言模型调用的工具；工具有唯一 <code>name</code>，并包含描述输入 schema 的 metadata，见 <a href="https://modelcontextprotocol.io/specification/2025-11-25/server/tools" target="_blank" rel="noopener noreferrer">Tools</a>。</p>
+<p>关键字段：</p>
+<table><thead><tr><th>字段</th><th>意义</th><th>设计提醒</th></tr></thead><tbody><tr><td><code>name</code></td><td>server 命名空间内的唯一工具名</td><td>不要叫 <code>run</code>、<code>do</code>、<code>query</code> 这种含混名字</td></tr><tr><td><code>title</code></td><td>给用户看的标题</td><td>UI 可读，不等于模型判断的全部依据</td></tr><tr><td><code>description</code></td><td>工具何时该用、做什么</td><td>这是模型选择工具的重要线索</td></tr><tr><td><code>inputSchema</code></td><td>JSON Schema 输入定义</td><td>是调用边界，不是业务逻辑本身</td></tr></tbody></table>
+<p>安全提醒：官方 tools 文档强调，工具调用应保持 human-in-the-loop，应用应让用户清楚看到暴露了哪些工具、工具何时被调用，并在必要操作前确认。</p>
+  </div></div>
+</section>
+<section class="card" data-section-id="m2-resources" data-section-title="Resources：上下文数据，不是动作">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">Resources：上下文数据，不是动作</span>
+    <button class="ask-btn" data-ask-section="m2-resources" data-ask-title="Resources：上下文数据，不是动作">提问</button>
+  </div>
+  <div class="card-summary">Resources 是 server 暴露给 client 的上下文数据。官方 resources 规范说，resource 由 URI 唯一标识，可以代表文件、数据库 schema 或应用特定信息，见 &lt;a href=&quot;https://…</div>
+  <div class="card-body"><div class="card-inner">
+<p>Resources 是 server 暴露给 client 的上下文数据。官方 resources 规范说，resource 由 URI 唯一标识，可以代表文件、数据库 schema 或应用特定信息，见 <a href="https://modelcontextprotocol.io/specification/2025-11-25/server/resources" target="_blank" rel="noopener noreferrer">Resources</a>。</p>
+<p>常见字段：</p>
+<table><thead><tr><th>字段</th><th>意义</th><th>例子</th></tr></thead><tbody><tr><td><code>uri</code></td><td>唯一资源标识</td><td><code>file:///project/src/main.py</code></td></tr><tr><td><code>name</code></td><td>资源名称</td><td><code>main.py</code></td></tr><tr><td><code>title</code></td><td>可选的人类可读标题</td><td><code>Application Entry Point</code></td></tr><tr><td><code>description</code></td><td>资源说明</td><td><code>Primary app entry point</code></td></tr><tr><td><code>mimeType</code></td><td>内容类型</td><td><code>text/x-python</code></td></tr></tbody></table>
+<p>Resources 的品味点：如果内容是“给模型读”，优先考虑 resource；如果内容是“让模型做”，再考虑 tool。</p>
+  </div></div>
+</section>
+<section class="card" data-section-id="m2-prompts" data-section-title="Prompts：用户可选择的交互模板">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">Prompts：用户可选择的交互模板</span>
+    <button class="ask-btn" data-ask-section="m2-prompts" data-ask-title="Prompts：用户可选择的交互模板">提问</button>
+  </div>
+  <div class="card-summary">Prompts 让 server 暴露结构化消息和指令模板。官方 prompts 规范说，prompts 是 user-controlled，通常通过用户发起的命令触发，比如 slash command，见 &lt;a href=&quot;https:…</div>
+  <div class="card-body"><div class="card-inner">
+<p>Prompts 让 server 暴露结构化消息和指令模板。官方 prompts 规范说，prompts 是 user-controlled，通常通过用户发起的命令触发，比如 slash command，见 <a href="https://modelcontextprotocol.io/specification/2025-11-25/server/prompts" target="_blank" rel="noopener noreferrer">Prompts</a>。</p>
+<p>常见字段：</p>
+<table><thead><tr><th>字段</th><th>意义</th><th>设计提醒</th></tr></thead><tbody><tr><td><code>name</code></td><td>prompt 名称</td><td>稳定、短、可脚本化</td></tr><tr><td><code>title</code></td><td>UI 显示名称</td><td>让用户知道它要做什么</td></tr><tr><td><code>description</code></td><td>prompt 用途说明</td><td>说明输入、输出和适用场景</td></tr><tr><td><code>arguments</code></td><td>可配置参数</td><td>只放真正改变输出的参数</td></tr></tbody></table>
+<p>Prompts 适合把“团队已经认可的工作流”产品化，不适合把所有系统提示词都塞进去。</p>
+  </div></div>
+</section>
+<section class="card" data-section-id="m2-client-features" data-section-title="Roots、Sampling、Elicitation：client 给 server 的能力">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">Roots、Sampling、Elicitation：client 给 server 的能力</span>
+    <button class="ask-btn" data-ask-section="m2-client-features" data-ask-title="Roots、Sampling、Elicitation：client 给 server 的能力">提问</button>
+  </div>
+  <div class="card-summary">这三个能力容易被忽略，因为很多初学者只写 server tool。但如果你在设计一个成熟 host，它们会直接影响用户信任和安全边界。</div>
+  <div class="card-body"><div class="card-inner">
+<table><thead><tr><th>原语</th><th>官方定位</th><th>设计风险</th></tr></thead><tbody><tr><td>Roots</td><td>client 暴露文件系统边界，server 可请求 <code>roots/list</code>，见 <a href="https://modelcontextprotocol.io/specification/2025-11-25/client/roots" target="_blank" rel="noopener noreferrer">Roots</a></td><td>边界过宽会让 server 看到不该看的路径</td></tr><tr><td>Sampling</td><td>server 通过 client 请求 LLM 生成，见 <a href="https://modelcontextprotocol.io/specification/2025-11-25/client/sampling" target="_blank" rel="noopener noreferrer">Sampling</a></td><td>server 不应绕过用户审查去发起模型调用</td></tr><tr><td>Elicitation</td><td>server 通过 client 向用户请求更多信息，见 <a href="https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation" target="_blank" rel="noopener noreferrer">Elicitation</a></td><td>敏感信息不能用 form mode 乱收，URL mode 也要清楚展示域名</td></tr></tbody></table>
+<p>这三个能力容易被忽略，因为很多初学者只写 server tool。但如果你在设计一个成熟 host，它们会直接影响用户信任和安全边界。</p>
+  </div></div>
+</section>
+<section class="card" data-section-id="m2-methods" data-section-title="常见方法名速查">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">常见方法名速查</span>
+    <button class="ask-btn" data-ask-section="m2-methods" data-ask-title="常见方法名速查">提问</button>
+  </div>
+  
+  <div class="card-body"><div class="card-inner">
+<table><thead><tr><th>方法</th><th>方向</th><th>用途</th></tr></thead><tbody><tr><td><code>initialize</code></td><td>client -&gt; server</td><td>协议版本、能力和实现信息协商</td></tr><tr><td><code>notifications/initialized</code></td><td>client -&gt; server</td><td>初始化完成通知</td></tr><tr><td><code>tools/list</code></td><td>client -&gt; server</td><td>列出可用工具</td></tr><tr><td><code>tools/call</code></td><td>client -&gt; server</td><td>调用工具</td></tr><tr><td><code>resources/list</code></td><td>client -&gt; server</td><td>列出资源</td></tr><tr><td><code>resources/read</code></td><td>client -&gt; server</td><td>读取资源内容</td></tr><tr><td><code>resources/templates/list</code></td><td>client -&gt; server</td><td>列出参数化资源模板</td></tr><tr><td><code>prompts/list</code></td><td>client -&gt; server</td><td>列出 prompt</td></tr><tr><td><code>prompts/get</code></td><td>client -&gt; server</td><td>获取 prompt 内容</td></tr><tr><td><code>roots/list</code></td><td>server -&gt; client</td><td>请求 client 暴露的 roots</td></tr><tr><td><code>sampling/createMessage</code></td><td>server -&gt; client</td><td>请求 host LLM 生成</td></tr><tr><td><code>elicitation/create</code></td><td>server -&gt; client</td><td>请求用户补充信息</td></tr></tbody></table>
+  </div></div>
+</section>
+<section class="card" data-section-id="m2-boundary" data-section-title="原语选择的最小判断法">
+  <div class="card-header">
+    <button class="card-toggle" type="button" aria-expanded="false" aria-label="展开/折叠"><span aria-hidden="true">▶</span></button>
+    <span class="card-title">原语选择的最小判断法</span>
+    <button class="ask-btn" data-ask-section="m2-boundary" data-ask-title="原语选择的最小判断法">提问</button>
+  </div>
+  <div class="card-summary">这张表不是规范原文，而是本课程对官方原语的学习整理。它的价值在于减少一个常见坏习惯：把数据、动作、模板、用户交互都伪装成 tool。</div>
+  <div class="card-body"><div class="card-inner">
+<table><thead><tr><th>你想要什么</th><th>优先选</th></tr></thead><tbody><tr><td>读一份文件或 schema</td><td>Resource</td></tr><tr><td>执行一个有副作用的动作</td><td>Tool</td></tr><tr><td>给用户一个可复用工作流入口</td><td>Prompt</td></tr><tr><td>让 server 知道工作区边界</td><td>Root</td></tr><tr><td>让 server 借用 host 的模型能力</td><td>Sampling</td></tr><tr><td>让 server 追问用户缺失信息</td><td>Elicitation</td></tr></tbody></table>
+<p>这张表不是规范原文，而是本课程对官方原语的学习整理。它的价值在于减少一个常见坏习惯：把数据、动作、模板、用户交互都伪装成 tool。</p>
+  </div></div>
+</section>
+  <footer class="next-prev"><a href="m1.html">上一节</a><a href="m3.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/reference/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compressed Sparse Attention（CSA） | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m4</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="deepseek-v4" data-module-id="m4">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek-V4 系列论文解读</p>
+    <h1>Compressed Sparse Attention（CSA）</h1>
+    <p class="lede">掌握 CSA 的压缩、稀疏索引与共享 KV MQA 设计，理解它如何降低长上下文注意力开销。</p>
+  </header>
+  <section><h2 data-section-id="m4-context" data-section-title="为什么需要 CSA">为什么需要 CSA <button class="ask-btn" data-ask-section="m4-context" data-ask-title="为什么需要 CSA">提问</button></h2>
+<p>当上下文达到百万 token 时，标准注意力成为主要瓶颈：</p>
+<ul><li>计算量随序列长度二次增长。</li><li>KV Cache 随序列长度线性增长，显存压力巨大。</li></ul>
+<p>Compressed Sparse Attention（CSA）的解决思路是<strong>先压缩，再稀疏</strong>：</p>
+<ol><li>把每 m 个 token 的 KV 压缩成 1 个条目。</li><li>再用 DeepSeek Sparse Attention（DSA）选择 top-k 个压缩 KV 条目进行核心注意力。</li></ol>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 2.3.1 节。</div></section>
+<section><h2 data-section-id="m4-compression" data-section-title="KV 压缩">KV 压缩 <button class="ask-btn" data-ask-section="m4-compression" data-ask-title="KV 压缩">提问</button></h2>
+<p>给定输入隐藏状态 H ∈ R^(n×d)，CSA 先计算两组 KV 条目 C_a、C_b 和对应的压缩权重 Z_a、Z_b：</p>
+<pre><code class="language-">C_a = H · W_a_KV
+C_b = H · W_b_KV
+Z_a = H · W_a_Z
+Z_b = H · W_b_Z</code></pre>
+<p>然后每 m 个条目压缩成一个条目 C^Comp_i。压缩时同时考虑当前块和前一块的尾部（重叠设计），因此实际上序列长度被压缩到 <strong>1/m</strong>。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>CSA 的压缩比率大约是多少？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>每 m 个 token 压缩为 1 个 KV 条目，序列长度约变为原来的 1/m。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-indexer" data-section-title="Lightning Indexer 稀疏选择">Lightning Indexer 稀疏选择 <button class="ask-btn" data-ask-section="m4-indexer" data-ask-title="Lightning Indexer 稀疏选择">提问</button></h2>
+<p>压缩后，CSA 用 DSA 策略选择 top-k 个压缩 KV 条目。选择过程叫 Lightning Indexer：</p>
+<ol><li>对查询 token t，先通过下投影 W_DQ 得到压缩查询向量 c^Q_t。</li><li>再用 W_IUQ 上投影得到 n_I_h 个 indexer query heads。</li><li>计算查询与每个压缩块的 index score：</li></ol>
+<p>- 用 ReLU 激活的 indexer query 与压缩 indexer key 做点积。 - 多个 head 的分数加权求和。</p>
+<ol><li>保留 top-k 个压缩 KV 条目进入核心注意力。</li></ol>
+<ol class="ll-flow"><li><span>查询 token t</span></li><li><span>下投影得到 c^Q_t</span></li><li><span>上投影得到多个 indexer queries</span></li><li><span>与压缩 indexer keys 计算 index scores</span></li><li><span>Top-k 选择压缩 KV 条目</span></li><li><span>进入核心 attention</span></li></ol>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 2.3.1 节。</div></section>
+<section><h2 data-section-id="m4-mqa" data-section-title="共享 KV MQA 与分组输出投影">共享 KV MQA 与分组输出投影 <button class="ask-btn" data-ask-section="m4-mqa" data-ask-title="共享 KV MQA 与分组输出投影">提问</button></h2>
+<p>选定压缩 KV 条目后，CSA 以 <strong>Multi-Query Attention（MQA）</strong> 方式执行核心注意力：每个压缩 KV 条目同时作为 key 和 value，所有 query head 共享同一组 KV。</p>
+<p>为了减少大 head 维度带来的输出投影开销，CSA 使用<strong>分组输出投影</strong>：</p>
+<ol><li>把 n_h 个输出分成 g 组。</li><li>每组先投影到较低维度的中间输出。</li><li>再把所有组拼接并投影到最终 d 维输出。</li></ol>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>CSA 核心注意力为什么能用 MQA？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>因为 KV 已经被压缩成少量共享条目，天然适合让所有 query head 共享同一组 KV，进一步减少计算和显存。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m4-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>CSA = 压缩 + 稀疏索引 + 共享 KV MQA。</li><li>先把序列长度压缩到 1/m，再用 Lightning Indexer 选择 top-k 个压缩块。</li><li>分组输出投影用于降低大 head 维度下的输出投影成本。</li><li>CSA 是 DeepSeek-V4 在 1M token 场景下保持高效率的关键之一。</li></ul></section>
+  <footer class="next-prev"><a href="m3.html">上一节</a><a href="m5.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

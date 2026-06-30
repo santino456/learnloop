@@ -106,6 +106,7 @@ def read_course(course_dir: Path) -> CourseDoc:
         template=str(data.get("template", "")) or None,
         modules=modules,
         lang=str(data.get("lang", "auto")),
+        category=str(data.get("category", "")),
     )
 
 

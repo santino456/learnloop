@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="title desc">
+  <title id="title">ACP browser bridge flow</title>
+  <desc id="desc">Browser UI connects to a local bridge over HTTP or SSE, and the bridge talks to an ACP agent over stdio JSON lines.</desc>
+  <rect width="960" height="360" fill="#fffefb"/>
+  <g fill="#f8faf8" stroke="#bac8c2" stroke-width="2">
+    <rect x="64" y="104" width="210" height="112" rx="8"/>
+    <rect x="374" y="104" width="210" height="112" rx="8"/>
+    <rect x="684" y="104" width="210" height="112" rx="8"/>
+  </g>
+  <g fill="#1d2422" font-family="Inter, Arial, sans-serif" text-anchor="middle">
+    <text x="169" y="154" font-size="26" font-weight="700">Browser UI</text>
+    <text x="479" y="154" font-size="26" font-weight="700">Local Bridge</text>
+    <text x="789" y="154" font-size="26" font-weight="700">ACP Agent</text>
+  </g>
+  <g fill="#66736f" font-family="Inter, Arial, sans-serif" text-anchor="middle" font-size="17">
+    <text x="169" y="186">page sandbox</text>
+    <text x="479" y="186">owns process lifecycle</text>
+    <text x="789" y="186">stdio protocol endpoint</text>
+  </g>
+  <g stroke="#0f766e" stroke-width="4" fill="none" marker-end="url(#arrow)">
+    <path d="M286 160 H360"/>
+    <path d="M596 160 H670"/>
+  </g>
+  <g fill="#0e4f49" font-family="JetBrains Mono, monospace" font-size="16" text-anchor="middle">
+    <text x="323" y="132">HTTP / SSE</text>
+    <text x="633" y="132">JSON lines over stdio</text>
+  </g>
+  <g fill="#c97818" font-family="Inter, Arial, sans-serif" font-size="18" text-anchor="middle">
+    <text x="480" y="282">The bridge is the local trust boundary, not a visual convenience.</text>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto">
+      <path d="M2 2 L11 6 L2 10 Z" fill="#0f766e"/>
+    </marker>
+  </defs>
+</svg>

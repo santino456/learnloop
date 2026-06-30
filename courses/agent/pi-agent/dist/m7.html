@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skills 与 Pi Packages | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/practice/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m7</span><span class="top-nav-template">practice</span></nav>
+<article class="lesson" data-course-id="pi-agent" data-module-id="m7">
+  <header class="lesson-header">
+    <p class="eyebrow">Pi Agent 深度解析与二次开发</p>
+    <h1>Skills 与 Pi Packages</h1>
+    <p class="lede">Agent Skills 标准、SKILL.md 规范、渐进式加载，以及 Pi Package 的分发机制。</p>
+  </header>
+  <section><h2 data-section-id="m7-what" data-section-title="Skill 是什么">Skill 是什么 <button class="ask-btn" data-ask-section="m7-what" data-ask-title="Skill 是什么">提问</button></h2>
+<p>Skill 是 <strong>自包含的能力包</strong>，包含：</p>
+<ul><li>一段描述（何时使用该 skill）；</li><li>使用说明；</li><li>可选的 helper 脚本、参考文档、资源文件。</li></ul>
+<p>与 Extension 不同，Skill 不直接执行代码或拦截事件，而是<strong>通过提示词指导模型</strong>。它适合封装：</p>
+<ul><li>特定领域的工作流程；</li><li>常用命令组合；</li><li>项目特定的约定或检查清单。</li></ul>
+<div class="callout">来源：[packages/coding-agent/docs/skills.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/skills.md)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Skill 与 Extension 的最大区别是什么？</p>
+<p>A. Skill 可以写 TypeScript 代码 B. Skill 通过提示词指导模型，Extension 直接改运行时行为 C. Skill 只能全局加载 D. Skill 不能包含脚本</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。Skill 主要是“给模型看的说明书”，Extension 是“直接改 Pi 运行时”。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m7-standard" data-section-title="Agent Skills 标准">Agent Skills 标准 <button class="ask-btn" data-ask-section="m7-standard" data-ask-title="Agent Skills 标准">提问</button></h2>
+<p>Pi 实现了 [Agent Skills 标准](https://agentskills.io/specification)，但有一个宽松点：Pi 允许 skill 名称与父目录不一致，因为标准要求名称必须匹配目录，这对多个 agent harness 共享 skill 目录不友好。</p>
+<div class="callout">来源：[packages/coding-agent/docs/skills.md — How Skills Work](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/skills.md#how-skills-work)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Pi 对 Agent Skills 标准做了哪项宽松处理？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>允许 skill 名称与父目录不一致。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m7-loading" data-section-title="Skill 加载机制">Skill 加载机制 <button class="ask-btn" data-ask-section="m7-loading" data-ask-title="Skill 加载机制">提问</button></h2>
+<p>Pi 加载 skill 的过程是渐进式的：</p>
+<ol><li>启动时扫描 skill 位置，提取名称和描述；</li><li>把可用 skills 以 XML 格式写入系统提示词；</li><li>当任务匹配时，模型使用 <code>read</code> 加载完整 <code>SKILL.md</code>；</li><li>模型按 SKILL.md 中的指示行动。</li></ol>
+<p>这意味着：<strong>只有描述常驻上下文，完整指令按需加载</strong>。既避免上下文膨胀，又能让模型在需要时拿到详细指南。</p>
+<div class="callout">来源：[packages/coding-agent/docs/skills.md — How Skills Work](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/skills.md#how-skills-work)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么 Pi 不把完整 SKILL.md 内容一直放在系统提示词里？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>为了减少上下文膨胀。只有 skill 描述常驻，完整内容在模型判断需要时才读取。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m7-structure" data-section-title="SKILL.md 结构">SKILL.md 结构 <button class="ask-btn" data-ask-section="m7-structure" data-ask-title="SKILL.md 结构">提问</button></h2>
+<p>一个 skill 目录至少包含 <code>SKILL.md</code>：</p>
+<pre><code class="language-text">my-skill/
+├── SKILL.md              # 必需：frontmatter + 指令
+├── scripts/              # 可选：helper 脚本
+│   └── process.sh
+├── references/           # 可选：详细参考文档
+│   └── api-reference.md
+└── assets/               # 可选：资源文件
+    └── template.json</code></pre>
+<p><code>SKILL.md</code> 必须包含 frontmatter：</p>
+<pre><code class="language-markdown">---
+name: my-skill
+description: What this skill does and when to use it. Be specific.
+---
+
+# My Skill
+
+## Setup
+Run once before first use:</code></pre>
+<p>cd /path/to/skill &amp;&amp; npm install</p>
+<pre><code class="language-">
+## Usage</code></pre>
+<p>./scripts/process.sh &lt;input&gt;</p>
+<pre><code class="language-"></code></pre>
+<div class="callout">来源：[packages/coding-agent/docs/skills.md — Skill Structure](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/skills.md#skill-structure)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>SKILL.md 中哪两个 frontmatter 字段是必需的？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>name</code> 和 <code>description</code>。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m7-locations" data-section-title="Skill 加载位置">Skill 加载位置 <button class="ask-btn" data-ask-section="m7-locations" data-ask-title="Skill 加载位置">提问</button></h2>
+<table><thead><tr><th>位置</th><th>作用域</th></tr></thead><tbody><tr><td><code>~/.pi/agent/skills/</code> 或 <code>~/.agents/skills/</code></td><td>全局</td></tr><tr><td><code>.pi/skills/</code> 或 <code>.agents/skills/</code>（cwd 及祖先目录）</td><td>项目级（需信任）</td></tr><tr><td><code>skills/</code> 目录或 <code>package.json</code> 的 <code>pi.skills</code></td><td>Pi Packages 内</td></tr><tr><td><code>settings.json</code> 的 <code>skills</code> 数组</td><td>显式配置</td></tr><tr><td>CLI <code>--skill &lt;path&gt;</code></td><td>临时加载</td></tr></tbody></table>
+<p>注意不同目录下 discovery 规则略有差异：</p>
+<ul><li>在 <code>~/.pi/agent/skills/</code> 和 <code>.pi/skills/</code> 中，根目录下的 <code>.md</code> 文件会被视为独立 skill；</li><li>所有 skill 位置都会递归发现包含 <code>SKILL.md</code> 的目录。</li></ul>
+<div class="callout">来源：[packages/coding-agent/docs/skills.md — Locations](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/skills.md#locations)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>全局 skill 放在哪个目录？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>~/.pi/agent/skills/</code> 或 <code>~/.agents/skills/</code>。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m7-practice" data-section-title="练习：写一个代码审查 Skill">练习：写一个代码审查 Skill <button class="ask-btn" data-ask-section="m7-practice" data-ask-title="练习：写一个代码审查 Skill">提问</button></h2>
+<p>目标：创建一个 skill，指导模型在审查代码时检查：是否有未处理的异常、是否有明显的性能问题、是否有不安全的用户输入。</p>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>在 <code>~/.pi/agent/skills/code-review/SKILL.md</code> 中写出该 skill。</p>
+</div>
+<div class="exercise-answer" hidden>
+<pre><code class="language-markdown"></code></pre>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m7-packages" data-section-title="Pi Packages">Pi Packages <button class="ask-btn" data-ask-section="m7-packages" data-ask-title="Pi Packages">提问</button></h2>
+<p>Pi Package 是一种分发 extensions、skills、prompt templates、themes 的方式。它可以通过 npm 或 git 安装：</p>
+<pre><code class="language-bash">pi install npm:@foo/bar@1.0.0
+pi install git:github.com/user/repo@v1</code></pre>
+<p>安装后，package 中的 extensions、skills 等资源会被自动发现并加载。</p>
+<p>Pi Package 的 <code>package.json</code> 可以声明：</p>
+<ul><li><code>pi.extensions</code>：导出 extension 文件；</li><li><code>pi.skills</code>：导出 skill 目录；</li><li><code>pi.themes</code>：导出主题文件；</li><li><code>pi.prompts</code>：导出 prompt templates。</li></ul>
+<div class="callout">来源：[packages/coding-agent/docs/packages.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/packages.md) 与 [packages/coding-agent/docs/extensions.md — Pi Packages](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/extensions.md#pi-packages)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Pi Package 可以通过哪些方式安装？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>npm 或 git。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m7-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m7-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>Skill 是提示词驱动的能力包，Extension 是运行时行为改造。</li><li>Pi 实现 Agent Skills 标准，但允许 skill 名称与目录名不一致。</li><li>Skill 采用渐进式加载：描述常驻上下文，完整 SKILL.md 按需读取。</li><li>SKILL.md 必需 frontmatter：<code>name</code> 和 <code>description</code>。</li><li>Skill 可放在全局、项目级、Pi Package 中，也可通过 CLI 临时加载。</li><li>Pi Package 通过 npm/git 分发 extensions、skills、themes、prompts。</li></ul>
+<div class="callout">来源：本地 m6《Extensions：扩展 Pi 的行为》；外部 [packages/coding-agent/docs/skills.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/coding-agent/docs/skills.md)。</div></section>
+  <footer class="next-prev"><a href="m6.html">上一节</a><a href="m8.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/practice/runtime.js"></script>
+</body>
+</html>

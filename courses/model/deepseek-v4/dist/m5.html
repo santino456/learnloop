@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Heavily Compressed Attention 与混合配置 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m5</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="deepseek-v4" data-module-id="m5">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek-V4 系列论文解读</p>
+    <h1>Heavily Compressed Attention 与混合配置</h1>
+    <p class="lede">对比 HCA 与 CSA，理解粗细压缩的混合策略，以及滑动窗口、RoPE 与 Attention Sink 等工程细节。</p>
+  </header>
+  <section><h2 data-section-id="m5-hca" data-section-title="HCA 的设计目标">HCA 的设计目标 <button class="ask-btn" data-ask-section="m5-hca" data-ask-title="HCA 的设计目标">提问</button></h2>
+<p>Heavily Compressed Attention（HCA）与 CSA 思路类似，但追求更激进的压缩：</p>
+<ul><li>使用更大的压缩率 m&#x27;（m&#x27; ≫ m）。</li><li>不使用重叠压缩。</li><li>不采用稀疏选择，而是对所有压缩 KV 条目做稠密注意力。</li></ul>
+<p>HCA 适合那些不需要精细 token 级依赖、但希望进一步降低计算和 KV Cache 的层或位置。</p>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 2.3.2 节。</div></section>
+<section><h2 data-section-id="m5-hca-vs-csa" data-section-title="HCA 与 CSA 对比">HCA 与 CSA 对比 <button class="ask-btn" data-ask-section="m5-hca-vs-csa" data-ask-title="HCA 与 CSA 对比">提问</button></h2>
+<table><thead><tr><th>特性</th><th>CSA</th><th>HCA</th></tr></thead><tbody><tr><td>压缩率</td><td>m（较小）</td><td>m&#x27;（较大，m&#x27; ≫ m）</td></tr><tr><td>压缩方式</td><td>重叠压缩</td><td>非重叠压缩</td></tr><tr><td>选择策略</td><td>Top-k 稀疏选择（DSA）</td><td>稠密注意力，无稀疏选择</td></tr><tr><td>适用场景</td><td>需要保留较多上下文细节</td><td>可以接受更粗粒度依赖</td></tr><tr><td>KV Cache / FLOPs</td><td>较低</td><td>更低</td></tr></tbody></table>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>HCA 与 CSA 的主要区别是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>HCA 使用更大的压缩率、非重叠压缩，并且不做稀疏选择，而是对所有压缩 KV 做稠密注意力。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m5-hybrid" data-section-title="混合配置">混合配置 <button class="ask-btn" data-ask-section="m5-hybrid" data-ask-title="混合配置">提问</button></h2>
+<p>DeepSeek-V4 并非所有层都用同一种注意力，而是<strong>交错使用 CSA 和 HCA</strong>：</p>
+<ul><li>一部分层用 CSA，保留更强的 token 选择能力。</li><li>一部分层用 HCA，最大化效率。</li></ul>
+<p>这种混合策略在能力和效率之间取得平衡，是 1M token 场景可行的关键。</p>
+<div class="ll-gallery"><figure class="ll-gallery-item"><img src="course-assets/deepseek-fig3-csa.png" alt="CSA" loading="lazy"><strong>CSA</strong><figcaption>每 m 个 token 的 KV 被压缩为 1 个条目，随后通过 Lightning Indexer 做 top-k 稀疏选择。</figcaption></figure><figure class="ll-gallery-item"><img src="course-assets/deepseek-fig4-hca.png" alt="HCA" loading="lazy"><strong>HCA</strong><figcaption>每 m&#x27; 个 token 压缩为 1 个条目，不做稀疏选择，而是对压缩条目做稠密注意力。</figcaption></figure></div>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 2.3 节。</div></section>
+<section><h2 data-section-id="m5-details" data-section-title="其他工程细节">其他工程细节 <button class="ask-btn" data-ask-section="m5-details" data-ask-title="其他工程细节">提问</button></h2>
+<p><strong>RMSNorm 归一化</strong></p>
+<p>CSA 和 HCA 在核心注意力前，对 query head 和压缩 KV 条目额外做 RMSNorm，避免注意力 logits 爆炸。</p>
+<p><strong>Partial RoPE</strong></p>
+<p>只在 query、KV 条目和核心注意力输出的最后 64 维应用 Rotary Positional Embedding（RoPE），并给核心注意力输出额外施加位置 -i 的 RoPE，让输出携带相对位置信息。</p>
+<p><strong>滑动窗口注意力分支</strong></p>
+<p>每个 query token 额外保留最近 n_win 个未压缩 KV 条目，与压缩 KV 一起参与核心注意力。这弥补了压缩导致 query 无法访问同一块内其他 token 的问题，增强局部依赖建模。</p>
+<p><strong>Attention Sink</strong></p>
+<p>为每个 attention head 引入可学习的 sink logit z&#x27;_h，加到 attention 分母上。这样每个 head 的总注意力权重可以不等于 1，甚至可以接近 0，增加建模灵活性。</p>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 2.3.3 节。</div></section>
+<section><h2 data-section-id="m5-efficiency" data-section-title="效率收益">效率收益 <button class="ask-btn" data-ask-section="m5-efficiency" data-ask-title="效率收益">提问</button></h2>
+<p>得益于 CSA/HCA 混合、低精度计算和存储，DeepSeek-V4 的注意力模块在 FLOPs 和 KV Cache 上都显著降低：</p>
+<ul><li>KV 条目采用混合精度：RoPE 维度用 BF16，其余维度用 FP8，几乎把 KV Cache 减半。</li><li>Lightning Indexer 内部计算使用 FP4，进一步加速。</li></ul>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 2.3.4 节。</div></section>
+<section><h2 data-section-id="m5-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m5-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>HCA 是 CSA 的更重压缩版本，用更大压缩率 + 稠密注意力换取更低开销。</li><li>混合配置让不同层承担不同的精度和效率角色。</li><li>滑动窗口、Partial RoPE 和 Attention Sink 是保留局部依赖与位置信息的关键工程细节。</li></ul></section>
+  <footer class="next-prev"><a href="m4.html">上一节</a><a href="m6.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

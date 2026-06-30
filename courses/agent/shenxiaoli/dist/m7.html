@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>部署与运维：从本机到线上 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m7</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="shenxiaoli" data-module-id="m7">
+  <header class="lesson-header">
+    <p class="eyebrow">深小理：全栈架构透视</p>
+    <h1>部署与运维：从本机到线上</h1>
+    <p class="lede">Nginx + systemd + OSS 架构、SSE 专用代理配置、OSS 防盗链、一键部署脚本、已知短板。</p>
+  </header>
+  <section><h2 data-section-id="m7-topology" data-section-title="部署拓扑">部署拓扑 <button class="ask-btn" data-ask-section="m7-topology" data-ask-title="部署拓扑">提问</button></h2>
+<pre><code class="language-">用户浏览器
+    │
+    ▼
+Nginx (:443 HTTPS, Certbot 自动续签)
+    ├── /api/*        → proxy_pass → FastAPI (:8000, 2 uvicorn worker)
+    ├── /kb/campus/images/* → proxy_pass → OSS 内网端点 (本地开发回退)
+    ├── /skills/*     → proxy_pass → OSS 内网端点
+    ├── /assets/*     → 静态文件, 1年缓存 (Vite hash 文件名)
+    └── /*            → frontend/dist/index.html (SPA fallback)
+                            │
+                    OSS 公网端点 (图片直连, Gbps 带宽)
+                            │
+                    PostgreSQL 14 (本地 :5432)</code></pre>
+<p>核心设计：<strong>ECS 只跑 API 和静态文件；图片流量走 OSS 公网，不占 ECS 带宽。</strong></p></section>
+<section><h2 data-section-id="m7-nginx" data-section-title="Nginx 关键配置">Nginx 关键配置 <button class="ask-btn" data-ask-section="m7-nginx" data-ask-title="Nginx 关键配置">提问</button></h2>
+<h3>SSE 专用代理</h3>
+<pre><code class="language-nginx">location /api/chat/stream {
+    proxy_pass http://127.0.0.1:8000;
+    proxy_buffering off;        # 必须关缓冲
+    gzip off;                   # 必须关 gzip
+    proxy_read_timeout 300s;    # 长连接超时
+
+    add_header Cache-Control &quot;no-store&quot;;
+    add_header Content-Type &quot;text/event-stream&quot;;
+}</code></pre>
+<p>三个关键点：</p>
+<ul><li><code>proxy_buffering off</code> — 不缓冲响应。SSE 需要逐事件推送，缓冲会延迟所有事件直到连接关闭。</li><li><code>gzip off</code> — gzip 需要在缓冲区积累数据才能压缩，会导致 SSE 数据堆积。</li><li><code>proxy_read_timeout 300s</code> — SSE 保持连接最长达 5 分钟。</li></ul>
+<h3>SPA 回退</h3>
+<pre><code class="language-nginx">location / {
+    try_files $uri /index.html;
+    # index.html 不缓存（防止新版上线后用户拿到旧版）
+    location = /index.html {
+        add_header Cache-Control &quot;no-cache, no-store, must-revalidate&quot;;
+    }
+}</code></pre>
+<h3>静态资源缓存</h3>
+<pre><code class="language-nginx">location /assets/ {
+    expires 1y;
+    add_header Cache-Control &quot;public, immutable&quot;;
+}</code></pre>
+<p>Vite 构建产物的文件名带 hash（如 <code>index-abc123.js</code>），文件内容变化 → hash 变化 → 新 URL，所以可以安全地缓存一年。</p></section>
+<section><h2 data-section-id="m7-deploy" data-section-title="一键部署脚本">一键部署脚本 <button class="ask-btn" data-ask-section="m7-deploy" data-ask-title="一键部署脚本">提问</button></h2>
+<p><code>deploy.sh</code> 是全链路部署的总入口：</p>
+<pre><code class="language-bash">#!/bin/bash
+BRANCH=${1:-refactor}
+
+# 1. 拉取最新代码
+git pull origin &quot;$BRANCH&quot;
+
+# 2. 后端依赖
+source backend/.venv/bin/activate
+pip install -r backend/requirements.txt
+
+# 3. 前端构建
+cd frontend &amp;&amp; npm run build &amp;&amp; cd ..
+
+# 4. 重启服务
+sudo systemctl restart shenxiaoli
+
+# 5. 健康检查（最多 30 次，1 秒间隔）
+for i in {1..30}; do
+    if curl -sf http://127.0.0.1:8000/health &gt; /dev/null; then
+        echo &quot;Deploy OK&quot;
+        exit 0
+    fi
+    sleep 1
+done
+echo &quot;Deploy FAILED - health check timeout&quot;
+exit 1</code></pre>
+<p>完整部署时间：约 20-30 秒（git pull 2s + pip install 3s + npm build 12s + systemctl restart 3s + health check 2s）。</p></section>
+<section><h2 data-section-id="m7-oss" data-section-title="OSS 配置要点">OSS 配置要点 <button class="ask-btn" data-ask-section="m7-oss" data-ask-title="OSS 配置要点">提问</button></h2>
+<h3>防盗链</h3>
+<pre><code class="language-json">{
+    &quot;Referer&quot;: {
+        &quot;AllowEmptyReferer&quot;: false,
+        &quot;AllowReferer&quot;: [&quot;https://shenxiaoli.cn&quot;, &quot;https://www.shenxiaoli.cn&quot;],
+        &quot;RefererPolicy&quot;: &quot;white&quot;
+    }
+}</code></pre>
+<ul><li>仅允许 <code>shenxiaoli.cn</code> 域名的 Referer</li><li>禁止空 Referer（防止 curl 直接下载图片）</li><li>图片被其他网站引用时返回 403</li></ul>
+<h3>WebP 压缩</h3>
+<p>所有新增 Skill 图片需生成 WebP 版本：</p>
+<pre><code class="language-bash">for f in $(find &lt;目录&gt;/ -type f \( -name &#x27;*.jpg&#x27; -o -name &#x27;*.png&#x27; \)); do
+    webp=&quot;${f%.*}.webp&quot;
+    [ -f &quot;$webp&quot; ] || cwebp -q 82 &quot;$f&quot; -o &quot;$webp&quot;
+done</code></pre>
+<p>上传到 OSS 时原图（jpg/png）和 WebP 并存，浏览器优先选 WebP。</p></section>
+<section><h2 data-section-id="m7-systemd" data-section-title="systemd 服务">systemd 服务 <button class="ask-btn" data-ask-section="m7-systemd" data-ask-title="systemd 服务">提问</button></h2>
+<pre><code class="language-ini">[Unit]
+Description=ShenXiaoLi API Server
+After=network.target postgresql.service
+
+[Service]
+User=hqyone
+WorkingDirectory=/home/hqyone/projects/shenxiaoli/backend
+ExecStart=/home/hqyone/projects/shenxiaoli/backend/.venv/bin/python \
+    -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+<p>关键设计：</p>
+<ul><li><code>--workers 2</code> — 2C4G 机器上 2 个 worker 能并发处理 4 个聊天（每个 worker 的 <code>chat_semaphore=4</code>）</li><li><code>Restart=always</code> — 崩溃自动重启</li><li><code>RestartSec=5</code> — 重试间隔 5 秒，防止频繁重启打满 CPU</li><li>监听 <code>127.0.0.1</code> — 不暴露到公网，只让 Nginx 代理</li></ul></section>
+<section><h2 data-section-id="m7-monitoring" data-section-title="运维命令速查">运维命令速查 <button class="ask-btn" data-ask-section="m7-monitoring" data-ask-title="运维命令速查">提问</button></h2>
+<pre><code class="language-bash"># 服务状态
+sudo systemctl status shenxiaoli
+
+# 实时日志
+sudo journalctl -u shenxiaoli -f
+
+# 查看最近 100 行
+sudo journalctl -u shenxiaoli -n 100 --no-pager
+
+# Nginx 配置测试
+sudo nginx -t
+
+# Nginx 平滑重载
+sudo nginx -s reload
+
+# 健康检查
+curl http://127.0.0.1:8000/health
+
+# 检查端口占用
+ss -tlnp | grep -E &#x27;:(80|443|8000) &#x27;</code></pre></section>
+<section><h2 data-section-id="m7-limitations" data-section-title="已知短板">已知短板 <button class="ask-btn" data-ask-section="m7-limitations" data-ask-title="已知短板">提问</button></h2>
+<table><thead><tr><th>问题</th><th>影响</th><th>优先级</th></tr></thead><tbody><tr><td>重启有 3-5 秒停机窗口</td><td>期间用户收不到响应</td><td>用户量小时可接受</td></tr><tr><td>速率限制不跨 worker</td><td>2 worker 各算各的</td><td>当前 2 worker 影响可控</td></tr><tr><td>没有 CI/CD</td><td>靠手动 <code>./deploy.sh</code></td><td>部署频率低，手动可以</td></tr><tr><td>没有自动备份</td><td>需手动 <code>pg_dump</code></td><td>需补充 cron job</td></tr><tr><td>日志只在 journald</td><td>无持久化分析</td><td>当前凭感觉看就行</td></tr></tbody></table></section>
+<section><h2 data-section-id="m7-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m7-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>裸机部署拓扑：Nginx → FastAPI + OSS 直连 + PostgreSQL。</li><li>SSE 需要三个 Nginx 关键配置：buffering off / gzip off / read_timeout 300s。</li><li>部署脚本 5 步：pull → pip → build → restart → health check，约 30 秒。</li><li>OSS 防盗链只允许 <code>shenxiaoli.cn</code>，禁止空 Referer。</li><li>已知短板都在可控范围内，用户量增长后有明确的升级路径。</li></ul></section>
+  <footer class="next-prev"><a href="m6.html">上一节</a><a href="m8.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

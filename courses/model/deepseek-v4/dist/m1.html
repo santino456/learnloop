@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>引言：百万 token 上下文的效率挑战 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m1</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="deepseek-v4" data-module-id="m1">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek-V4 系列论文解读</p>
+    <h1>引言：百万 token 上下文的效率挑战</h1>
+    <p class="lede">理解为什么长上下文是测试时缩放与长程任务的瓶颈，以及 DeepSeek-V4 系列的核心突破。</p>
+  </header>
+  <section><h2 data-section-id="m1-problem" data-section-title="长上下文为什么难">长上下文为什么难 <button class="ask-btn" data-ask-section="m1-problem" data-ask-title="长上下文为什么难">提问</button></h2>
+<p>推理模型通过 test-time scaling 获得了显著的能力提升，但代价是生成更长的思维链。与此同时，agent 工作流、跨文档分析等场景也在推动上下文长度向百万 token 迈进。</p>
+<p>瓶颈在于标准注意力机制的<strong>二次复杂度</strong>：序列越长，每个 token 都要与前面所有 token 计算注意力，计算量和 KV Cache 都会急剧膨胀。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么 test-time scaling 会让长上下文效率问题变得更紧迫？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>推理模型会生成很长的中间思考 token，导致上下文本身变长；而 attention 的 FLOPs 和 KV Cache 随序列长度二次或线性增长，效率会快速下降。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m1-what" data-section-title="DeepSeek-V4 系列是什么">DeepSeek-V4 系列是什么 <button class="ask-btn" data-ask-section="m1-what" data-ask-title="DeepSeek-V4 系列是什么">提问</button></h2>
+<p>DeepSeek-V4 系列预览版包含两个 MoE 模型：</p>
+<ul><li><strong>DeepSeek-V4-Pro</strong>：1.6T 总参数，49B 激活参数。</li><li><strong>DeepSeek-V4-Flash</strong>：284B 总参数，13B 激活参数。</li></ul>
+<p>两者都支持 <strong>1M（一百万）token 上下文长度</strong>。</p>
+<p>核心升级有三点：</p>
+<ol><li><strong>混合注意力架构</strong>：Compressed Sparse Attention（CSA）+ Heavily Compressed Attention（HCA）。</li><li><strong>Manifold-Constrained Hyper-Connections（mHC）</strong>：增强传统残差连接。</li><li><strong>Muon 优化器</strong>：提升收敛速度与训练稳定性。</li></ol>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，Abstract。</div></section>
+<section><h2 data-section-id="m1-efficiency" data-section-title="效率提升有多显著">效率提升有多显著 <button class="ask-btn" data-ask-section="m1-efficiency" data-ask-title="效率提升有多显著">提问</button></h2>
+<p>在 1M token 上下文中，与 DeepSeek-V3.2 相比：</p>
+<ul><li>DeepSeek-V4-Pro 的单 token 推理 FLOPs 仅为其 <strong>27%</strong>，KV Cache 仅为其 <strong>10%</strong>。</li><li>DeepSeek-V4-Flash 更进一步，单 token FLOPs 仅 <strong>10%</strong>，KV Cache 仅 <strong>7%</strong>。</li></ul>
+<figure class="ll-figure"><img src="course-assets/deepseek-fig1.png" alt="DeepSeek-V4 benchmark performance and long-context FLOPs KV Cache comparison against DeepSeek-V3.2" loading="lazy"><figcaption><span>Figure 1 左侧比较 V4-Pro-Max 与其他模型的 benchmark 表现；右侧展示 1M token 上下文中 V4 系列相对 V3.2 的 FLOPs 与 KV Cache 降幅。</span><cite>DeepSeek-V4 论文 Figure 1，本地 PDF 裁图</cite></figcaption></figure>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 1 节与 Figure 1。</div></section>
+<section><h2 data-section-id="m1-why-matters" data-section-title="为什么这很重要">为什么这很重要 <button class="ask-btn" data-ask-section="m1-why-matters" data-ask-title="为什么这很重要">提问</button></h2>
+<p>百万 token 上下文不只是“能装更多内容”。它让以下事情变得更可行：</p>
+<ul><li>长程推理与深度研究</li><li>跨多文档的复杂分析</li><li>长 horizon 的 agent 任务</li><li>进一步的 test-time scaling</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>DeepSeek-V4 系列支持的最大上下文长度是多少？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>一百万 token（1M tokens）。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m1-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m1-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>长上下文效率是 test-time scaling 和长程 agent 任务的关键瓶颈。</li><li>DeepSeek-V4 通过混合注意力、mHC 和 Muon 优化器，在保持能力的同时大幅降低长上下文开销。</li><li>在 1M token 场景中，V4-Pro 和 V4-Flash 的推理 FLOPs 与 KV Cache 都显著优于 V3.2。</li></ul></section>
+  <footer class="next-prev"><span></span><a href="m2.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

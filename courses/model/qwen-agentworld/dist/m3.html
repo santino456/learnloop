@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>三阶段训练配方 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m3</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="qwen-agentworld" data-module-id="m3">
+  <header class="lesson-header">
+    <p class="eyebrow">Qwen-AgentWorld</p>
+    <h1>三阶段训练配方</h1>
+    <p class="lede">从 continual pre-training 到 SFT 再到 RL，掌握信息论 loss masking、拒绝采样、混合奖励与训练稳定性技巧。</p>
+  </header>
+  <section><h2 data-section-id="m3-recipe" data-section-title="三阶段训练配方">三阶段训练配方 <button class="ask-btn" data-ask-section="m3-recipe" data-ask-title="三阶段训练配方">提问</button></h2>
+<p>Qwen-AgentWorld 从 continual pre-training（CPT）开始就显式以环境建模为目标进行端到端训练。核心原则可以概括为：&quot;CPT 注入知识，SFT 激活模式，RL 打磨质量&quot;。</p>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-5.png" alt="图 5：Qwen-AgentWorld 三阶段训练流程。CPT 注入世界知识，SFT 灌输下一状态预测思维，RL 提升输出质量。" loading="lazy"><figcaption><span>图 5：Qwen-AgentWorld 三阶段训练流程。Stage 1 CPT 注入世界知识；Stage 2 SFT 灌输下一状态预测思维；Stage 3 RL 提升模拟保真度。</span></figcaption></figure>
+<ol class="ll-flow"><li><span>Stage 1：CPT（Continual Pre-Training） → 从 1000 万 + 环境交互轨迹中注入世界知识 → 加上专业领域语料（工业控制、网络安全、法律、医学、金融、时事） → 使用标准 next-token prediction，配合信息论 loss masking Stage 2：SFT（Supervised Fine-Tuning） → 把下一状态预测激活为显式推理模式 → 7094 条轨迹（从 10250 个候选经拒绝采样后保留 69.2%） → 提示模板多样化 + 拒绝采样 Stage 3：RL（Reinforcement Learning） → 用混合 rubric-and-rule 奖励打磨模拟保真度 → 使用 GSPO（Group Sequence Policy Optimization） → rubric:rule 奖励比例为 9:1</span></li></ol>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3</a></p></section>
+<section><h2 data-section-id="m3-cpt" data-section-title="阶段 1：带 Loss Masking 的持续预训练">阶段 1：带 Loss Masking 的持续预训练 <button class="ask-btn" data-ask-section="m3-cpt" data-ask-title="阶段 1：带 Loss Masking 的持续预训练">提问</button></h2>
+<p>CPT 在标准 next-token prediction 目标下训练。多轮环境轨迹被框定为世界建模任务：系统提示定义模拟上下文，user turn 承载智能体动作，assistant turn 承载环境响应。</p>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>信息论 Loss Masking</h4><p class="concept-why">工具使用轨迹中很多 turn 是模板化回声，直接计算 loss 会引入噪声。</p><div class="concept-body"><p><strong>信息论 loss masking</strong>：工具使用轨迹中的很多 turn 是 boilerplate（例如把输入原样回显的工具、镜像请求参数的 API）。这些 turn 带来的梯度质量低、噪声大，但又不能直接删除，因为后续 turn 依赖它们作为上下文。</p>
+<p>为此，对每条 (action, observation) 计算四个统计量：</p>
+<ul><li><strong>OL</strong>（Overlap）= | <span class="math inline">$W_act$</span> ∩ <span class="math inline">$W_obs$</span> | / |<span class="math inline">$W_act$</span>|</li><li><strong>Nov</strong>（Novelty）= | <span class="math inline">$W_obs$</span> \\ <span class="math inline">$W_act$</span> | / |<span class="math inline">$W_obs$</span>|</li><li><strong>Jac</strong>（Jaccard）= | <span class="math inline">$W_act$</span> ∩ <span class="math inline">$W_obs$</span> | / |<span class="math inline">$W_act$</span> ∪ <span class="math inline">$W_obs$</span>|</li><li><strong>R</strong>（长度比）= | obs | / |act|</li></ul>
+<p>然后每个 turn 被分到七个语义类别之一，每个类别对应一个 keep ratio（参与 loss 计算的 token 比例）。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.2</a></p></div></section>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-table-3.png" alt="表 3：信息论 loss masking 的七种 turn 类别，含统计特征、直觉与 keep ratio。" loading="lazy"><figcaption><span>表 3：信息论 loss masking 的七种 turn 类别。类别由统计信号而非工具名决定；keep ratio 是参与 loss 计算的 token 比例。</span></figcaption></figure>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>关键洞察</h4><p class="concept-why">按统计特征分类让方法不依赖具体工具，可跨域复用。</p><div class="concept-body"><p><strong>关键洞察</strong>：类别由统计特征决定，而不是工具名称，因此分类是工具无关的。被 mask 的 turn 不参与 loss 计算，但其 token 仍保留为后续 turn 的上下文。这把&quot;学习下一状态&quot;和&quot;学习下一 token&quot;解耦：loss 只计算在那些携带真正环境信息的 turn 上。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.2</a></p></div></section></section>
+<section><h2 data-section-id="m3-sft" data-section-title="阶段 2：监督微调">阶段 2：监督微调 <button class="ask-btn" data-ask-section="m3-sft" data-ask-title="阶段 2：监督微调">提问</button></h2>
+<p>SFT 把模型从 CPT 的&quot;非思考&quot;模式，转向包含显式推理链的 thinking trajectory。模型学会显式进行下一状态预测：识别动作请求什么、回忆先前状态、预判期望的响应格式。</p>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-table-4.png" alt="表 4：各领域的拒绝采样统计，含候选数、保留率、最终 SFT 数量。" loading="lazy"><figcaption><span>表 4：拒绝采样统计。&quot;Candidates&quot; 指完成 rollout 的查询数；&quot;Retain rate&quot; 指最佳三条轨迹超过质量阈值的查询比例；&quot;Final SFT&quot; 是过滤后的数量。</span></figcaption></figure>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>拒绝采样（Rejection Sampling）</h4><p class="concept-why">不是每条轨迹都适合直接用于 SFT，需要筛选高质量样本。</p><div class="concept-body"><p><strong>拒绝采样</strong>：对每个查询，从通用推理模型生成三条 rollout。由独立裁判 pairwise 打分，选出最高质量轨迹。如果胜出轨迹分数低于最低阈值，则丢弃该查询。从 10250 个候选查询出发，最终保留 7094 条轨迹（保留率 69.2%）。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS3" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.3</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>提示模板多样化</h4><p class="concept-why">防止模型过拟合到某一种 system prompt 写法。</p><div class="concept-body"><p><strong>提示模板多样化</strong>：每个 SFT 样本的默认系统提示会被均匀替换为 10 种模板变体之一。轨迹的动态内容（工具定义、示例、模拟指令）被保留并重新注入新模板。这提高了模型对 system prompt 变化的泛化能力。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS3" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.3</a></p></div></section></section>
+<section><h2 data-section-id="m3-rl" data-section-title="阶段 3：强化学习">阶段 3：强化学习 <button class="ask-btn" data-ask-section="m3-rl" data-ask-title="阶段 3：强化学习">提问</button></h2>
+<p>LWM 的 RL 面临独特挑战：环境反馈预测是开放式的，且 prompt-output 极度不对称——prompt 常常长达数万 token，而输出通常只有几百到几千 token。</p>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>GSPO（Group Sequence Policy Optimization）</h4><p class="concept-why">RL 需要处理长 prompt 和开放式输出，需要专门算法。</p><div class="concept-body"><p><strong>GSPO（Group Sequence Policy Optimization）</strong>：Qwen-AgentWorld 在 RL 阶段使用的算法。RL pool 中的 prompt 上限为 128k token。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS4" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.4</a></p></div></section>
+<section><h3 data-section-id="m3-reward" data-section-title="奖励设计">奖励设计 <button class="ask-btn" data-ask-section="m3-reward" data-ask-title="奖励设计">提问</button></h3>
+<p>奖励以 9:1 的比例结合两种互补信号（rubric:rule）。</p>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>五维 Rubric（LLM Judge）</h4><p class="concept-why">开放式输出需要多维度反馈，而不仅是二元对错。</p><div class="concept-body"><p><strong>五维 rubric（LLM judge）</strong>：每个预测观察由 LLM 裁判在五个维度上评分（Format、Factuality、Consistency、Realism、Quality），每个维度 1–5 分。总奖励等于均值 × 5，范围 [5, 25]。每个领域使用定制的裁判系统提示，并通过内容类型分类减少对不可复现细节的误判。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS4" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.4.1</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>基于规则的验证器</h4><p class="concept-why">开放式 rubric 容易 reward hacking，需要客观锚点。</p><div class="concept-body"><p><strong>基于规则的验证器</strong>：部分数据带有可执行验证代码，产生 0/1 二元正确信号，再缩放到 [0, 25] 以与 rubric 对齐。规则奖励作为客观锚点，缓解开放式奖励带来的 reward hacking。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS4" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.4.1</a></p></div></section>
+<section class="ll-decision"><div class="decision-prompt"><p>什么时候用 rubric 奖励，什么时候用规则奖励？</p></div><div class="decision-reveal" hidden><section class="decision-answer"><h4>参考答案</h4><p><strong>使用 rubric 奖励当：</strong></p>
+<ul><li>观察空间开放，没有可执行真值。</li><li>需要区分格式错误、事实错误和一致性问题。</li></ul>
+<p><strong>使用规则奖励当：</strong></p>
+<ul><li>可构造可执行验证器做确定性检查（例如精确文件内容、JSON schema 合规）。</li><li>需要客观锚点防止 judge 偏差导致的 reward hacking。</li></ul>
+<p><strong>最佳实践</strong>：按 9:1（rubric:rule）组合，平衡多维度反馈与严格二元正确性。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS4" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.4.1</a></p></section></div><button class="decision-toggle" type="button" aria-expanded="false">显示判断视角</button></section></section></section>
+<section><h2 data-section-id="m3-stability" data-section-title="训练稳定性">训练稳定性 <button class="ask-btn" data-ask-section="m3-stability" data-ask-title="训练稳定性">提问</button></h2>
+<p>通过系统消融，论文识别出三种失效模式。</p>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>多轮展开导致的奖励崩塌</h4><p class="concept-why">同一条轨迹展开出的样本共享长前缀，会让训练迅速崩溃。</p><div class="concept-body"><p><strong>多轮展开导致的奖励崩塌</strong>：当训练轨迹被展开为多个样本时，这些实例共享很长的公共前缀，导致训练迅速崩溃（与 &quot;Echo Trap&quot; 相关）。<strong>解决方案</strong>：在 RL pool 中限制每条轨迹只展开一个 turn，使每个训练样本都有唯一的预测目标，避免共享前缀重叠。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS4" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.4.2</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>自我夸赞导致的 Reward Hacking</h4><p class="concept-why">模型会学会用定性褒奖词来刷分，而不是真正提高保真度。</p><div class="concept-body"><p><strong>自我夸赞导致的 reward hacking</strong>：策略学会在输出中嵌入定性褒奖或 echo 裁判提示中的关键词，以此 inflate 分数而不提高模拟保真度。<strong>缓解措施</strong>：(1) 规则验证器提供稳定锚点；(2) 内容类型分类缩小 rubric 范围；(3) 严格标签提取把 thinking block 与预测观察分离，使自我夸赞不会到达裁判。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS4" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.4.2</a></p></div></section>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>训练动态：Factuality 相对提升最大（11.3%），但始终是得分最低的维度，说明事实性世界知识是环境模拟中最难的方面。Format 在约 90 个 RL 步内收敛；Consistency 需要约 250 步。</strong></p><p class="evidence-basis">论文附录 B 的训练动态曲线与数值。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#A2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, Appendix B</a></span></footer></aside></section>
+<section><h2 data-section-id="m3-exercise" data-section-title="练习：实现 Loss Masking">练习：实现 Loss Masking <button class="ask-btn" data-ask-section="m3-exercise" data-ask-title="练习：实现 Loss Masking">提问</button></h2>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p><strong>任务</strong>：为给定 (action, observation) 对实现信息论 loss masking 逻辑。</p>
+<p><strong>输入</strong>：一个 turn，action 文本为 <code>read_file(path=&#x27;/data/users.csv&#x27;)</code>，observation 文本包含完整的 CSV 内容（100+ 行）。</p>
+<p><strong>要求</strong>：</p>
+<ol><li>计算该 turn 的 OL、Nov、Jac 和 R。</li><li>按表 3 把它归入七种类别之一。</li><li>确定 keep ratio 以及哪些 token 应参与 loss。</li></ol>
+</div>
+<div class="exercise-answer" hidden>
+<p><strong>验证标准</strong>：该 turn 应被分类为 &quot;retrieval&quot;（Nov ≥ 60%，R &gt; 1），keep ratio 100%，因为 observation 包含 action 中未出现的真实文件内容。</p>
+<p>完整答案应包括：</p>
+<ul><li><span class="math inline">$W_act$</span> 基本只有路径和函数名，<span class="math inline">$W_obs$</span> 是大量 CSV 内容。</li><li>OL 接近 0，Nov 接近 1，Jac 接近 0，R 显著大于 1。</li><li>类别：retrieval。</li><li>100% token 参与 loss。</li></ul>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.2</a></p>
+<p>---</p>
+<p><strong>模块小结</strong>：三阶段配方（CPT → SFT → RL）逐步注入环境知识、激活下一状态预测推理、打磨模拟保真度。关键技术包括信息论 loss masking、拒绝采样、提示模板多样化、混合 rubric-and-rule 奖励，以及针对训练稳定性的防护措施。</p></section>
+  <footer class="next-prev"><a href="m2.html">上一节</a><a href="m4.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

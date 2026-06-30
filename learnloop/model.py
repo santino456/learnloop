@@ -20,6 +20,7 @@ class CourseDoc:
     template: str | None
     modules: list[ModuleDoc]
     lang: str = "auto"
+    category: str = ""
 
 
 @dataclass

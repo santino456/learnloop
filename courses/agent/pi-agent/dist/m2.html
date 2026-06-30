@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pi-ai：统一 LLM API | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m2</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="pi-agent" data-module-id="m2">
+  <header class="lesson-header">
+    <p class="eyebrow">Pi Agent 深度解析与二次开发</p>
+    <h1>pi-ai：统一 LLM API</h1>
+    <p class="lede">Models 集合、provider 工厂、Context/Message/Tool 抽象、流式事件、认证解析与自定义 provider。</p>
+  </header>
+  <section><h2 data-section-id="m2-what" data-section-title="pi-ai 解决什么问题">pi-ai 解决什么问题 <button class="ask-btn" data-ask-section="m2-what" data-ask-title="pi-ai 解决什么问题">提问</button></h2>
+<p>如果你想写一个支持多家 LLM 的 agent，最直接的麻烦是：每家 API 的认证方式、消息格式、工具调用协议、流式事件都不一样。<code>pi-ai</code> 把这些差异封装成一个统一的接口：</p>
+<ul><li>统一的 <code>Model</code> 与 <code>Models</code> 集合；</li><li>统一的 <code>Context</code>（system prompt + messages + tools）；</li><li>统一的流式事件（<code>text_delta</code>、<code>toolcall_start/end</code>、<code>thinking_delta</code>、<code>done</code>、<code>error</code> 等）；</li><li>统一的工具参数校验（基于 TypeBox）；</li><li>统一的认证解析（环境变量、OAuth、自定义 store）。</li></ul>
+<div class="callout">来源：[packages/ai/README.md — @earendil-works/pi-ai](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/README.md)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>pi-ai 封装的主要差异不包括以下哪一项？</p>
+<p>A. 多厂商认证方式 B. 流式事件格式 C. 代码版本管理 D. 工具调用协议</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>C。pi-ai 不处理代码版本管理，它封装的是 LLM API 差异。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-models" data-section-title="Models 与 Provider 工厂">Models 与 Provider 工厂 <button class="ask-btn" data-ask-section="m2-models" data-ask-title="Models 与 Provider 工厂">提问</button></h2>
+<p><code>pi-ai</code> 的核心入口是 <code>Models</code> 集合。你可以注册所有内置 provider，也可以只注册需要的 provider 以减小打包体积。</p>
+<pre><code class="language-typescript">import { builtinModels } from &#x27;@earendil-works/pi-ai/providers/all&#x27;;
+import { openaiModels } from &#x27;@earendil-works/pi-ai/providers/openai&#x27;;
+
+const all = builtinModels();
+const onlyOpenAI = openaiModels();</code></pre>
+<p>从集合中读取模型后，得到一个 <code>Model</code> 对象，后续所有调用都基于这个对象：</p>
+<pre><code class="language-typescript">const model = all.getModel(&#x27;openai&#x27;, &#x27;gpt-4o-mini&#x27;)!;</code></pre>
+<div class="callout">来源：[packages/ai/README.md — Provider Factories](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/README.md#provider-factories)。</div>
+<p>内置 provider 包括 OpenAI、Anthropic、Google、Azure OpenAI、DeepSeek、Groq、Cerebras、Mistral、Together、OpenRouter、xAI、Cloudflare、Amazon Bedrock、Hugging Face、Kimi、MiniMax、Xiaomi MiMo 等。具体列表见仓库 README。</p>
+<div class="callout">来源：[packages/ai/README.md — Supported Providers](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/README.md#supported-providers)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p><code>builtinModels()</code> 与 <code>openaiModels()</code> 的主要区别是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>builtinModels()</code> 注册所有内置 provider；<code>openaiModels()</code> 只注册 OpenAI，适合需要减小打包体积的场景。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-context" data-section-title="Context：可序列化的对话上下文">Context：可序列化的对话上下文 <button class="ask-btn" data-ask-section="m2-context" data-ask-title="Context：可序列化的对话上下文">提问</button></h2>
+<p><code>Context</code> 是 <code>pi-ai</code> 的核心抽象：</p>
+<pre><code class="language-typescript">type Context = {
+  systemPrompt: string;
+  messages: Message[];
+  tools: Tool[];
+};</code></pre>
+<p>它的一个重要特性是 <strong>可序列化、可迁移</strong>。你可以把 context 存下来、传给另一个模型，甚至在不同 provider 之间切换继续对话。</p>
+<pre><code class="language-typescript">const context: Context = {
+  systemPrompt: &#x27;You are a helpful assistant.&#x27;,
+  messages: [{ role: &#x27;user&#x27;, content: &#x27;What time is it?&#x27;, timestamp: Date.now() }],
+  tools: [{
+    name: &#x27;get_time&#x27;,
+    description: &#x27;Get the current time&#x27;,
+    parameters: Type.Object({
+      timezone: Type.Optional(Type.String({ description: &#x27;Optional timezone&#x27; }))
+    })
+  }]
+};</code></pre>
+<div class="callout">来源：[packages/ai/README.md — Quick Start](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/README.md#quick-start)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Context 最重要的工程特性是什么？</p>
+<p>A. 它只能用于单个 provider B. 它不可序列化 C. 它可序列化并在模型之间迁移 D. 它不包含 tools</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>C。Context 设计为可序列化，支持切换模型、持久化、跨 provider 迁移。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-tools" data-section-title="Tool 定义与参数校验">Tool 定义与参数校验 <button class="ask-btn" data-ask-section="m2-tools" data-ask-title="Tool 定义与参数校验">提问</button></h2>
+<p>pi-ai 使用 TypeBox 定义工具参数，提供类型安全并在运行时校验：</p>
+<pre><code class="language-typescript">import { Type } from &#x27;@earendil-works/pi-ai&#x27;;
+
+const tools = [{
+  name: &#x27;get_time&#x27;,
+  description: &#x27;Get the current time&#x27;,
+  parameters: Type.Object({
+    timezone: Type.Optional(Type.String({ description: &#x27;Optional timezone&#x27; }))
+  })
+}];</code></pre>
+<p>流式返回的工具参数是部分 JSON，<code>pi-ai</code> 提供 <code>validateToolArguments</code> 在完整参数可用时进行校验。</p>
+<div class="callout">来源：[packages/ai/README.md — Defining Tools](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/README.md#defining-tools) 与 [packages/ai/README.md — Validating Tool Arguments](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/README.md#validating-tool-arguments)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>pi-ai 用什么库做工具参数的类型定义和运行时校验？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>TypeBox。pi-ai 甚至从 <code>@earendil-works/pi-ai</code> 重新导出了 <code>Type</code>、<code>Static</code>、<code>TSchema</code>。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-streaming" data-section-title="统一流式事件">统一流式事件 <button class="ask-btn" data-ask-section="m2-streaming" data-ask-title="统一流式事件">提问</button></h2>
+<p><code>Models.stream(model, context)</code> 返回一个异步事件流。关键事件类型包括：</p>
+<table><thead><tr><th>事件</th><th>含义</th></tr></thead><tbody><tr><td><code>start</code></td><td>流开始</td></tr><tr><td><code>text_start</code> / <code>text_delta</code> / <code>text_end</code></td><td>文本生成</td></tr><tr><td><code>thinking_start</code> / <code>thinking_delta</code> / <code>thinking_end</code></td><td>模型思考/推理内容</td></tr><tr><td><code>toolcall_start</code> / <code>toolcall_delta</code> / <code>toolcall_end</code></td><td>工具调用</td></tr><tr><td><code>done</code></td><td>正常结束</td></tr><tr><td><code>error</code></td><td>出错</td></tr></tbody></table>
+<pre><code class="language-typescript">const s = models.stream(model, context);
+for await (const event of s) {
+  if (event.type === &#x27;text_delta&#x27;) process.stdout.write(event.delta);
+}
+const finalMessage = await s.result();
+context.messages.push(finalMessage);</code></pre>
+<div class="callout">来源：[packages/ai/README.md — Quick Start](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/README.md#quick-start)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>流式工具调用参数到达时，对应的事件类型是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p><code>toolcall_delta</code>。完整工具调用在 <code>toolcall_end</code> 时可用。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-auth" data-section-title="认证解析">认证解析 <button class="ask-btn" data-ask-section="m2-auth" data-ask-title="认证解析">提问</button></h2>
+<p>pi-ai 的认证不是写死的环境变量读取，而是按优先级解析：</p>
+<ol><li>代码中显式传入的 API key；</li><li>凭证 store（<code>CredentialStore</code>）；</li><li>环境变量（如 <code>OPENAI_API_KEY</code>）；</li><li>OAuth 登录获取的 token。</li></ol>
+<p>不同 provider 支持不同的认证方式。详情见 <code>packages/ai/src/auth/resolve.ts</code>。</p>
+<div class="callout">来源：[packages/ai/README.md — How Auth Resolves](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/README.md#how-auth-resolves) 与 [packages/ai/src/auth/resolve.ts](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/src/auth/resolve.ts)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>pi-ai 的认证解析优先级中，最高优先级是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>代码中显式传入的 API key。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-custom-provider" data-section-title="自定义 Provider">自定义 Provider <button class="ask-btn" data-ask-section="m2-custom-provider" data-ask-title="自定义 Provider">提问</button></h2>
+<p>如果内置 provider 不满足需求，可以用 <code>createProvider()</code> 构造自己的 provider，或者直接调用 API 实现。pi-ai 把 provider 拆成：</p>
+<ul><li><strong>Provider factories</strong>：生成 <code>Model</code> 集合；</li><li><strong>API implementations</strong>：实际发起 HTTP 请求；</li><li><strong>Compat 层</strong>：兼容旧 API。</li></ul>
+<p>自定义 provider 需要实现 <code>Provider</code> 接口，返回 <code>Model</code> 对象，并指定对应的 stream 函数。</p>
+<div class="callout">来源：[packages/ai/README.md — Custom Providers](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/README.md#custom-providers) 与 [packages/ai/src/index.ts](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/src/index.ts)。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>自定义 provider 时，最低限度需要实现什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>实现 <code>Provider</code> 接口并返回 <code>Model</code> 对象，同时提供对应的 stream 函数。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li><code>pi-ai</code> 是 Pi 的底层 LLM 抽象层，统一了 model、context、tool、streaming、auth。</li><li><code>Models</code> 集合负责 provider 注册和模型查找；<code>Context</code> 是可序列化的对话上下文。</li><li>工具参数用 TypeBox 定义，流式事件覆盖文本、思考、工具调用、错误等状态。</li><li>认证按显式 key &gt; credential store &gt; 环境变量 &gt; OAuth 的优先级解析。</li><li>自定义 provider 通过 <code>createProvider()</code> 或 API implementations 实现。</li></ul>
+<div class="callout">来源：本地 m1《Pi 是什么，为什么值得二次开发》；外部 [packages/ai/README.md](https://github.com/earendil-works/pi/blob/371adcf37130629ffb9bbeed9f5548ce08ffa93b/packages/ai/README.md)。</div></section>
+  <footer class="next-prev"><a href="m1.html">上一节</a><a href="m3.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

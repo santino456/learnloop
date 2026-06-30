@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>应用二：把世界模型用作智能体基础模型 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/practice/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m6</span><span class="top-nav-template">practice</span></nav>
+<article class="lesson" data-course-id="qwen-agentworld" data-module-id="m6">
+  <header class="lesson-header">
+    <p class="eyebrow">Qwen-AgentWorld</p>
+    <h1>应用二：把世界模型用作智能体基础模型</h1>
+    <p class="lede">学习 LWM RL warm-up、跨任务迁移、预测驱动的动作细化，以及它们如何提升下游智能体表现。</p>
+  </header>
+  <section><h2 data-section-id="m6-foundation" data-section-title="世界模型作为智能体基础模型">世界模型作为智能体基础模型 <button class="ask-btn" data-ask-section="m6-foundation" data-ask-title="世界模型作为智能体基础模型">提问</button></h2>
+<p>在这个应用中，选择动作的模型（智能体）同时也预测环境状态（世界模型）。LWM 训练让智能体在真正执行动作前，先在内部模拟候选动作的后果——本质上把世界建模作为一种内部规划步骤，以提升动作质量。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S6.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.2</a></p></section>
+<section><h2 data-section-id="m6-warmup" data-section-title="LWM RL Warm-Up 与跨任务迁移">LWM RL Warm-Up 与跨任务迁移 <button class="ask-btn" data-ask-section="m6-warmup" data-ask-title="LWM RL Warm-Up 与跨任务迁移">提问</button></h2>
+<p>LWM RL warm-up 让智能体熟悉环境状态如何随用户动作演化：不同工具调用和搜索查询会得到什么响应、哪些工具更有效、状态转移如何跨 turn 传播。这相当于把下一状态预测作为一种元推理模式来学习。</p>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>激进的跨任务泛化：LWM RL 在单轮、非智能体、无工具调用的轨迹上训练，却能迁移到多轮、带工具调用的智能体任务，覆盖七个基准。域内提升包括 Terminal-Bench 2.0 (+6.30)、SWE-Bench Verified (+3.39)、SWE-Bench Pro (+5.24)、WideSearch F1 Item (+12.79)、F1 Row (+6.87)。域外提升包括 Claw-Eval (+11.3)、QwenClawBench (+9.7)、BFCL v4 (+9.0)。</strong></p><p class="evidence-basis">论文 §6.2 与表 9 的 agent foundation model 结果。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S6.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.2</a>, Table 9</span></footer></aside>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-table-9.png" alt="表 9：智能体基础模型在七个基准上的结果，展示 LWM RL warm-up 的域内与域外提升。" loading="lazy"><figcaption><span>表 9：智能体基础模型结果。在单轮、非智能体轨迹上做 LWM RL warm-up，可直接迁移到多轮、带工具调用的智能体任务，且无需额外微调。</span></figcaption></figure>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>跨领域迁移</h4><p class="concept-why">如果 RL 只强化域内格式，就不会在未见领域也提升。</p><div class="concept-body"><p><strong>跨领域迁移</strong>：仅在 Terminal 数据上训练 RL，Terminal 提升 +14.2 分，并迁移到held-out 领域：MCP (+5.0)、SWE (+11.5)、Search (+11.8)。这表明 RL 强化的是可泛化的世界知识，而非领域特定格式。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S5.SS3" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §5.3</a>, Figure 8</p></div></section>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-8.png" alt="图 8：仅在 Terminal 数据上训练 Stage 3 RL 时的跨领域泛化，展示域内与域外提升。" loading="lazy"><figcaption><span>图 8：仅在 Terminal 数据上训练 Stage 3（RL）时的跨领域泛化。(a) Terminal（域内）相对 SFT 基线提升 +14.2 分；(b) 三个 held-out 领域未接受任何域特定训练信号却提升：MCP (+5.0)、SWE (+11.5)、Search (+11.8)。</span></figcaption></figure></section>
+<section><h2 data-section-id="m6-mechanism" data-section-title="预测驱动的动作细化">预测驱动的动作细化 <button class="ask-btn" data-ask-section="m6-mechanism" data-ask-title="预测驱动的动作细化">提问</button></h2>
+<p>迁移背后的机制是：经过 RL 训练的模型会在执行动作前，系统性地对环境响应进行心智模拟。它利用内化的世界模型预测结果、识别不可行方案，并在思考 trace 内细化动作计划——所有这一切都在真实执行之前完成。</p>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-10.png" alt="图 10：Terminal-Bench 2.0 轨迹上的环境预测准确率，在 LWM RL 后从 69.9% 提升到 78.3%。" loading="lazy"><figcaption><span>图 10：Terminal-Bench 2.0 轨迹上的环境预测准确率。</span></figcaption></figure>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>预测准确率提升：RL 训练把预测准确率从 69.9% 提升到 78.3%（+8.4%），确认模型的内部世界模型通过 LWM 训练变得更忠实。这些结果直接证明性能提升源于&quot;先预测再行动&quot;的元推理能力，该能力可跨任务和领域泛化。</strong></p><p class="evidence-basis">论文 §6.2 与图 10 的预测准确率结果。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S6.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.2</a></span></footer></aside></section>
+<section><h2 data-section-id="m6-case-study" data-section-title="案例研究：邮差任务（Mailman Task）">案例研究：邮差任务（Mailman Task） <button class="ask-btn" data-ask-section="m6-case-study" data-ask-title="案例研究：邮差任务（Mailman Task）">提问</button></h2>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-11.png" alt="图 11：Terminal-Bench 2.0 中邮差任务上的预测驱动动作细化案例，比较 LWM RL 前后的表现。" loading="lazy"><figcaption><span>图 11：Terminal-Bench 2.0 邮差任务上预测驱动动作细化的案例研究。</span></figcaption></figure>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>预测驱动的动作细化</h4><p class="concept-why">具体案例比抽象描述更能说明&quot;内部模拟如何改变动作选择&quot;。</p><div class="concept-body"><p><strong>预测驱动的动作细化</strong>：在邮差任务中，两个模型都遇到相同的 Postfix recipient-rejection 错误。经过 LWM RL 的模型正确预测到：仅配置 <code>transport_maps</code> 不会生效，因为 Postfix 在查询 transport 路由之前就会拒绝未知收件人；因此它把动作细化为修改 <code>local_recipient_maps</code>。未经 LWM RL 的模型错误地预测 transport 路由先于收件人验证，导致无效探索并超时。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S6.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.2</a></p></div></section>
+<ol class="ll-flow"><li><span>LWM warm-up → 内化下一状态预测能力 → 智能体在行动前 mentally simulate 环境响应 → 识别不可行方案并细化动作计划 → 动作质量提升 → 跨多个基准的下游智能体表现提升</span></li></ol></section>
+<section><h2 data-section-id="m6-exercise" data-section-title="练习：量化预测准确率">练习：量化预测准确率 <button class="ask-btn" data-ask-section="m6-exercise" data-ask-title="练习：量化预测准确率">提问</button></h2>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p><strong>任务</strong>：设计一个协议，用于测量智能体思考 trace 中的预测准确率。</p>
+<p><strong>要求</strong>：</p>
+<ol><li>定义什么算作思考 trace 中的&quot;显式预测&quot;（例如包含 &quot;If I run X, the environment will respond with Y&quot; 的句子）。</li><li>指定把预测标记为正确的语义一致性标准。</li><li>描述如何处理部分正确或模糊的预测。</li><li>提出基线与干预（例如 LWM RL 前后），并基于论文结果给出预期效应量（+8.4%，69.9% → 78.3%）。</li></ol>
+</div>
+<div class="exercise-answer" hidden>
+<p><strong>验证标准</strong>：协议应可跨领域复现，且不应要求访问模型内部激活——仅需思考 trace 和真值环境观察。</p>
+<p>完整答案应包含：</p>
+<ul><li><strong>显式预测标记</strong>：思考 trace 中在动作提交前陈述预期环境响应的句子。</li><li><strong>语义一致性</strong>：比较预测响应与真实观察；仅当预测与实际在表面形式不同但所有可行动事实一致时，才允许部分得分。</li><li><strong>部分正确/模糊预测</strong>：建立 0/0.5/1 的三级评分；如果无法判断是否一致，则标记为 needs-human-review。</li><li><strong>基线 vs. 干预</strong>：在同一基准上测量 LWM RL warm-up 前后的准确率；预期提升与论文的 +8.4%（69.9% → 78.3%）相当。</li></ul>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S6.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.2</a></p>
+<p>---</p>
+<p><strong>模块小结</strong>：LWM warm-up 把世界模型与智能体统一，将下一状态预测内化为推理能力。单轮、非智能体的 LWM RL 能迁移到多轮、带工具调用的智能体任务，域外提升证明这是可迁移能力而非域特定捷径。其机制是预测驱动的动作细化：智能体在行动前先 mentally simulate 后果。</p></section>
+  <footer class="next-prev"><a href="m5.html">上一节</a><a href="m7.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/practice/runtime.js"></script>
+</body>
+</html>

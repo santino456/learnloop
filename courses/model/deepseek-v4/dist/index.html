@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek-V4 系列论文解读 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <header class="hero">
+  <p class="eyebrow">LearnLoop 课程</p>
+  <h1>DeepSeek-V4 系列论文解读</h1>
+  <p class="lede">从 DeepSeek-V4 论文出发，理解百万 token 长上下文的高效架构、训练工程与能力边界。</p>
+</header>
+<nav class="modules"><a class="module-card" href="m1.html">
+  <span class="module-number">01</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>引言：百万 token 上下文的效率挑战</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>理解为什么长上下文是测试时缩放与长程任务的瓶颈，以及 DeepSeek-V4 系列的核心突破。</em>
+  </span>
+</a><a class="module-card" href="m2.html">
+  <span class="module-number">02</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>架构概览：继承 V3 与三大升级</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>梳理 DeepSeek-V4 在 MoE、MTP、注意力、残差连接与优化器上的整体选择。</em>
+  </span>
+</a><a class="module-card" href="m3.html">
+  <span class="module-number">03</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>Manifold-Constrained Hyper-Connections</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>理解 mHC 如何通过双随机矩阵约束，让深层残差连接更稳定。</em>
+  </span>
+</a><a class="module-card" href="m4.html">
+  <span class="module-number">04</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>Compressed Sparse Attention（CSA）</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>掌握 CSA 的压缩、稀疏索引与共享 KV MQA 设计，理解它如何降低长上下文注意力开销。</em>
+  </span>
+</a><a class="module-card" href="m5.html">
+  <span class="module-number">05</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>Heavily Compressed Attention 与混合配置</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>对比 HCA 与 CSA，理解粗细压缩的混合策略，以及滑动窗口、RoPE 与 Attention Sink 等工程细节。</em>
+  </span>
+</a><a class="module-card" href="m6.html">
+  <span class="module-number">06</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>Muon Optimizer 与训练稳定性</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>理解 Muon 的正交化更新、混合 Newton-Schulz 迭代，以及 DeepSeek-V4 如何避免注意力 logits 爆炸。</em>
+  </span>
+</a><a class="module-card" href="m7.html">
+  <span class="module-number">07</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>基础设施、训练与推理工程</strong>
+      <span class="module-template">REFERENCE</span>
+    </span>
+    <em>概览 EP 通信-计算重叠、TileLang 内核、FP4 QAT、KV Cache 结构与磁盘存储等关键工程。</em>
+  </span>
+</a><a class="module-card" href="m8.html">
+  <span class="module-number">08</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>评估结果、能力边界与判断</strong>
+      <span class="module-template">PERSPECTIVE</span>
+    </span>
+    <em>综合看 DeepSeek-V4-Pro 与 Flash 的能力差异，学会在什么场景选择什么模型。</em>
+  </span>
+</a></nav>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

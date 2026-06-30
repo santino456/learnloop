@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KV Cache 深入浅出 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <header class="hero">
+  <p class="eyebrow">LearnLoop 课程</p>
+  <h1>KV Cache 深入浅出</h1>
+  <p class="lede">从自回归生成的重复计算出发，理解大模型推理中 KV Cache 的原理、量化分析与工程取舍。</p>
+</header>
+<nav class="modules"><a class="module-card" href="m1.html">
+  <span class="module-number">01</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>为什么需要 KV Cache</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>从自回归生成的重复计算问题出发，理解 KV Cache 要解决的核心矛盾。</em>
+  </span>
+</a><a class="module-card" href="m2.html">
+  <span class="module-number">02</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>KV Cache 的工作机制</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>拆解 K、V 矩阵如何在逐 token 生成中被缓存和复用，区分 prefill 与 decode。</em>
+  </span>
+</a><a class="module-card" href="m3.html">
+  <span class="module-number">03</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>显存与计算开销分析</strong>
+      <span class="module-template">PRACTICE</span>
+    </span>
+    <em>量化 KV Cache 的显存占用和它带来的计算节省，理解空间换时间的真实代价。</em>
+  </span>
+</a><a class="module-card" href="m4.html">
+  <span class="module-number">04</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>MQA 与 GQA：减少 KV 头数</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>从 MHA 到 MQA 再到 GQA，理解减少 KV 头数的权衡与主流模型的选择。</em>
+  </span>
+</a><a class="module-card" href="m5.html">
+  <span class="module-number">05</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>PagedAttention 与显存管理</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>用操作系统的分页思想解决 KV Cache 的显存碎片与动态分配问题。</em>
+  </span>
+</a><a class="module-card" href="m6.html">
+  <span class="module-number">06</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>边界与判断</strong>
+      <span class="module-template">PERSPECTIVE</span>
+    </span>
+    <em>什么时候该为 KV Cache 投入工程精力，什么时候不必。</em>
+  </span>
+</a></nav>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>如何理性使用 AI 做生命科学研究 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/perspective/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m6</span><span class="top-nav-template">perspective</span></nav>
+<article class="lesson" data-course-id="lifescibench" data-module-id="m6">
+  <header class="lesson-header">
+    <p class="eyebrow">LifeSciBench 解读</p>
+    <h1>如何理性使用 AI 做生命科学研究</h1>
+    <p class="lede">从 LifeSciBench 的结果提炼出人类判断、验证流程与 AI 协作策略。</p>
+  </header>
+  <section><h2 data-section-id="m6-judgment" data-section-title="AI 能做什么，不能做什么">AI 能做什么，不能做什么 <button class="ask-btn" data-ask-section="m6-judgment" data-ask-title="AI 能做什么，不能做什么">提问</button></h2>
+<p>LifeSciBench 的结果给出一个清晰的边界：</p>
+<ul><li><strong>能较好完成的</strong>：结构化的证据综合、机制解释、为特定受众改写科学内容、连接临床前与临床意义的初步判断。</li><li><strong>仍然不可靠的</strong>：基于原始 artifact 的复杂分析、需要精确科学格式的输出、受多约束限制的操作决策。</li></ul>
+<p>这意味着，把 AI 当作“自动科研助手”直接用于高风险决策是不负责任的。更合理的定位是：<strong>加速信息整理与方案草案，但关键判断必须留给人。</strong></p>
+<div class="callout">依据：基于 Module 4 与 Module 5 中引用的 LifeSciBench 结果，特别是 Section 6.2 与 6.3。</div></section>
+<section><h2 data-section-id="m6-strategies" data-section-title="三条实用策略">三条实用策略 <button class="ask-btn" data-ask-section="m6-strategies" data-ask-title="三条实用策略">提问</button></h2>
+<p>基于 LifeSciBench 的发现，研究者在使用 AI 时可以采取以下策略：</p>
+<ol><li><strong>让 AI 做初稿，人做守门</strong></li></ol>
+<p>- 用 AI 生成实验方案、文献总结、转化风险清单。 - 人类专家负责验证约束、检查证据来源、确认最终决策。</p>
+<ol><li><strong>artifact 任务必须人工复核</strong></li></ol>
+<p>- 当任务涉及 FASTQ、测序结果、Visium 数据、化学结构文件时，不能轻信模型输出。 - 把模型输出当作假设，用标准生物信息学工具或实验重新验证。</p>
+<ol><li><strong>按任务类型选模型，而不是只看总分</strong></li></ol>
+<p>- 需要精确序列/结构输出时，Gemini 3.1 Pro 可能比总分更高的模型更合适。 - 需要综合科学判断时，GPT-Rosalind 通常是更好的起点。</p>
+<div class="callout">依据：基于 LifeSciBench Section 6.2.2 关于模型互补性的发现，以及 Section 6.3 关于 artifact 和精确输出的瓶颈。</div></section>
+<section><h2 data-section-id="m6-risks" data-section-title="需要警惕的坏味道">需要警惕的坏味道 <button class="ask-btn" data-ask-section="m6-risks" data-ask-title="需要警惕的坏味道">提问</button></h2>
+<ul><li><strong>把高分当成可靠性</strong>：normalized score 高不代表任务通过，pass rate 才是关键。</li><li><strong>忽略版本和工具链</strong>：模型训练数据有截止日期，vLLM、Transformers、R 包等版本差异会影响实际可复现性。</li><li><strong>把 AI 输出直接写入实验记录</strong>：任何 AI 生成的序列、引物、药物建议都应经实验或标准软件验证。</li><li><strong>不做多模型交叉检查</strong>：对于关键判断，用不同模型分别生成答案，再对比差异。</li></ul>
+<div class="callout">依据：needs-human-review。这些坏味道来自对 LifeSciBench 结果的推断和实际科研经验，需要结合具体场景判断。</div>
+<div class="exercise" data-kind="perspective">
+<div class="exercise-task judgment-task">
+<p>你正在设计一个 CRISPR 敲除实验，需要针对目标基因设计 sgRNA。你让 AI 生成了 5 条候选序列。接下来最合理的做法是什么？</p>
+</div>
+<textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>
+<div class="judgment-reveal" hidden>
+<section class="judgment-section perspective" hidden><h4>作者视角</h4>
+<p>依据：基于 Module 5 中关于精确输出任务（如序列/结构设计）是模型共同短板的结论。</p>
+<p>最合理的做法是把 AI 生成的 sgRNA 当作候选假设，而不是直接订购。下一步应：</p>
+<ol><li>用 On-Target / Off-Target 预测工具（如 CRISPick、Benchling、CHOPCHOP）重新评分。</li><li>检查序列是否与目标基因组其他区域有高同源性。</li><li>结合实验室既有经验选择最终序列。</li><li>如果可能，设计多个 sgRNA 做功能验证。</li></ol>
+<p>AI 的价值是加速候选生成和整理 tradeoff，但精确序列设计的可靠性仍然不足，必须经过专用工具和实验验证。</p>
+</section>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-compare" type="button">对比作者视角</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-future" data-section-title="未来方向">未来方向 <button class="ask-btn" data-ask-section="m6-future" data-ask-title="未来方向">提问</button></h2>
+<p>LifeSciBench 的局限与未来工作包括：</p>
+<ul><li>扩大覆盖更多 specialized workflow 和科学领域。</li><li>研究 benchmark 表现与真实实验室部署效果之间的相关性。</li><li>探索多轮对话、人机协作、工具使用等更贴近实际使用的评估设置。</li></ul>
+<div class="callout">来源：LifeSciBench preprint Section 7 Limitations &amp; Future Work。</div></section>
+<section><h2 data-section-id="m6-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>AI 在生命科学中的可靠角色是“草稿生成器 + 信息整理者”，不是最终决策者。</li><li>Artifact-heavy 和精确输出任务必须人工或工具复核。</li><li>选模型要按任务类型，而不是只看 aggregate score。</li><li>未来需要把 benchmark 表现与真实研究影响更紧密地联系起来。</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>根据 LifeSciBench 的结果，以下哪种使用方式最合理？</p>
+<p>A. 让 AI 直接设计并订购实验引物，不再人工检查 B. 用 AI 生成候选方案，再由专家和标准工具验证 C. 只看 aggregate score 选模型，忽略任务类型 D. 把 AI 的 normalized score 高当作任务已经成功</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。LifeSciBench 显示模型在精确输出和 artifact-heavy 任务上仍不可靠，因此应把 AI 输出当作候选草案，再由专家和标准工具验证。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+  <footer class="next-prev"><a href="m5.html">上一节</a><span></span></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/perspective/runtime.js"></script>
+</body>
+</html>

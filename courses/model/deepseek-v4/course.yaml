@@ -1,0 +1,39 @@
+id: deepseek-v4
+title: "DeepSeek-V4 系列论文解读"
+subtitle: "从 DeepSeek-V4 论文出发，理解百万 token 长上下文的高效架构、训练工程与能力边界。"
+audience: "希望理解最新大模型架构、长上下文效率与训练工程实践的 AI 工程师与研究者。"
+default_port: 8787
+template: tutorial
+modules:
+  - id: m1
+    title: "引言：百万 token 上下文的效率挑战"
+    file: "modules/01.md"
+    summary: "理解为什么长上下文是测试时缩放与长程任务的瓶颈，以及 DeepSeek-V4 系列的核心突破。"
+  - id: m2
+    title: "架构概览：继承 V3 与三大升级"
+    file: "modules/02.md"
+    summary: "梳理 DeepSeek-V4 在 MoE、MTP、注意力、残差连接与优化器上的整体选择。"
+  - id: m3
+    title: "Manifold-Constrained Hyper-Connections"
+    file: "modules/03.md"
+    summary: "理解 mHC 如何通过双随机矩阵约束，让深层残差连接更稳定。"
+  - id: m4
+    title: "Compressed Sparse Attention（CSA）"
+    file: "modules/04.md"
+    summary: "掌握 CSA 的压缩、稀疏索引与共享 KV MQA 设计，理解它如何降低长上下文注意力开销。"
+  - id: m5
+    title: "Heavily Compressed Attention 与混合配置"
+    file: "modules/05.md"
+    summary: "对比 HCA 与 CSA，理解粗细压缩的混合策略，以及滑动窗口、RoPE 与 Attention Sink 等工程细节。"
+  - id: m6
+    title: "Muon Optimizer 与训练稳定性"
+    file: "modules/06.md"
+    summary: "理解 Muon 的正交化更新、混合 Newton-Schulz 迭代，以及 DeepSeek-V4 如何避免注意力 logits 爆炸。"
+  - id: m7
+    title: "基础设施、训练与推理工程"
+    file: "modules/07.md"
+    summary: "概览 EP 通信-计算重叠、TileLang 内核、FP4 QAT、KV Cache 结构与磁盘存储等关键工程。"
+  - id: m8
+    title: "评估结果、能力边界与判断"
+    file: "modules/08.md"
+    summary: "综合看 DeepSeek-V4-Pro 与 Flash 的能力差异，学会在什么场景选择什么模型。"

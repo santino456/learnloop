@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ACP 基础 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <header class="hero">
+  <p class="eyebrow">LearnLoop 课程</p>
+  <h1>ACP 基础</h1>
+  <p class="lede">通过小概念、本地提问和 Agent 就绪的学习上下文，理解 Agent Client Protocol。</p>
+</header>
+<nav class="modules"><a class="module-card" href="m1.html">
+  <span class="module-number">01</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>ACP 是什么，为什么需要它</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>理解 ACP 试图解决的客户端- Agent 集成问题。</em>
+  </span>
+</a><a class="module-card" href="m2.html">
+  <span class="module-number">02</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>ACP 的通信模型</strong>
+      <span class="module-template">REFERENCE</span>
+    </span>
+    <em>把 ACP 看作传输层上的 JSON-RPC，明确客户端与 Agent 的角色。</em>
+  </span>
+</a><a class="module-card" href="m3.html">
+  <span class="module-number">03</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>初始化与能力协商</strong>
+      <span class="module-template">PRACTICE</span>
+    </span>
+    <em>学习握手过程，以及能力协商为何重要。</em>
+  </span>
+</a><a class="module-card" href="m4.html">
+  <span class="module-number">04</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>提示词、资源与工具调用</strong>
+      <span class="module-template">PRACTICE</span>
+    </span>
+    <em>看提示词如何承载内容、引用和工具请求。</em>
+  </span>
+</a><a class="module-card" href="m5.html">
+  <span class="module-number">05</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>ACP、MCP 与 A2A 的区别</strong>
+      <span class="module-template">PERSPECTIVE</span>
+    </span>
+    <em>把协议分层，才能选出正确的那一层。</em>
+  </span>
+</a><a class="module-card" href="m6.html">
+  <span class="module-number">06</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>构建最小 ACP 客户端</strong>
+      <span class="module-template">PRACTICE</span>
+    </span>
+    <em>画出最小本地客户端草图，以及真正影响正确性的缓冲规则。</em>
+  </span>
+</a><a class="module-card" href="m7.html">
+  <span class="module-number">07</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>把 ACP 桥接到浏览器</strong>
+      <span class="module-template">PERSPECTIVE</span>
+    </span>
+    <em>当 Web UI 需要与 stdio Agent 对话时，用本地 bridge 解决。</em>
+  </span>
+</a><a class="module-card" href="m8.html">
+  <span class="module-number">08</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>边界与判断</strong>
+      <span class="module-template">PERSPECTIVE</span>
+    </span>
+    <em>判断什么时候值得引入 ACP 这些额外复杂度。</em>
+  </span>
+</a></nav>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

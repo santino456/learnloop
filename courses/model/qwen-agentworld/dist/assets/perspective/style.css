@@ -1,0 +1,86 @@
+/* Perspective — judgment notebook */
+
+/* Scenario narrative */
+.judgment-task {
+  background: var(--accent-blue-soft);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent-blue);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 18px 22px;
+  margin-bottom: 16px;
+}
+.judgment-task::before {
+  content: "视角";
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--accent-blue);
+  margin-bottom: 8px;
+}
+
+.exercise[data-kind="perspective"] {
+  border-left-color: var(--accent);
+}
+.exercise[data-kind="perspective"]::before { content: "Perspective"; }
+
+/* Notebook reasoning textarea */
+.judgment-reasoning {
+  width: 100%;
+  min-height: 140px;
+  padding: 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  font: 16px var(--font-body);
+  line-height: 1.8;
+  background: var(--paper);
+  resize: vertical;
+}
+.judgment-reasoning:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Reveal accordion */
+.judgment-reveal {
+  display: none;
+  margin-top: 16px;
+}
+.judgment-reveal.open { display: block; }
+
+.judgment-section {
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+.judgment-section h4 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 17px;
+}
+.judgment-section.perspective {
+  background: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+}
+.judgment-section.perspective h4 { color: var(--accent); }
+.judgment-section.tradeoffs {
+  background: var(--accent-warm-soft);
+  border-left: 4px solid var(--accent-warm);
+}
+.judgment-section.tradeoffs h4 { color: var(--accent-strong); }
+.judgment-section.pitfalls {
+  background: var(--danger-soft);
+  border-left: 4px solid var(--danger);
+}
+.judgment-section.pitfalls h4 { color: var(--danger); }
+
+.exercise-compare {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.exercise-compare:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
+
+.checkpoint { border-left-color: var(--success); }
+.checkpoint::before { content: "Check yourself"; }

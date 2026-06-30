@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent 大脑：ReAct 循环深度解析 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m2</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="shenxiaoli" data-module-id="m2">
+  <header class="lesson-header">
+    <p class="eyebrow">深小理：全栈架构透视</p>
+    <h1>Agent 大脑：ReAct 循环深度解析</h1>
+    <p class="lede">LangGraph StateGraph 的 7 节点架构、条件路由、prepare→model→tools 循环、privacy 中断机制、loop_count 硬上限。</p>
+  </header>
+  <section><h2 data-section-id="m2-why" data-section-title="ReAct 是什么，为什么用它">ReAct 是什么，为什么用它 <button class="ask-btn" data-ask-section="m2-why" data-ask-title="ReAct 是什么，为什么用它">提问</button></h2>
+<p>ReAct = Reasoning + Acting。AI 不是一口气回答，而是：<strong>先想 → 做（调工具）→ 根据结果再想 → 再回答</strong>。</p>
+<p>深小理的核心是一个 LangGraph <code>StateGraph</code>，编译成有向图后执行。选择 LangGraph 而不是自己写 while 循环，有三个原因：</p>
+<ol><li><strong>状态管理</strong>：每条消息、每次工具调用结果都在 <code>AgentState</code> 里精确追踪</li><li><strong>中断/恢复</strong>：privacy confirm 需要暂停等待用户确认，LangGraph 原生支持</li><li><strong>可可视化</strong>：图结构让调试时有清晰的心智模型</li></ol></section>
+<section><h2 data-section-id="m2-graph" data-section-title="图的完整结构">图的完整结构 <button class="ask-btn" data-ask-section="m2-graph" data-ask-title="图的完整结构">提问</button></h2>
+<pre><code class="language-">START → prepare → model → (router) ─┬→ END (直接回复)
+                                    └→ privacy_check → (router) ─┬→ privacy_confirm → END
+                                                                  └→ tools → (router) → model → ...
+                                                                                       └→ ask_user → END
+                                                                                       └→ error → END</code></pre>
+<p>7 个节点，4 个条件路由：</p>
+<table><thead><tr><th>节点</th><th>职责</th><th>触发条件</th></tr></thead><tbody><tr><td><code>prepare</code></td><td>组装系统提示词（soul + SUAT + memory + skills + tool guidelines）</td><td>每次新消息</td></tr><tr><td><code>model</code></td><td>调用 LLM，返回文本或 tool_calls</td><td>prepare 之后</td></tr><tr><td><code>privacy_check</code></td><td>检查 tool_calls 是否包含敏感工具</td><td>model 返回了 tool_calls</td></tr><tr><td><code>privacy_confirm</code></td><td>格式化确认问题发给用户</td><td>检测到隐私工具调用</td></tr><tr><td><code>tools</code></td><td>并行执行所有 tool calls</td><td>不在隐私确认中</td></tr><tr><td><code>ask_user</code></td><td>暂停等待用户输入</td><td>tool 返回了 ask_user 类型</td></tr><tr><td><code>error</code></td><td>友好错误消息</td><td>tool 执行异常</td></tr></tbody></table></section>
+<section><h2 data-section-id="m2-prepare" data-section-title="prepare：组装系统提示词">prepare：组装系统提示词 <button class="ask-btn" data-ask-section="m2-prepare" data-ask-title="prepare：组装系统提示词">提问</button></h2>
+<p>每次新消息进来，<code>prepare</code> 节点动态构建系统提示词，包含：</p>
+<pre><code class="language-">SOUL.md (人格) → SUAT.md (校园事实) → MEMORY.md (经验) →
+interaction_policy.md (交互原则) → tool_guidelines.md (工具规范) →
+skills manifest (可用技能清单) → session summary (长对话摘要) →
+user memory (用户记忆文档)</code></pre>
+<p>关键设计：<strong>构建时过滤掉旧 system 消息</strong>——因为 ReAct 循环会多次经过 prepare，不能让 system prompts 重复累积。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么 ReAct 循环中 system 消息会重复累积？不处理会有什么后果？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>因为 prepare 节点每次进入都会重新构建 system prompt，如果旧的 system 消息不清除，消息列表会每隔一次循环就多一条 system 消息。后果：token 开销指数级增长，LLM 可能被多条 system 指令混淆。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-model" data-section-title="model：调用 LLM 并处理返回">model：调用 LLM 并处理返回 <button class="ask-btn" data-ask-section="m2-model" data-ask-title="model：调用 LLM 并处理返回">提问</button></h2>
+<p><code>model</code> 节点做三件事：</p>
+<ol><li><strong>调用 LLM</strong>：带 3 次重试（1-2 秒退避），temperature=0.7，max_tokens=16000，超时 90s</li><li><strong>保留 reasoning_content</strong>：DeepSeek/MiMo 的思考内容（thinking 模式），对多轮工具调用很关键</li><li><strong>工具调用上限</strong>：<code>loop_count &gt;= 10</code> 时强制截断，不再发出 tool calls</li></ol></section>
+<section><h2 data-section-id="m2-tools" data-section-title="tools：并行执行">tools：并行执行 <button class="ask-btn" data-ask-section="m2-tools" data-ask-title="tools：并行执行">提问</button></h2>
+<p><code>tools</code> 节点使用 <code>asyncio.gather()</code> 并行执行所有工具调用。每个 tool 有独立的 <code>_run_one()</code> 协程，互不阻塞。</p>
+<p>工具结果会构建为 <code>ToolMessage</code> 加入消息列表。每个工具类型有自定义的紧凑预览：</p>
+<table><thead><tr><th>工具</th><th>预览格式</th><th>为什么</th></tr></thead><tbody><tr><td><code>read_file</code></td><td>&quot;读取了 N 字符&quot;</td><td>全文太长，前端不需要展示</td></tr><tr><td><code>search</code></td><td>&quot;找到 N 条结果&quot;</td><td>同上</td></tr><tr><td><code>list_files</code></td><td>&quot;N 个文件和目录&quot;</td><td>同上</td></tr><tr><td><code>execute</code></td><td>&quot;脚本执行完成&quot;</td><td>同上</td></tr><tr><td><code>ask_user</code></td><td>&quot;{{question}}&quot;</td><td>问题本身要展示</td></tr><tr><td><code>record_observation</code></td><td>&quot;已记录观察&quot;</td><td>隐私工具，不暴露内容</td></tr><tr><td><code>update_user_memory</code></td><td>&quot;已更新用户记忆&quot;</td><td>同上</td></tr></tbody></table>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>重看 tool 预览的设计。为什么要做紧凑预览而不是直接把 tool 返回值扔给前端？换个说法：tool result 里面的信息，前端用户真的需要看到吗？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>Tool result 是给 Agent 的&quot;草稿纸&quot;，不是给用户看的报告。把所有 tool 返回值扔给前端会：1) 增加 SSE 带宽消耗；2) 让聊天界面变得混乱；3) 暴露内部文件路径/内容给用户。紧凑预览在前端展示&quot;Agent 在做事&quot;的信号就够了。这个设计背后是一个原则：Agent 的内部工作不要全部暴露给用户，只展示那些用户关心的信号。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-privacy" data-section-title="privacy：中断与确认">privacy：中断与确认 <button class="ask-btn" data-ask-section="m2-privacy" data-ask-title="privacy：中断与确认">提问</button></h2>
+<p>两个工具被标记为隐私敏感：<code>record_observation</code> 和 <code>update_user_memory</code>。</p>
+<p>当模型提出要调用这些工具时，<code>privacy_check</code> 节点拦截，然后 <code>privacy_confirm</code> 发确认请求给用户。<strong>图在此处中止</strong>。</p>
+<p>用户点击&quot;允许&quot;或&quot;拒绝&quot;后，前端调 <code>/chat/privacy/stream</code> 恢复：</p>
+<ul><li>允许 → 执行工具 → 继续 ReAct 循环</li><li>拒绝 → 告知模型被拒绝 → 继续下一个思考</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>如果不用中断模式，而是让 Agent 直接写入 memory 再事后告知用户，会有什么问题？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>核心问题是 AI 的判断不可靠。让 Agent 自主修改用户记忆意味着：1) 错误推断会被写入&quot;持久记忆&quot;；2) 用户没有修正机会；3) 长期累积后记忆会越来越偏离用户真实意图。中断确认是信任边界——AI 可以&quot;提议&quot;，用户做最终决定。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m2-session-lock" data-section-title="会话锁：并发控制">会话锁：并发控制 <button class="ask-btn" data-ask-section="m2-session-lock" data-ask-title="会话锁：并发控制">提问</button></h2>
+<p>每个 session 一个 <code>asyncio.Lock</code>，防止同个 session 的并发消息导致状态混乱。</p>
+<p>LLM 调用期间 node 在 IO 等待（async），但同一 session 只有一条消息在处理。不同 session 之间完全并行。</p>
+<p>锁用 LRU-bounded <code>OrderedDict</code>（max 1024 条）管理，防止长时间不活跃的 session 锁占用内存。</p></section>
+<section><h2 data-section-id="m2-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>深小理用 LangGraph StateGraph 建模 ReAct 循环——不是简单的 while 轮询。</li><li>7 个节点各司其职：prepare（提示词）→ model（LLM）→ privacy_check（检测）→ tools（执行）→ model（再想）→ 回答。</li><li>关键安全设计：privacy 中断、loop_count 硬上限（10）、紧凑 tool 预览。</li><li>会话锁（per-session asyncio.Lock）防止并发混乱。</li></ul></section>
+  <footer class="next-prev"><a href="m1.html">上一节</a><a href="m3.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="500" viewBox="0 0 1120 500" role="img" aria-labelledby="title desc">
+  <title id="title">MCP primitives map</title>
+  <desc id="desc">MCP servers expose tools, resources, and prompts. MCP clients may expose roots, sampling, and elicitation.</desc>
+  <rect width="1120" height="500" fill="#fffefb"/>
+  <text x="560" y="64" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="750" fill="#1d2422">MCP primitives are split by who offers them</text>
+  <rect x="70" y="110" width="470" height="310" rx="8" fill="#f8faf8" stroke="#bac8c2" stroke-width="2"/>
+  <rect x="580" y="110" width="470" height="310" rx="8" fill="#f8faf8" stroke="#bac8c2" stroke-width="2"/>
+  <text x="305" y="158" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="700" fill="#0e4f49">Server offers</text>
+  <text x="815" y="158" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="700" fill="#315fa8">Client offers</text>
+  <g font-family="Inter, Arial, sans-serif" font-size="20" fill="#1d2422">
+    <text x="128" y="222">Tools: actions the model may invoke</text>
+    <text x="128" y="282">Resources: context data the host can include</text>
+    <text x="128" y="342">Prompts: reusable interaction templates</text>
+    <text x="638" y="222">Roots: filesystem boundaries</text>
+    <text x="638" y="282">Sampling: server asks client LLM to generate</text>
+    <text x="638" y="342">Elicitation: server asks user for more input</text>
+  </g>
+  <text x="560" y="462" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="20" fill="#c97818">Good MCP design starts by choosing the right primitive, not by making everything a tool.</text>
+</svg>

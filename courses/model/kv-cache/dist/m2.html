@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KV Cache 的工作机制 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m2</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="kv-cache" data-module-id="m2">
+  <header class="lesson-header">
+    <p class="eyebrow">KV Cache 深入浅出</p>
+    <h1>KV Cache 的工作机制</h1>
+    <p class="lede">拆解 K、V 矩阵如何在逐 token 生成中被缓存和复用，区分 prefill 与 decode。</p>
+  </header>
+  <section><h2 data-section-id="m2-attention" data-section-title="自注意力快速回顾">自注意力快速回顾 <button class="ask-btn" data-ask-section="m2-attention" data-ask-title="自注意力快速回顾">提问</button></h2>
+<p>Transformer 的自注意力计算可以概括为：</p>
+<pre><code class="language-text">Q = X · W_Q
+K = X · W_K
+V = X · W_V
+
+Attention(Q, K, V) = softmax(Q · K^T / sqrt(d_k)) · V</code></pre>
+<p>其中 X 是输入序列的隐藏状态，W_Q、W_K、W_V 是可学习权重。Q、K、V 分别是查询、键、值矩阵。</p>
+<p>关键点：<strong>每个 token 的 K 和 V 只依赖于它自己的隐藏状态和权重矩阵</strong>，不依赖后面的 token。这就是 KV Cache 可行的数学基础。</p>
+<div class="callout">为什么 K 和 V 可以在生成后就被缓存？因为每个 token 的 K 和 V 只依赖它自己的隐藏状态 X_i 和权重矩阵 W_K、W_V，不依赖序列中后面的 token。这个因果性使得 K、V 可以在生成后立即缓存复用。</div></section>
+<section><h2 data-section-id="m2-step-by-step" data-section-title="逐 token 生成过程">逐 token 生成过程 <button class="ask-btn" data-ask-section="m2-step-by-step" data-ask-title="逐 token 生成过程">提问</button></h2>
+<p>假设序列已有 3 个 token，现在要生成第 4 个：</p>
+<p><strong>没有 KV Cache 时：</strong></p>
+<ol><li>把全部 4 个 token 的隐藏状态拼成 X（4 行）。</li><li>重新计算 Q、K、V（都是 4 行）。</li><li>计算 4×4 的注意力矩阵。</li><li>得到输出。</li></ol>
+<p><strong>有 KV Cache 时：</strong></p>
+<ol><li>只计算第 4 个 token 的隐藏状态 X_4。</li><li>用 X_4 计算 Q_4、K_4、V_4（各 1 行）。</li><li>把 K_4 追加到缓存的 K 中（缓存从 3 行变成 4 行）。</li><li>把 V_4 追加到缓存的 V 中。</li><li>用 Q_4 和缓存中全部 4 行 K 计算注意力分数。</li><li>用注意力分数对全部 4 行 V 加权求和。</li></ol>
+<table><thead><tr><th>对比项</th><th>无 KV Cache</th><th>有 KV Cache</th></tr></thead><tbody><tr><td>每步前向传播的 token 数</td><td>全部 N 个</td><td>仅 1 个新 token</td></tr><tr><td>K、V 计算</td><td>全部重算</td><td>只算新 token 的</td></tr><tr><td>注意力矩阵</td><td>N×N</td><td>1×N</td></tr><tr><td>显存</td><td>不额外存 K、V</td><td>存全部历史 K、V</td></tr></tbody></table>
+<div class="callout">有 KV Cache 时，生成第 4 个 token 需要计算的注意力矩阵是 1×4：只需要新 token 的 Q（1 行）和缓存中全部 4 个 token 的 K（4 行）做点积。</div></section>
+<section><h2 data-section-id="m2-multi-layer" data-section-title="多层 Transformer 的缓存">多层 Transformer 的缓存 <button class="ask-btn" data-ask-section="m2-multi-layer" data-ask-title="多层 Transformer 的缓存">提问</button></h2>
+<p>Transformer 有 L 层，每层都有独立的注意力机制。因此 KV Cache 也要按层存储：</p>
+<pre><code class="language-text">Layer 0:  K_cache[0] = [k_0, k_1, ..., k_n]  V_cache[0] = [v_0, v_1, ..., v_n]
+Layer 1:  K_cache[1] = [k_0, k_1, ..., k_n]  V_cache[1] = [v_0, v_1, ..., v_n]
+...
+Layer L-1: K_cache[L-1] = [...]               V_cache[L-1] = [...]</code></pre>
+<p>每一层的 KV Cache 在该层的前向传播中使用，不跨层共享。第 l 层的输出是第 l+1 层的输入。</p>
+<div class="callout">注意：前馈网络（FFN）层不需要缓存，因为 FFN 对每个 token 独立计算，没有跨 token 依赖。</div></section>
+<section><h2 data-section-id="m2-multi-head" data-section-title="多头注意力的缓存">多头注意力的缓存 <button class="ask-btn" data-ask-section="m2-multi-head" data-ask-title="多头注意力的缓存">提问</button></h2>
+<p>多头注意力下，每层有 H 个头，每个头有独立的 K 和 V。因此每层的 KV Cache 实际上是：</p>
+<pre><code class="language-text">K_cache[layer][head] = [k_0, k_1, ..., k_n]   维度: (seq_len, d_head)
+V_cache[layer][head] = [v_0, v_1, ..., v_n]   维度: (seq_len, d_head)</code></pre>
+<p>总缓存大小 = 2（K 和 V）× L（层数）× H（头数）× seq_len × d_head × batch_size。</p></section>
+<section><h2 data-section-id="m2-append" data-section-title="追加操作">追加操作 <button class="ask-btn" data-ask-section="m2-append" data-ask-title="追加操作">提问</button></h2>
+<p>KV Cache 的核心操作是<strong>追加</strong>：每生成一个新 token，把它的 K 和 V 追加到缓存末尾。</p>
+<pre><code class="language-python"># 伪代码：KV Cache 追加操作
+new_k = compute_k(new_token_hidden)   # (1, d_head)
+new_v = compute_v(new_token_hidden)   # (1, d_head)
+
+k_cache = torch.cat([k_cache, new_k], dim=0)  # (seq_len+1, d_head)
+v_cache = torch.cat([v_cache, new_v], dim=0)  # (seq_len+1, d_head)
+
+# 注意力计算
+attn_scores = new_q @ k_cache.T / sqrt(d_head)  # (1, seq_len+1)
+attn_weights = softmax(attn_scores)
+output = attn_weights @ v_cache                  # (1, d_head)</code></pre>
+<p>在实际实现中，通常会预分配最大长度的缓存空间，然后用一个指针标记当前有效长度，避免频繁的内存分配。</p>
+<div class="callout">为什么预分配而不是动态扩展？避免频繁的内存分配和拷贝操作（如 torch.cat 会创建新张量）。预分配后只需移动指针，性能更好。代价是固定了最大序列长度。</div></section>
+<section><h2 data-section-id="m2-prefill" data-section-title="Prefill 阶段">Prefill 阶段 <button class="ask-btn" data-ask-section="m2-prefill" data-ask-title="Prefill 阶段">提问</button></h2>
+<p>在生成第一个新 token 之前，模型需要处理整个输入 prompt。这个阶段叫 <strong>prefill</strong>（预填充）：</p>
+<ol><li>把 prompt 的全部 token 一次性前向传播。</li><li>计算每一层每个头的 K 和 V。</li><li>把它们存入 KV Cache。</li></ol>
+<p>Prefill 之后，KV Cache 就包含了 prompt 的全部历史信息，后续的 decode 阶段每步只处理 1 个 token。</p>
+<div class="callout">Prefill 是计算密集的（处理 N 个 token），decode 是访存密集的（每步处理 1 个 token 但要读取全部 KV Cache）。这个区分对后续的优化策略很重要。</div></section>
+<section><h2 data-section-id="m2-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m2-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>每个 token 的 K、V 只依赖自身隐藏状态，这是 KV Cache 可行的数学基础。</li><li>生成新 token 时只需计算它的 Q、K、V，然后追加 K、V 到缓存。</li><li>多层、多头各自独立缓存，不跨层跨头共享。</li><li>Prefill 阶段一次性填充 prompt 的 KV Cache，decode 阶段逐步追加。</li><li>Prefill 计算密集，decode 访存密集。</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>Prefill 和 decode 阶段的主要区别是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>Prefill 是一次性处理整个 prompt 并填充 KV Cache，计算密集；decode 是逐 token 生成，每步只处理 1 个新 token 但读取全部缓存，访存密集。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>以下哪种操作不需要缓存？</p>
+<p>A. 第 3 层的 K 矩阵 B. 第 5 个头的 V 矩阵 C. FFN 层的中间结果 D. 第 2 层的 Q 矩阵</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>C。FFN 层对每个 token 独立计算，没有跨 token 依赖，因此不需要缓存。Q 矩阵虽然也不缓存，但题目问的是&quot;不需要缓存&quot;，FFN 是明确不需要的。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+  <footer class="next-prev"><a href="m1.html">上一节</a><a href="m3.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

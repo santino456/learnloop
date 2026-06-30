@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>统一环境轨迹模式 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m2</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="qwen-agentworld" data-module-id="m2">
+  <header class="lesson-header">
+    <p class="eyebrow">Qwen-AgentWorld</p>
+    <h1>统一环境轨迹模式</h1>
+    <p class="lede">学习把七大领域表示为统一的 system prompt + (action, observation) 交替序列，并掌握 turn-level 展开与数据过滤。</p>
+  </header>
+  <section><h2 data-section-id="m2-schema" data-section-title="统一环境轨迹模式">统一环境轨迹模式 <button class="ask-btn" data-ask-section="m2-schema" data-ask-title="统一环境轨迹模式">提问</button></h2>
+<p>要在七大领域上训练同一个世界模型，必须先把千差万别的状态表示（如 Terminal 的文件系统快照、Android 的 UI 视图层级）归一化为共享格式。Qwen-AgentWorld 在所有领域和训练阶段都采用<strong>统一环境轨迹模式</strong>。</p>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>统一环境轨迹模式（Unified Environment Trajectory Schema）</h4><p class="concept-why">共享格式是跨领域泛化的前提。</p><div class="concept-body"><p>统一环境轨迹模式的形式化表示：</p>
+<pre><code class="language-text">system_prompt := task_description ⊕ action_space ⊕ initial_state ⊕ demonstrations ⊕ simulation_instruction
+
+turn_t := (action_t, observation_t)
+
+trajectory := system_prompt ⊕ [turn_1, …, turn_T]</code></pre>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S2.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §2.2</a></p></div></section></section>
+<section><h2 data-section-id="m2-components" data-section-title="系统提示的五个组成部分">系统提示的五个组成部分 <button class="ask-btn" data-ask-section="m2-components" data-ask-title="系统提示的五个组成部分">提问</button></h2>
+<p>系统提示由五个部分组成，具体构造细节见论文 §3.1.2。</p>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-3.png" alt="图 3：Terminal 领域 LWM RL 系统提示的解剖图，五个组成部分中蓝色为静态、红色为动态。" loading="lazy"><figcaption><span>图 3：Terminal 领域 LWM RL 系统提示的解剖。蓝色 = 静态（跨轨迹共享）；红色 = 动态（按轨迹注入）。</span></figcaption></figure>
+<ol><li><strong>任务描述（task description）</strong>：指示模型在特定领域充当世界模型，并定义模拟目标。</li><li><strong>动作空间（action space）</strong>：枚举可用工具或操作及其调用约定。</li><li><strong>初始状态（initial state）</strong>：描述交互开始前的环境配置（已安装包、文件系统布局、UI 屏幕状态等）。</li><li><strong>示例（demonstrations）</strong>：可选的少量 (action, observation) 示例。</li><li><strong>模拟指令（simulation instruction）</strong>：指定可控模拟条件（例如&quot;在 web_search 响应中隐藏答案&quot;）。</li></ol>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S2.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §2.2</a>, §3.1.2</p>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>静态组件 vs. 动态组件</h4><p class="concept-why">知道哪些部分按轨迹变化，才能正确构造训练样本。</p><div class="concept-body"><p><strong>静态 vs. 动态组件</strong>：除 MCP 和 SWE 外，所有领域的动作空间和示例都是预定义且静态的。MCP 和 SWE 需要按轨迹生成动作空间，因为可用工具随 MCP server 实例和代码仓库而变化。初始状态和模拟指令在存在时通常是动态的（按轨迹填充）。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.1.2</a></p></div></section></section>
+<section><h2 data-section-id="m2-examples" data-section-title="代表性交互示例">代表性交互示例 <button class="ask-btn" data-ask-section="m2-examples" data-ask-title="代表性交互示例">提问</button></h2>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-4.png" alt="图 4：SWE（文本领域）和 Android（GUI 领域）的代表性交互示例，展示观察空间的广度。" loading="lazy"><figcaption><span>图 4：文本领域（SWE）与 GUI 领域（Android）的代表性交互示例。</span></figcaption></figure>
+<p>在 SWE 中，智能体运行一段 Python 脚本，LWM 需要推理内存分配和数组维度，预测最终的 out-of-memory 报错。在 Android 中，智能体点击一个 UI 元素，LWM 需要推断交互如何改变页面布局，并把结果屏幕预测为可渲染的 HTML。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S2.SS3" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §2.3</a></p></section>
+<section><h2 data-section-id="m2-expansion" data-section-title="轨迹到 Turn 的展开与过滤">轨迹到 Turn 的展开与过滤 <button class="ask-btn" data-ask-section="m2-expansion" data-ask-title="轨迹到 Turn 的展开与过滤">提问</button></h2>
+<p>来自异构来源的原始智能体轨迹，通过领域特定的处理器和共享预处理步骤，被归一化为统一模式。</p>
+<ol class="ll-flow"><li><span>含 T 个 turn 的轨迹 → 展开为 T 个 turn-level 预测样本 → 每个 turn t 以 (turn_1, …, turn_{t-1}) + 第 t 步的状态/动作作为输入 → 第 t 步的观察作为目标 → 每条训练轨迹随机采样一个 turn → 应用数据过滤（跳过重试循环、过滤无变化 turn） → 构造含五个组成部分的系统提示 → 最终训练样本</span></li></ol>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>Turn-level 展开</h4><p class="concept-why">多轮交互中每一步都依赖前文，因此每一步都是有效预测实例。</p><div class="concept-body"><p><strong>Turn-level 展开</strong>：由于智能体与环境的交互本质上是多轮的，且每个观察只依赖其前面的历史，所以轨迹中的每个 turn 在与前文配对后，本身就是一个有效的预测实例。因为每条轨迹被展开为多个 turn-level 预测样本，模型在每一步都能获得监督信号。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.1.2</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>重试循环跳过（Retry-cycle Skipping）</h4><p class="concept-why">简单删除错误 turn 会破坏状态链，需要更精细的处理。</p><div class="concept-body"><p><strong>重试循环跳过</strong>：智能体经常陷入 &quot;垃圾输出 → 报错 → 重试&quot; 的循环。直接删除这些 turn 会破坏状态链。相反，系统会跳过有问题的 (user, assistant) 对，同时保留当前状态，使下一个有效 turn 继承正确的历史。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.1.2</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>无变化 Turn 过滤（GUI 领域）</h4><p class="concept-why">保留无效 turn 会教模型&quot;动作不重要，复制上一状态即可&quot;。</p><div class="concept-body"><p><strong>无变化 turn 过滤（GUI 领域）</strong>：如果某个 turn 执行动作前后的状态没有有效变化，则移除该 turn。如果保留，这些样本会教模型无论采取什么动作都直接复制上一状态，从而削弱模型预测动作如何改变环境的能力。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S3.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §3.1.2</a></p></div></section></section>
+<section><h2 data-section-id="m2-exercise" data-section-title="练习：构造一个系统提示">练习：构造一个系统提示 <button class="ask-btn" data-ask-section="m2-exercise" data-ask-title="练习：构造一个系统提示">提问</button></h2>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p><strong>任务</strong>：针对以下 Terminal 场景，构造统一环境轨迹模式的五个组成部分。</p>
+<ul><li>场景：开发者希望在 Docker 容器内模拟一个 Python 数据处理流水线。</li><li>容器环境：Python 3.10、pandas 1.5、/data 目录下有 CSV 文件。</li><li>开发者将运行读取 CSV、执行 group-by、并把结果写入 /output 的脚本。</li><li>你希望在写入阶段偶尔注入 &quot;disk full&quot; 错误，以测试智能体的错误处理。</li></ul>
+<p><strong>要求</strong>：按 §2.2 的模式写出五个组成部分（任务描述、动作空间、初始状态、示例、模拟指令），并标注每个部分是静态还是动态。</p>
+</div>
+<div class="exercise-answer" hidden>
+<p><strong>验证标准</strong>：初始状态必须包含已安装包和文件系统布局；模拟指令必须明确可控错误条件；动作空间必须枚举相关操作（bash 命令、Python 脚本执行）。</p>
+<p>一个完整答案应包含：</p>
+<ul><li><strong>任务描述（动态/静态均可）</strong>：让模型充当 Terminal 世界模型，预测执行 bash/Python 动作后的终端输出。</li><li><strong>动作空间（静态）</strong>：允许 <code>bash</code>、<code>python3 &lt;script.py&gt;</code>、<code>ls</code>、<code>cat</code>、<code>df -h</code> 等命令，并说明调用格式。</li><li><strong>初始状态（动态）</strong>：Ubuntu 22.04 容器，Python 3.10，pandas 1.5，/data 含 CSV，/output 为空。</li><li><strong>示例（静态）</strong>：一条正确的 (action, observation) 示例，例如运行 <code>head /data/users.csv</code> 的输出。</li><li><strong>模拟指令（动态）</strong>：当动作是向 /output 写入文件且下载阶段已完成时，以 30% 概率返回 <code>OSError: [Errno 28] No space left on device</code>。</li></ul>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S2.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §2.2</a>, §3.1.2</p>
+<p>---</p>
+<p><strong>模块小结</strong>：统一模式通过把七大领域都表示为 &quot;系统提示 + 交替的 (action, observation) turn&quot; 来实现跨领域泛化。Turn-level 展开让模型在每一步都获得监督，而重试循环跳过和无变化过滤则去除了有害样本。</p></section>
+  <footer class="next-prev"><a href="m1.html">上一节</a><a href="m3.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qwen-AgentWorld | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <header class="hero">
+  <p class="eyebrow">LearnLoop 课程</p>
+  <h1>Qwen-AgentWorld</h1>
+  <p class="lede">面向通用智能体的语言世界模型</p>
+</header>
+<nav class="modules"><a class="module-card" href="m1.html">
+  <span class="module-number">01</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>基础 —— 为什么需要语言世界模型？</strong>
+      <span class="module-template">PERSPECTIVE</span>
+    </span>
+    <em>理解世界模型与策略模型的分工、Qwen-AgentWorld 的七大领域，以及 Decouple 与 Unify 两种范式。</em>
+  </span>
+</a><a class="module-card" href="m2.html">
+  <span class="module-number">02</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>统一环境轨迹模式</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>学习把七大领域表示为统一的 system prompt + (action, observation) 交替序列，并掌握 turn-level 展开与数据过滤。</em>
+  </span>
+</a><a class="module-card" href="m3.html">
+  <span class="module-number">03</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>三阶段训练配方</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>从 continual pre-training 到 SFT 再到 RL，掌握信息论 loss masking、拒绝采样、混合奖励与训练稳定性技巧。</em>
+  </span>
+</a><a class="module-card" href="m4.html">
+  <span class="module-number">04</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>AgentWorldBench —— 评估世界模型</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>学习构建五维 rubric、reference-grounded LLM judge、差异化匹配标准，并解读主实验结果。</em>
+  </span>
+</a><a class="module-card" href="m5.html">
+  <span class="module-number">05</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>应用一：把世界模型用作环境模拟器</strong>
+      <span class="module-template">PRACTICE</span>
+    </span>
+    <em>学习零样本环境扩展、可控模拟、虚构世界构建，以及 Sim RL 与 Real RL 的取舍。</em>
+  </span>
+</a><a class="module-card" href="m6.html">
+  <span class="module-number">06</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>应用二：把世界模型用作智能体基础模型</strong>
+      <span class="module-template">PRACTICE</span>
+    </span>
+    <em>学习 LWM RL warm-up、跨任务迁移、预测驱动的动作细化，以及它们如何提升下游智能体表现。</em>
+  </span>
+</a><a class="module-card" href="m7.html">
+  <span class="module-number">07</span>
+  <span class="module-text">
+    <span class="module-meta">
+      <strong>分析与推理模式（可选深入）</strong>
+      <span class="module-template">TUTORIAL</span>
+    </span>
+    <em>分析 LWM 的 chain-of-thought 推理模式、RL 训练动态，以及微观层面的保真度提升。</em>
+  </span>
+</a></nav>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>应用一：把世界模型用作环境模拟器 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/practice/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m5</span><span class="top-nav-template">practice</span></nav>
+<article class="lesson" data-course-id="qwen-agentworld" data-module-id="m5">
+  <header class="lesson-header">
+    <p class="eyebrow">Qwen-AgentWorld</p>
+    <h1>应用一：把世界模型用作环境模拟器</h1>
+    <p class="lede">学习零样本环境扩展、可控模拟、虚构世界构建，以及 Sim RL 与 Real RL 的取舍。</p>
+  </header>
+  <section><h2 data-section-id="m5-simulator" data-section-title="世界模型作为环境模拟器">世界模型作为环境模拟器 <button class="ask-btn" data-ask-section="m5-simulator" data-ask-title="世界模型作为环境模拟器">提问</button></h2>
+<p>在这个应用中，Qwen-AgentWorld 作为独立的环境模拟器：策略智能体与世界模型是两套模型。模拟器提供两个真实环境难以直接提供的属性：<strong>可扩展性</strong>和<strong>可控性</strong>。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S6.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.1</a></p></section>
+<section><h2 data-section-id="m5-scaling" data-section-title="零样本环境扩展">零样本环境扩展 <button class="ask-btn" data-ask-section="m5-scaling" data-ask-title="零样本环境扩展">提问</button></h2>
+<p>Qwen-AgentWorld 可以在无需领域特定适配的情况下，泛化地模拟大量现实、高度专业化的真实世界环境。</p>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>OpenClaw 模拟结果：Qwen-AgentWorld-397B-A17B 模拟了 4000 个 OpenClaw 环境用于智能体 RL，带来 Claw-Eval +4.3 和 QwenClawBench +7.1。用 Qwen3.6-Plus 作为模拟器仅获得边际提升，说明专门的 LWM 训练对构建高保真模拟器至关重要。</strong></p><p class="evidence-basis">论文 §6.1.1 与表 6 的 Sim RL 结果。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S6.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.1.1</a>, Table 6</span></footer></aside>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-table-6.png" alt="表 6：模拟 OpenClaw 环境上的 Sim RL，比较基线模型、用 Qwen3.6-Plus 模拟、用 Qwen-AgentWorld-397B-A17B 模拟。" loading="lazy"><figcaption><span>表 6：模拟 OpenClaw 环境上的 Sim RL。Qwen3.5-35B-A3B 通过不同模拟器进行 Sim RL；∆ 报告相对基线模型的提升。</span></figcaption></figure></section>
+<section><h2 data-section-id="m5-controllable" data-section-title="可控模拟">可控模拟 <button class="ask-btn" data-ask-section="m5-controllable" data-ask-title="可控模拟">提问</button></h2>
+<p>可控模拟使用自然语言指令在轨迹级别和 turn 级别塑造 Qwen-AgentWorld 的行为。</p>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>环境适配（Environment Adaptation）</h4><p class="concept-why">真实部署往往不够&quot;极端&quot;，可控模拟可以主动制造训练压力。</p><div class="concept-body"><p><strong>环境适配</strong>：通过指令调整模拟器的行为与风格，注入针对性扰动，从而系统性地暴露智能体弱点。控制指令修改模拟风格与内容，产生比真实部署更极端或更有针对性的条件。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S6.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.1.2</a></p></div></section>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>MCP 可控 Sim RL 结果：没有控制指令的标准 Sim RL 几乎没有收益（Tool Decathlon 甚至从 32.4 降到 31.5）。加入可控模拟后，Tool Decathlon 提升 +3.7，MCPMark 提升 +12.3。可控性不仅是幅度因素，更是该领域 Sim RL 生效的前提。</strong></p><p class="evidence-basis">论文 §6.1.2 与表 7 的可控 Sim RL 结果。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S6.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.1.2</a>, Table 7</span></footer></aside>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-table-7.png" alt="表 7：Tool Decathlon 与 MCPMark 上可控 Sim RL 的结果，比较有/无控制模拟指令。" loading="lazy"><figcaption><span>表 7：Tool Decathlon 与 MCPMark 上的可控 Sim RL 结果。&quot;w/ Qwen-AgentWorld-397B-A17B controlled&quot; 表示在 Sim RL 中加入针对性环境控制指令。</span></figcaption></figure></section>
+<section><h2 data-section-id="m5-fictional" data-section-title="虚构世界构建">虚构世界构建 <button class="ask-btn" data-ask-section="m5-fictional" data-ask-title="虚构世界构建">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>虚构世界构建（Fictional-World Construction）</h4><p class="concept-why">防止智能体用参数记忆或真实世界知识绕过模拟环境。</p><div class="concept-body"><p><strong>虚构世界构建</strong>：模拟器生成一个结构上真实、事实上与真实世界完全脱节的虚构环境。以 Search 为例，Qwen-AgentWorld 从一个紧凑的初始设定出发，模拟出完全虚构、自洽的世界。这带来两个结构性优势：</p>
+<ol><li>智能体无法绕过搜索工具，用参数记忆直接作答。</li><li>智能体不会把训练时的搜索结果与真实世界知识混淆。</li></ol>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S6.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.1.2</a></p></div></section>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>WideSearch 虚构世界结果：在 Qwen3.5-35B-A3B-SFT 上，可控 Sim RL 把 F1 by Item 从 34.02 提升到 50.31（+16.29），F1 by Row 从 13.72 提升到 24.21（+10.49）。在 Qwen3.5-397B-A17B-SFT 上，Sim RL 仍有 +3.87 和 +6.05 的提升。值得注意的是，训练环境完全虚构：每个搜索结果、网页、事实记录都由 Qwen-AgentWorld 从零发明。</strong></p><p class="evidence-basis">论文 §6.1.2 与表 8 的 WideSearch 虚构世界结果。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S6.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.1.2</a>, Table 8</span></footer></aside>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-table-8.png" alt="表 8：WideSearch 上使用虚构世界模拟的可控 Sim RL 结果，覆盖 35B 与 397B 两个规模。" loading="lazy"><figcaption><span>表 8：WideSearch 上的可控 Sim RL 结果，使用虚构世界模拟。</span></figcaption></figure></section>
+<section><h2 data-section-id="m5-sim-vs-real" data-section-title="Sim RL vs. Real RL">Sim RL vs. Real RL <button class="ask-btn" data-ask-section="m5-sim-vs-real" data-ask-title="Sim RL vs. Real RL">提问</button></h2>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-9.png" alt="图 9：WideSearch 上可控 Sim RL 与 Real RL 在前 60 训练步的对比，展示 F1 分数与平均工具调用频率。" loading="lazy"><figcaption><span>图 9：WideSearch 上可控 Sim RL 与 Real RL（用真实搜索引擎训练）在前 60 步的对比。两个实验都以 Qwen3.5-35B-A3B-SFT 为基线模型。</span></figcaption></figure>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>Sim RL 超过 Real RL：Sim RL 达到 50.3% F1 by Item，Real RL 为 45.6%。更具信息量的信号来自智能体行为：Sim RL 把 web_extractor 调用从 2.5 提升到 4.0 次/轨迹，而 Real RL 从 2.5 降到 1.5 次。这一差异反映了可控模拟设计：因为模拟搜索摘要故意 withholding 详细内容，Sim-RL 训练出的智能体学会了必须提取完整页面。</strong></p><p class="evidence-basis">论文 §6.1.2 与图 9 的 Sim RL vs. Real RL 对比。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S6.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.1.2</a></span></footer></aside>
+<section class="ll-decision"><div class="decision-prompt"><p>什么时候用解耦模拟器，什么时候用真实环境？</p></div><div class="decision-reveal" hidden><section class="decision-perspective"><h4>视角</h4><p>依据：基于保真度、成本、可扩展性与安全性的权衡。</p>
+<p><strong>使用解耦模拟器（Sim RL）当：</strong></p>
+<ul><li>需要扩展到数千个并行环境，而真实基础设施无法支撑。</li><li>想注入针对性扰动或构建虚构世界做对抗训练。</li><li>真实环境访问昂贵、缓慢或不可行（不可逆操作、专有部署）。</li></ul>
+<p><strong>使用真实环境（Real RL）当：</strong></p>
+<ul><li>需要高保真度，用于安全关键或高风险领域。</li><li>环境简单快速，扩展不是瓶颈。</li><li>处于最终验证阶段，需要确认 sim-to-real 迁移。</li></ul>
+<p><strong>重要提醒</strong>：Sim RL 的效果依赖于给世界模型提供足够详细的初始状态；否则模拟保真度下降，下游收益也会衰减。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S6.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.1</a></p></section></div><button class="decision-toggle" type="button" aria-expanded="false">显示判断视角</button></section></section>
+<section><h2 data-section-id="m5-exercise" data-section-title="练习：设计一个可控模拟">练习：设计一个可控模拟 <button class="ask-btn" data-ask-section="m5-exercise" data-ask-title="练习：设计一个可控模拟">提问</button></h2>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p><strong>任务</strong>：为 Terminal 领域的训练场景设计一条可控模拟指令。</p>
+<p><strong>场景</strong>：你想训练一个智能体，在包安装过程中优雅地处理磁盘空间不足错误。</p>
+<p><strong>要求</strong>：</p>
+<ol><li>写出指定初始状态（操作系统、磁盘空间、已安装包）的模拟指令。</li><li>指定可控扰动：模拟器应在 pip install 的下载阶段正常完成后，再模拟 &quot;no space left on device&quot; 错误。</li><li>指定期望的智能体行为：检测到错误、清理 pip 缓存、并用 <code>--no-cache-dir</code> 重试。</li></ol>
+</div>
+<div class="exercise-answer" hidden>
+<p><strong>验证标准</strong>：模拟指令必须让预期的响应边界足够明确，以减少训练中的幻觉；初始状态必须足够详细，以约束期望观察。</p>
+<p>完整答案应包含：</p>
+<ul><li><strong>初始状态</strong>：Ubuntu 22.04，Python 3.10，pip 23.x，2 GB 可用磁盘，/workspace 已挂载，pandas 未安装。</li><li><strong>扰动触发</strong>：pip download 完成后、wheel unpack 前，抛出 <code>OSError: [Errno 28] No space left on device</code>。</li><li><strong>期望行为</strong>：捕获错误，执行 <code>pip cache purge</code>，然后执行 <code>pip install --no-cache-dir pandas</code>。</li></ul>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S6.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §6.1.2</a>, Figure 3</p>
+<p>---</p>
+<p><strong>模块小结</strong>：作为解耦模拟器，Qwen-AgentWorld 支持零样本环境扩展、带针对性扰动的可控模拟，以及虚构世界构建。在 WideSearch 上，可控 Sim RL 可以超过 Real RL（50.3% vs. 45.6% F1）。初始状态的详细程度是模拟保真度的关键瓶颈。</p></section>
+  <footer class="next-prev"><a href="m4.html">上一节</a><a href="m6.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/practice/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Muon Optimizer 与训练稳定性 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m6</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="deepseek-v4" data-module-id="m6">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek-V4 系列论文解读</p>
+    <h1>Muon Optimizer 与训练稳定性</h1>
+    <p class="lede">理解 Muon 的正交化更新、混合 Newton-Schulz 迭代，以及 DeepSeek-V4 如何避免注意力 logits 爆炸。</p>
+  </header>
+  <section><h2 data-section-id="m6-why-muon" data-section-title="为什么用 Muon">为什么用 Muon <button class="ask-btn" data-ask-section="m6-why-muon" data-ask-title="为什么用 Muon">提问</button></h2>
+<p>DeepSeek-V4 系列把 Muon 优化器用于大部分模块，原因是：</p>
+<ul><li>收敛速度更快。</li><li>训练稳定性更好。</li></ul>
+<p>但 Muon 并不适用于所有参数。V4 仍保留 AdamW 用于：</p>
+<ul><li>Embedding 模块</li><li>Prediction head 模块</li><li>mHC 的静态偏置和门控因子</li><li>所有 RMSNorm 的权重</li></ul>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 2.4 节。</div></section>
+<section><h2 data-section-id="m6-algorithm" data-section-title="Muon 算法概览">Muon 算法概览 <button class="ask-btn" data-ask-section="m6-algorithm" data-ask-title="Muon 算法概览">提问</button></h2>
+<p>对每个逻辑上独立的权重矩阵 W ∈ R^(n×m)：</p>
+<ol><li>计算梯度 G_t = ∇_W L_t(W_{t-1})。</li><li>更新动量 buffer：M_t = μ M_{t-1} + G_t。</li><li>使用 Nesterov trick：对 μ M_t + G_t 做正交化，得到 O&#x27;_t。</li><li>按矩阵维度缩放更新：O_t = O&#x27;_t · √(max(n, m)) · γ。</li><li>执行权重衰减和参数更新：W_t = W_{t-1} · (1 - ηλ) - η O_t。</li></ol>
+<p>关键在第 3 步：通过正交化让更新矩阵接近正交矩阵，从而控制更新方向的质量。</p>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，Algorithm 1。</div></section>
+<section><h2 data-section-id="m6-newton-schulz" data-section-title="混合 Newton-Schulz 迭代">混合 Newton-Schulz 迭代 <button class="ask-btn" data-ask-section="m6-newton-schulz" data-ask-title="混合 Newton-Schulz 迭代">提问</button></h2>
+<p>正交化的目标：给定 M 的 SVD 分解 M = U Σ V^T，希望逼近 U V^T。</p>
+<p>Newton-Schulz 迭代先对 M 做 Frobenius 范数归一化，保证最大奇异值 ≤ 1，然后迭代：</p>
+<pre><code class="language-">M_k = a M_{k-1} + b (M_{k-1} M_{k-1}^T) M_{k-1} + c (M_{k-1} M_{k-1}^T)^2 M_{k-1}</code></pre>
+<p>DeepSeek-V4 使用<strong>两阶段混合迭代</strong>，共 10 步：</p>
+<ul><li>前 8 步：系数 (a, b, c) = (3.4445, -4.7750, 2.0315)，快速收敛。</li><li>后 2 步：系数 (a, b, c) = (2, -1.5, 0.5)，稳定奇异值到 1。</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>混合 Newton-Schulz 的两阶段各自作用是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>前 8 步快速把奇异值拉近 1；后 2 步精确稳定到 1。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m6-no-qk-clip" data-section-title="为什么不用 QK-Clip">为什么不用 QK-Clip <button class="ask-btn" data-ask-section="m6-no-qk-clip" data-ask-title="为什么不用 QK-Clip">提问</button></h2>
+<p>在 DeepSeek-V3 的训练中，Muon 通常需要配合 QK-Clip 来防止 attention logits 爆炸。但 V4 的注意力架构本身允许直接对 query 和 KV 条目做 RMSNorm，因此 attention logits 不会爆炸，也就不需要 QK-Clip。</p>
+<section class="ll-decision"><div class="decision-prompt"><p>如果你要在自己的模型中使用 Muon，是否一定需要 QK-Clip？</p>
+<ul><li>A. 一定需要，Muon 本身会导致 attention logits 爆炸。</li><li>B. 不一定，如果注意力架构本身做了 query/KV 归一化，可以避免爆炸。</li><li>C. 只有在大模型中才需要。</li></ul></div><div class="decision-reveal" hidden><section class="decision-perspective"><h4>视角</h4><p>依据：DeepSeek-V4 论文第 2.4 节。</p>
+<p>B 更合理。是否需要 QK-Clip 取决于注意力架构是否能有效控制 logits 幅度；不能把它当作 Muon 的固定配套。</p></section></div><button class="decision-toggle" type="button" aria-expanded="false">显示判断视角</button></section></section>
+<section><h2 data-section-id="m6-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m6-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>Muon 通过正交化权重更新来提升收敛和稳定性。</li><li>DeepSeek-V4 使用 10 步混合 Newton-Schulz 迭代做正交化。</li><li>由于注意力架构自带 query/KV RMSNorm，V4 不需要 QK-Clip。</li><li>Embedding、head、mHC 静态偏置和 RMSNorm 权重仍用 AdamW。</li></ul></section>
+  <footer class="next-prev"><a href="m5.html">上一节</a><a href="m7.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MQA 与 GQA：减少 KV 头数 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m4</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="kv-cache" data-module-id="m4">
+  <header class="lesson-header">
+    <p class="eyebrow">KV Cache 深入浅出</p>
+    <h1>MQA 与 GQA：减少 KV 头数</h1>
+    <p class="lede">从 MHA 到 MQA 再到 GQA，理解减少 KV 头数对显存和质量的权衡。</p>
+  </header>
+  <section><h2 data-section-id="m4-confusion" data-section-title="显存瓶颈的突破口">显存瓶颈的突破口 <button class="ask-btn" data-ask-section="m4-confusion" data-ask-title="显存瓶颈的突破口">提问</button></h2>
+<p>你已经知道 KV Cache 的显存公式：</p>
+<pre><code class="language-text">2 × L × H × d_head × seq_len × batch_size × dtype_size</code></pre>
+<p>其中 H（头数）是一个关键乘数。Llama-2-7B 有 32 个头，如果能把头数减少，显存就能成比例下降。但问题是：Q 仍然需要多头才能保持表达能力，K 和 V 能不能共享？</p>
+<p>这就是 Multi-Query Attention（MQA）和 Grouped-Query Attention（GQA）要回答的问题。</p></section>
+<section><h2 data-section-id="m4-mha" data-section-title="标准多头注意力（MHA）">标准多头注意力（MHA） <button class="ask-btn" data-ask-section="m4-mha" data-ask-title="标准多头注意力（MHA）">提问</button></h2>
+<p>在标准 MHA 中，每个头都有独立的 W_K 和 W_V：</p>
+<pre><code class="language-text">head_0: K_0 = X · W_K0,  V_0 = X · W_V0
+head_1: K_1 = X · W_K1,  V_1 = X · W_V1
+...
+head_H: K_H = X · W_KH,  V_H = X · W_VH</code></pre>
+<p>每个头存一份 K 和 V，所以 KV Cache 大小与 H 成正比。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>标准 MHA 中，KV Cache 大小和头数 H 是什么关系？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>成正比。每个头有独立的 K 和 V，头数越多，KV Cache 越大。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-mqa" data-section-title="Multi-Query Attention（MQA）">Multi-Query Attention（MQA） <button class="ask-btn" data-ask-section="m4-mqa" data-ask-title="Multi-Query Attention（MQA）">提问</button></h2>
+<p>MQA 的思路很激进：<strong>所有头共享同一组 K 和 V</strong>。</p>
+<pre><code class="language-text">所有头: K = X · W_K,  V = X · W_V
+head_0: Q_0 = X · W_Q0
+head_1: Q_1 = X · W_Q1
+...</code></pre>
+<p>只有 Q 保持多头，K 和 V 只有一份。KV Cache 从 <code>2 × L × H × ...</code> 变成 <code>2 × L × 1 × ...</code>，显存直接除以 H。</p>
+<p>代价是：注意力表达能力下降，因为每个头只能看到相同的 K 和 V。Shazeer（2019）在论文 &quot;Fast Transformer Decoding: One Write-Head is All You Need&quot; 中提出 MQA，并在 T5 等模型中验证了其可行性。</p>
+<div class="callout">注意：MQA 的显存节省是显著的，但质量下降在某些任务上可感知。它更适合对延迟敏感、对质量要求相对宽松的场景。</div></section>
+<section><h2 data-section-id="m4-gqa" data-section-title="Grouped-Query Attention（GQA）">Grouped-Query Attention（GQA） <button class="ask-btn" data-ask-section="m4-gqa" data-ask-title="Grouped-Query Attention（GQA）">提问</button></h2>
+<p>GQA 是 MHA 和 MQA 之间的折中：把 H 个 Q 头分成 G 组，每组共享一组 K 和 V。</p>
+<pre><code class="language-text">组 0（head_0, head_1）: K_0, V_0
+组 1（head_2, head_3）: K_1, V_1
+...</code></pre>
+<p>当 G = H 时，GQA 退化为 MHA；当 G = 1 时，GQA 退化为 MQA。Llama-2 使用了 GQA（G=8 对于 70B 模型），在显存和质量之间取得了平衡。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>GQA 中，如果头数 H=32，组数 G=8，KV Cache 显存是 MHA 的多少？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>1/4。因为 G=8，只有 8 组 K 和 V，而 MHA 有 32 组。显存比例是 G/H = 8/32 = 1/4。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-comparison" data-section-title="三种方案对比">三种方案对比 <button class="ask-btn" data-ask-section="m4-comparison" data-ask-title="三种方案对比">提问</button></h2>
+<table><thead><tr><th>方案</th><th>KV 头数</th><th>显存比例</th><th>质量影响</th><th>代表模型</th></tr></thead><tbody><tr><td>MHA</td><td>H</td><td>1×</td><td>基准</td><td>GPT-3, Llama-1</td></tr><tr><td>GQA</td><td>G（1 &lt; G &lt; H）</td><td>G/H</td><td>轻微下降</td><td>Llama-2-70B, Mistral</td></tr><tr><td>MQA</td><td>1</td><td>1/H</td><td>较明显下降</td><td>T5, PaLM</td></tr></tbody></table>
+<div class="callout">依据：Llama-2 技术报告（Touvron et al., 2023）中明确提到 70B 模型使用 GQA 以平衡显存和性能。Mistral 7B 也采用了 GQA。</div></section>
+<section><h2 data-section-id="m4-implementation" data-section-title="实现细节">实现细节 <button class="ask-btn" data-ask-section="m4-implementation" data-ask-title="实现细节">提问</button></h2>
+<p>在 GQA 的实现中，通常会把 K 和 V 的头数通过重复（repeat）或广播（broadcast）扩展到与 Q 相同的头数，然后再做注意力计算：</p>
+<pre><code class="language-python"># 伪代码：GQA 的注意力计算
+# k: (batch, G, seq_len, d_head)
+# q: (batch, H, 1, d_head)
+# 需要把 k 重复 H/G 次，让头数对齐
+k_expanded = k.repeat_interleave(H // G, dim=1)  # (batch, H, seq_len, d_head)
+attn_scores = q @ k_expanded.transpose(-2, -1)    # (batch, H, 1, seq_len)</code></pre>
+<p>这种重复操作在计算时发生，不增加 KV Cache 的存储量——缓存仍然只存 G 组 K 和 V。</p></section>
+<section><h2 data-section-id="m4-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m4-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>MQA 让所有头共享一组 K 和 V，显存除以 H，但质量可能下降。</li><li>GQA 把 H 个 Q 头分成 G 组，每组共享 K 和 V，是显存和质量的折中。</li><li>Llama-2-70B 和 Mistral 采用 GQA，说明这是当前主流选择。</li><li>实现上通过 repeat_interleave 或广播在计算时扩展 K、V 头数，不改变缓存大小。</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>以下哪种注意力机制的 KV Cache 显存最小？</p>
+<p>A. MHA，H=32 B. GQA，H=32，G=8 C. MQA，H=32 D. GQA，H=32，G=16</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>C。MQA 只有 1 组 K 和 V，显存是 MHA 的 1/32，比任何 GQA 配置都小。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>GQA 相比 MQA 的主要优势是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>GQA 在显存节省和质量保持之间取得了更好的平衡。MQA 显存最小但质量下降较明显，GQA 通过分组共享保留了更多表达能力。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+  <footer class="next-prev"><a href="m3.html">上一节</a><a href="m5.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

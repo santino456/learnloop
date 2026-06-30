@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manifold-Constrained Hyper-Connections | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m3</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="deepseek-v4" data-module-id="m3">
+  <header class="lesson-header">
+    <p class="eyebrow">DeepSeek-V4 系列论文解读</p>
+    <h1>Manifold-Constrained Hyper-Connections</h1>
+    <p class="lede">理解 mHC 如何通过双随机矩阵约束，让深层残差连接更稳定。</p>
+  </header>
+  <section><h2 data-section-id="m3-hc-background" data-section-title="从 Hyper-Connections 说起">从 Hyper-Connections 说起 <button class="ask-btn" data-ask-section="m3-hc-background" data-ask-title="从 Hyper-Connections 说起">提问</button></h2>
+<p>Hyper-Connections（HC）把相邻 Transformer 块之间的残差连接解耦成三个映射：</p>
+<ul><li>输入映射 A</li><li>残差映射 B</li><li>输出映射 C</li></ul>
+<p>它让“残差宽度”可以独立于隐藏层维度扩展，为模型提供了一个额外的缩放维度。但问题是：当堆叠很多层时，HC 容易出现数值不稳定。</p>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 2.2 节。</div></section>
+<section><h2 data-section-id="m3-manifold" data-section-title="mHC 的核心思想">mHC 的核心思想 <button class="ask-btn" data-ask-section="m3-manifold" data-ask-title="mHC 的核心思想">提问</button></h2>
+<p>Manifold-Constrained Hyper-Connections（mHC）的关键是把残差映射矩阵 <strong>B_l 约束到双随机矩阵流形</strong>（Birkhoff polytope）：</p>
+<ul><li>每行、每列之和为 1</li><li>所有元素非负</li></ul>
+<p>这样的矩阵 spectral norm 不超过 1，保证残差变换是<strong>非扩张的</strong>（non-expansive），从而提升深层网络的前向传播和反向传播稳定性。</p>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么把 B_l 约束为双随机矩阵能提升稳定性？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>双随机矩阵的谱范数 ≤ 1，因此残差映射不会放大信号；深层堆叠时信号不会爆炸，前向和反向都更稳定。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m3-dynamic" data-section-title="动态参数化">动态参数化 <button class="ask-btn" data-ask-section="m3-dynamic" data-ask-title="动态参数化">提问</button></h2>
+<p>A、B、C 三个映射的参数是动态生成的，但拆成了两部分：</p>
+<ul><li><strong>动态分量</strong>：依赖当前输入</li><li><strong>静态分量</strong>：与输入无关</li></ul>
+<p>具体步骤：</p>
+<ol><li>把输入 X_l 展平并做 RMSNorm，得到 ˆX_l。</li><li>用 ˆX_l 分别与可学习的 W_pre、W_res、W_post 相乘，得到原始参数 ˜A、˜B、˜C。</li><li>加上可学习的静态偏置 S_pre、S_res、S_post。</li></ol>
+<p>输入映射 A 和输出映射 C 再通过 Sigmoid 函数保证非负有界：</p>
+<ul><li>A = σ(˜A)</li><li>C = 2σ(˜C)</li></ul>
+<div class="callout">来源：<a href="raw/DeepSeek_V4.pdf" target="_blank" rel="noopener noreferrer">DeepSeek-V4 论文</a>，第 2.2 节。</div></section>
+<section><h2 data-section-id="m3-sinkhorn" data-section-title="Sinkhorn-Knopp 投影">Sinkhorn-Knopp 投影 <button class="ask-btn" data-ask-section="m3-sinkhorn" data-ask-title="Sinkhorn-Knopp 投影">提问</button></h2>
+<p>对于残差映射 ˜B，需要把它投影到双随机矩阵流形。做法是先取指数保证正性，然后反复进行行归一化和列归一化：</p>
+<pre><code class="language-">M^(0) = exp(˜B)
+M^(t) = T_r(T_c(M^(t-1)))</code></pre>
+<p>这就是 Sinkhorn-Knopp 算法，能把一个正矩阵迭代收敛到双随机矩阵。</p>
+<ol class="ll-flow"><li><span>原始参数 ˜B</span></li><li><span>取指数得到正矩阵 M^(0)</span></li><li><span>行归一化 T_c</span></li><li><span>列归一化 T_r</span></li><li><span>迭代收敛到双随机矩阵 B_l</span></li></ol></section>
+<section><h2 data-section-id="m3-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m3-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>mHC 在 HC 基础上增加了流形约束，解决深层堆叠的数值不稳定问题。</li><li>残差映射 B_l 被约束为双随机矩阵，保证非扩张性。</li><li>A 和 C 通过 Sigmoid 约束；B 通过 Sinkhorn-Knopp 投影实现。</li><li>动态参数化让映射既能适应输入，又保留稳定的静态偏置。</li></ul></section>
+  <footer class="next-prev"><a href="m2.html">上一节</a><a href="m4.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

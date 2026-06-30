@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>主要结果：模型表现如何 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m4</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="lifescibench" data-module-id="m4">
+  <header class="lesson-header">
+    <p class="eyebrow">LifeSciBench 解读</p>
+    <h1>主要结果：模型表现如何</h1>
+    <p class="lede">分析不同模型在整体、工作流和领域层面的相对强弱。</p>
+  </header>
+  <section><h2 data-section-id="m4-overall" data-section-title="整体排名">整体排名 <button class="ask-btn" data-ask-section="m4-overall" data-ask-title="整体排名">提问</button></h2>
+<p>在 750 道题上，最强模型是 <strong>GPT-Rosalind</strong>：</p>
+<table><thead><tr><th>模型</th><th>Mean normalized score</th><th>Task pass rate</th></tr></thead><tbody><tr><td>GPT-Rosalind</td><td>0.576</td><td>36.1%</td></tr><tr><td>GPT-5.5</td><td>0.519</td><td>25.7%</td></tr><tr><td>Gemini 3.1 Pro</td><td>0.515</td><td>23.6%</td></tr><tr><td>GPT-5.4</td><td>0.479</td><td>20.7%</td></tr><tr><td>Grok 4.3</td><td>0.399</td><td>13.0%</td></tr></tbody></table>
+<p>注意：即使是最强的 GPT-Rosalind，pass rate 也只有 36.1%。这说明 LifeSciBench 离被“刷爆”还很远，真实科研任务仍然是重大挑战。</p>
+<div class="callout">来源：LifeSciBench preprint Section 6.1 Results。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>在 LifeSciBench 上，哪个模型的 task pass rate 最高，约为多少？</p>
+<p>A. GPT-5.5，25.7% B. GPT-Rosalind，36.1% C. Gemini 3.1 Pro，23.6% D. Grok 4.3，13.0%</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。GPT-Rosalind 的 task pass rate 最高，为 36.1%。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-strengths" data-section-title="相对强项：翻译与科学传播">相对强项：翻译与科学传播 <button class="ask-btn" data-ask-section="m4-strengths" data-ask-title="相对强项：翻译与科学传播">提问</button></h2>
+<p>GPT-Rosalind 在以下 workflow 上表现最好：</p>
+<ul><li><strong>Translation</strong>：mean score 0.712。这类任务要求把临床前证据连接到临床意义、安全性、试验设计等。</li><li><strong>Scientific communication</strong>：mean score 0.718。要求为特定受众解释或总结科学发现。</li></ul>
+<p>Rubric 层面的强项包括：</p>
+<ul><li>解释机制（+0.086 相对 GPT-5.5）</li><li>设计实验（+0.079）</li><li>批判或验证（+0.078）</li></ul>
+<p>这些任务通常要求模型超越记忆，进行证据解释、权衡评估和结构化科学判断。</p>
+<div class="callout">来源：LifeSciBench preprint Section 6.2.1 Workflow and Rubric Level Strengths。</div></section>
+<section><h2 data-section-id="m4-profiles" data-section-title="模型各有所长">模型各有所长 <button class="ask-btn" data-ask-section="m4-profiles" data-ask-title="模型各有所长">提问</button></h2>
+<p>虽然 GPT-Rosalind 整体最强，但其他模型在某些任务上也有独特优势：</p>
+<ul><li><strong>Gemini 3.1 Pro</strong> 在 214 道题上领先，说明它与 GPT-5.5 有互补性。</li><li>这些领先往往出现在<strong>精确输出、序列/结构推理、构建体生成</strong>等任务上。</li></ul>
+<p>这说明：不能只看 aggregate score 选模型。任务类型、输出格式、是否需要 artifact，都会影响哪个模型更适合。</p>
+<div class="callout">来源：LifeSciBench preprint Section 6.2.2 Model Specific Profiles。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>为什么 LifeSciBench 除了整体排名，还要报告 workflow、domain、artifact 等细分指标？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>因为 aggregate score 会掩盖模型在具体任务类型上的互补优势。一个整体稍弱的模型，可能在特定 workflow 或输出格式上更适合实际使用。细分指标帮助使用者根据任务特征选择模型。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m4-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m4-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>GPT-Rosalind 整体最强，但所有模型的 pass rate 都不高。</li><li>当前模型强项在科学综合、翻译和科学传播等需要结构化判断的任务。</li><li>不同模型在不同任务上有互补优势，不能只看总分。</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>GPT-Rosalind 在 Translation workflow 上的 mean score 大约是多少？</p>
+<p>A. 0.479 B. 0.576 C. 0.712 D. 0.718</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>C。GPT-Rosalind 在 Translation 上的 mean score 为 0.712；0.718 是 Scientific communication 的得分。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+  <footer class="next-prev"><a href="m3.html">上一节</a><a href="m5.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

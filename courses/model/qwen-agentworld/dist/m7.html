@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>分析与推理模式（可选深入） | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m7</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="qwen-agentworld" data-module-id="m7">
+  <header class="lesson-header">
+    <p class="eyebrow">Qwen-AgentWorld</p>
+    <h1>分析与推理模式（可选深入）</h1>
+    <p class="lede">分析 LWM 的 chain-of-thought 推理模式、RL 训练动态，以及微观层面的保真度提升。</p>
+  </header>
+  <section><h2 data-section-id="m7-reasoning" data-section-title="LWM Chain-of-Thought 推理模式">LWM Chain-of-Thought 推理模式 <button class="ask-btn" data-ask-section="m7-reasoning" data-ask-title="LWM Chain-of-Thought 推理模式">提问</button></h2>
+<p>Qwen-AgentWorld 在预测每个环境观察之前都会生成一段 chain-of-thought（思考 trace）。分析 129 条跨四个文本领域的思考 trace 后，可以归纳出三种代表性推理模式。</p>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-12.png" alt="图 12：Qwen-AgentWorld-397B-A17B 思考 trace 中的代表性 LWM 推理模式：多步因果推理、信息泄露防止、认知边界意识。" loading="lazy"><figcaption><span>图 12：Qwen-AgentWorld-397B-A17B 思考 trace 中的代表性推理模式。左：Terminal 中的多步因果推理，一条链跨越包管理、进程生命周期、curl 语义和 Python 错误。中：Search 中的信息泄露防止，模型区分智能体知道什么与环境应透露什么。右：Terminal 中的认知边界意识，模型识别计算极限并退回到仅格式输出，而非捏造不可知值。</span></figcaption></figure></section>
+<section><h2 data-section-id="m7-self-correction" data-section-title="审慎式自我修正">审慎式自我修正 <button class="ask-btn" data-ask-section="m7-self-correction" data-ask-title="审慎式自我修正">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>&quot;Wait!&quot; 自我修正</h4><p class="concept-why">自我修正把单次生成变成带约束的可满足性搜索。</p><div class="concept-body"><p><strong>&quot;Wait!&quot; 自我修正</strong>：模型用 &quot;Wait!&quot; 作为显式认知中断，重新检查中间预测并在提交前修正。在 129 个 turn 中，共出现 1347 次此类中断（平均每 turn 10.4 次；峰值：单个 SWE turn 56 次）。Terminal 和 MCP 的比率最高（分别为 16.9 和 12.7 次/turn），反映这些领域对状态跟踪的更高要求。</p>
+<p>这些自我修正可分为三种功能子类型：</p>
+<ul><li><strong>事实型</strong>：发现 API 响应格式不正确。</li><li><strong>认识论型</strong>：认识到上下文内计算的极限（如 <code>np.random.seed(42)</code> 例子）。</li><li><strong>视角采择型</strong>：建模评估者意图或智能体的知识状态。</li></ul>
+<p>这种行为把环境预测从单次生成转化为带约束的可满足性搜索。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S7.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §7.1</a></p></div></section></section>
+<section><h2 data-section-id="m7-leakage" data-section-title="信息泄露防止">信息泄露防止 <button class="ask-btn" data-ask-section="m7-leakage" data-ask-title="信息泄露防止">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>信息泄露防止</h4><p class="concept-why">世界模型必须知道&quot;智能体不该知道什么&quot;，否则训练会泄露答案。</p><div class="concept-body"><p><strong>信息泄露防止</strong>：在 Search 领域，模型掌握一个参考答案，而智能体正在寻找它。当智能体查询与答案无关时，模型会显式防止泄露：识别主题不匹配，确保生成的摘要不会意外暴露目标信息。这是世界模型中的&quot;心智理论&quot;：模型区分自己知道什么，与环境应透露什么。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S7.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §7.1</a></p></div></section></section>
+<section><h2 data-section-id="m7-epistemic" data-section-title="认知边界意识">认知边界意识 <button class="ask-btn" data-ask-section="m7-epistemic" data-ask-title="认知边界意识">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>认知边界意识</h4><p class="concept-why">知道&quot;自己不知道&quot;比假装知道更安全、更忠实。</p><div class="concept-body"><p><strong>认知边界意识</strong>：模型识别计算极限，并退回到仅格式输出，而非捏造不可知值。例如，当被要求预测 <code>np.random.randn(500)</code> 中超出已知 seed 索引范围的值时，模型记得 <code>seed(42)</code> 的前几个值是熟知的，但第 500 个值不可知，因此只输出格式而不捏造具体数字。</p>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S7.SS1" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §7.1</a></p></div></section></section>
+<section><h2 data-section-id="m7-micro" data-section-title="RL 训练中的微观保真度提升">RL 训练中的微观保真度提升 <button class="ask-btn" data-ask-section="m7-micro" data-ask-title="RL 训练中的微观保真度提升">提问</button></h2>
+<p>Turn-level 评估分数捕捉的是聚合质量，但 RL 训练还在更细粒度上提升保真度：单个 URL 标识符、字节级算术、跨 turn API schema 一致性。</p>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-13.png" alt="图 13：RL 训练中 Search、Terminal、MCP 三个领域的微观保真度提升。" loading="lazy"><figcaption><span>图 13：RL 训练中的微观保真度提升。上：Search 领域单个样本随 RL 步的演化，URL 标识符、来源多样性、摘要针对性都在改善，尽管它们只占总输出 token 的极小比例。左下：Terminal 领域：模型通过逐字符枚举（包括不可见换行符）完成精确字节级算术。右下：MCP 领域：模型在九个连续 Notion API 调用中保持跨 turn schema 一致性（user ID、parent-child 引用、UUID 格式）。</span></figcaption></figure>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>Search URL 真实性：第 100 步时，模型生成一个 IMDB URL，其标题标识符 <code>tt2333444</code> 看似合理但为合成。到第 200 步，标识符变为 <code>tt2988794</code>，来源按自然排名出现，摘要包含查询相关的具体事实。URL 标识符在总响应 token 中占比极小，但 RL 仍能提升这些低显著性细节。</strong></p><p class="evidence-basis">论文 §7.2 与图 13 的 Search 微观演化案例。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S7.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §7.2</a></span></footer></aside>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>Terminal 字节级算术：在一个多轮轨迹中，模型 Earlier turn 通过 <code>cat</code> 看到文件内容，之后需要预测几轮后的 <code>wc -c</code> 输出。模型没有生成一个看似合理的数字，而是在思考 trace 中逐字符枚举（包括不可见的 <code>\n</code> 字节），最终通过逐字算术得到精确计数（53 字节）。</strong></p><p class="evidence-basis">论文 §7.2 与图 13 的 Terminal 微观案例。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S7.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §7.2</a></span></footer></aside>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>MCP API schema 保真度：在一个模拟 Notion 工作区的 MCP 轨迹中，模型跨越九个连续 API 调用保持完美一致性：同一 user identifier 出现在每个 <code>created_by</code> 字段，每个 block 的 <code>parent.page_id</code> 与查询的 block ID 匹配，完整 Notion schema（每个 block 约 20 个字段）无遗漏复现。模型实现了一个有状态的上下文内数据库，在数十个嵌套 JSON 对象中保持引用完整性。</strong></p><p class="evidence-basis">论文 §7.2 与图 13 的 MCP 微观案例。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#S7.SS2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §7.2</a></span></footer></aside></section>
+<section><h2 data-section-id="m7-timeline" data-section-title="RL 训练动态">RL 训练动态 <button class="ask-btn" data-ask-section="m7-timeline" data-ask-title="RL 训练动态">提问</button></h2>
+<ol class="ll-timeline"><li><strong>~0 步：初始状态 —— 五维指标从 SFT 基线出发。</strong></li><li><strong>~90 步：Format 收敛 —— 达到总提升的 90%。格式约定（JSON 结构、终端提示字符串）是表面模式，RL 快速强化。</strong></li><li><strong>~250 步：Consistency 收敛 —— 需要更深层跨 turn 状态跟踪能力，逐渐发展。</strong></li><li><strong>440 步：最终状态 —— Factuality 相对提升最大（+11.3%），但仍是得分最低维度；Quality 提升最小（+0.11）。</strong></li></ol>
+<figure class="ll-figure"><img src="course-assets/qwen-agentworld-fig-16.png" alt="图 16：440 个 RL 步的训练动态，展示各维度分数轨迹。" loading="lazy"><figcaption><span>图 16：440 个 RL 步的训练动态（Qwen-AgentWorld-35B-A3B）。Format 在约 90 步内收敛；Consistency 需要约 250 步。</span></figcaption></figure>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>维度收敛速度：尽管 RL 奖励是单一标量（五维均值），各维度的改善速度却明显分化。Format 和 Quality 在 90 步内达到总提升的 90%，而 Consistency 和 Realism 需要约 250 步。这说明 RL 优先优化那些在当前训练信号下最容易优化的方面。</strong></p><p class="evidence-basis">论文附录 B 的训练动态曲线与数值。</p><footer><span>verified</span><span><a href="https://arxiv.org/html/2606.24597#A2" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, Appendix B</a></span></footer></aside></section>
+<section><h2 data-section-id="m7-mapping" data-section-title="推理模式到下游能力的映射">推理模式到下游能力的映射 <button class="ask-btn" data-ask-section="m7-mapping" data-ask-title="推理模式到下游能力的映射">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>推理到能力的映射</h4><p class="concept-why">高层次的推理模式需要被学习者对应到可观察的 agent 行为。</p><div class="concept-body"><p><strong>推理到能力的映射</strong>：本模块分析的三种推理模式直接支撑下游智能体能力：</p>
+<ul><li><strong>审慎自我修正</strong> → 智能体通过内部模拟和修正避免提交不可行动作。</li><li><strong>信息泄露防止</strong> → 智能体保持自身知识与应从环境交互中推导出的信息之间的干净分离。</li><li><strong>认知边界意识</strong> → 智能体识别信息不足时退回到安全动作（例如请求澄清或更多上下文）。</li></ul>
+<p>Source: <a href="https://arxiv.org/html/2606.24597#S7" target="_blank" rel="noopener noreferrer">Qwen-AgentWorld, §7</a></p></div></section>
+<p>---</p>
+<p><strong>模块小结</strong>：本可选深入模块分析了 Qwen-AgentWorld 如何做出准确预测。三种推理模式——审慎自我修正、信息泄露防止、认知边界意识——从 RL 训练中出现，并直接映射到下游智能体能力。微观保真度提升（URL 真实性、字节级算术、schema 一致性）表明 RL 奖励信号能传播到显式奖励维度之下的粒度。</p></section>
+  <footer class="next-prev"><a href="m6.html">上一节</a><span></span></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

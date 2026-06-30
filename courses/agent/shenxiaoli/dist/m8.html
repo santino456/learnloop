@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>反思录：每一处技术取舍 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/perspective/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m8</span><span class="top-nav-template">perspective</span></nav>
+<article class="lesson" data-course-id="shenxiaoli" data-module-id="m8">
+  <header class="lesson-header">
+    <p class="eyebrow">深小理：全栈架构透视</p>
+    <h1>反思录：每一处技术取舍</h1>
+    <p class="lede">全课程 Perspective 汇总——为什么不用 ORM、session lock 的边界、裸机部署的代价、冷热分层的未竟之路。</p>
+  </header>
+  <section><h2 data-section-id="m8-why" data-section-title="这个模块的目的">这个模块的目的 <button class="ask-btn" data-ask-section="m8-why" data-ask-title="这个模块的目的">提问</button></h2>
+<p>前面 7 个模块讲了&quot;是什么&quot;和&quot;怎么做&quot;。这个模块只问一个问题：<strong>每个技术决策的代价是什么？如果重来一次，哪些会不一样？</strong></p>
+<p>这不是复盘检讨——是判断力的训练。好工程师不只是能实现方案，而是能说清楚<strong>为什么选 A 不选 B，以及 B 在什么场景下其实更好</strong>。</p></section>
+<section><h2 data-section-id="m8-noodb" data-section-title="为什么不用向量数据库">为什么不用向量数据库 <button class="ask-btn" data-ask-section="m8-noodb" data-ask-title="为什么不用向量数据库">提问</button></h2>
+<p>深小理的知识库搜索用的是自研 BM25，不是向量检索。</p>
+<p><strong>选 BM25 的理由</strong>（在当时是正确的）：</p>
+<ul><li>几百篇中文文章，词频匹配够用</li><li>零部署成本，不需要单独的服务进程</li><li>不需要 embedding API（省钱 + 省延迟）</li></ul>
+<p><strong>什么情况下这个选择会站不住脚</strong>：</p>
+<ul><li>知识库从几百篇增长到几千篇，BM25 稀疏召回开始漏相关文档</li><li>用户开始用自然语言问法（&quot;有什么好吃的&quot; → 找食堂文章），而不是关键词匹配</li><li>多语言场景（中英混合查询）</li></ul>
+<div class="exercise" data-kind="perspective">
+<div class="exercise-task judgment-task">
+<p>假设深小理的知识库增长到 5000 篇，BM25 召回率下降。你有两个升级方案： A) 把 BM25 换成向量检索（如 pgvector） B) BM25 + 向量检索混合（先 BM25 粗排，再向量精排）</p>
+<p>选哪个？为什么？</p>
+</div>
+<textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>
+<div class="judgment-reveal" hidden>
+<section class="judgment-section perspective" hidden><h4>作者视角</h4>
+<p>依据：目前没有实际数据支撑哪种方案更好——这是训练&quot;做技术判断&quot;的思路练习。</p>
+<p>方案 A 简单但迁移成本高（需要生成所有文档的 embedding），且纯向量检索在某些精确匹配场景（如&quot;学号前六位&quot;）可能反而不如 BM25。</p>
+<p>方案 B 保持 BM25 的精确匹配优势，同时用向量检索补全语义召回——但增加了系统复杂度（两套索引、两次查询）。</p>
+<p>思考的角度应该包括：用户真实查询模式是什么样的？精确匹配和语义搜索的比例是多少？需要数据支撑才能做决定，而不是凭直觉选一个。</p>
+</section>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-compare" type="button">对比作者视角</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m8-noorm" data-section-title="为什么不用 ORM">为什么不用 ORM <button class="ask-btn" data-ask-section="m8-noorm" data-ask-title="为什么不用 ORM">提问</button></h2>
+<p><strong>选了直接写 SQL 的理由</strong>：</p>
+<ul><li>查询模式简单——主要是 CRUD + 少量 JOIN</li><li>messages 存 JSONB，不需要映射到 Python 对象</li><li>启动更快（没有 ORM schema 反射）</li><li>调试更直接——能看实际 SQL</li></ul>
+<p><strong>这笔账在什么场景下会反噬</strong>：</p>
+<ul><li>表结构变更时没有 migration 框架——现在 <code>CREATE TABLE IF NOT EXISTS</code> + 手动 ALTER</li><li>团队变大后，不同人对 SQL 风格理解不一致</li><li>如果要加软删除、审计日志、自动时间戳——需要自己写，ORMs 自带</li></ul>
+<p><strong>诚实的判断</strong>：对于深小理当前的规模（一个人维护、10 张表），直接 SQL 是对的。如果团队变成 3 人以上且频繁改 schema，引入 Alembic（SQLAlchemy 的 migration 工具）是合理的下一步。</p></section>
+<section><h2 data-section-id="m8-lock" data-section-title="Session Lock 的边界">Session Lock 的边界 <button class="ask-btn" data-ask-section="m8-lock" data-ask-title="Session Lock 的边界">提问</button></h2>
+<p>每个 session 一个 <code>asyncio.Lock</code>，同一 session 的消息串行处理。</p>
+<p><strong>这个设计很巧妙</strong>：</p>
+<ul><li>防止同一 session 的并发消息导致状态混乱</li><li>不同 session 之间完全并行，互不阻塞</li><li>LRU 上限 1024 条，防止内存泄漏</li></ul>
+<p><strong>但也有代价</strong>：</p>
+<ul><li>如果用户疯狂连续发消息，第二条要等第一条的整个 ReAct 循环跑完</li><li>锁的超时释放是被动的（靠 LRU 淘汰），没有主动的 TTL</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>什么场景下 per-session lock 会出问题？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>当一次 ReAct 循环特别慢（比如工具调用 10 次、每次 5 秒），用户在此期间发了新消息。新消息会排队等旧消息跑完才处理。虽然锁本身不会死锁（asyncio.Lock 在协程正常退出时释放），但用户体验是：发完第二条消息等了 50 秒才开始处理。</p>
+<p>实际场景中这个概率很低——绝大多数对话 1-3 个工具调用就完成了。如果真的出现，可能需要加一个&quot;放弃当前处理&quot;的信号机制。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m8-baremetal" data-section-title="裸机部署：便利与代价的再审视">裸机部署：便利与代价的再审视 <button class="ask-btn" data-ask-section="m8-baremetal" data-ask-title="裸机部署：便利与代价的再审视">提问</button></h2>
+<p>裸机部署的便利我们已经讲了（M1）。现在说说代价：</p>
+<p><strong>当前可接受的代价</strong>：</p>
+<ul><li>3-5 秒重启窗口 → 用户量小时可接受</li><li>手动 git pull + deploy.sh → 部署频率低（一天几次），手动可以</li><li>依赖 Python venv 手动管理 → 一个人维护，操作熟练</li></ul>
+<p><strong>用户量增长后的升级路径</strong>：</p>
+<ol><li>先在 systemd 层面做双端口 + Nginx reload（零停机重启）</li><li>多 worker 的 rate limit 迁移到 Redis</li><li>如果后面要拆微服务，再考虑 Docker</li></ol>
+<p>不急于容器化的核心判断：<strong>Docker 解决的是环境和依赖管理问题（多服务、多环境、多人协作），而不是性能问题。</strong> 当前问题是单机单应用，Docker 带来的额外好处不足以抵消其复杂度。</p></section>
+<section><h2 data-section-id="m8-coldhot" data-section-title="冷热分层的未竟之路">冷热分层的未竟之路 <button class="ask-btn" data-ask-section="m8-coldhot" data-ask-title="冷热分层的未竟之路">提问</button></h2>
+<p>冷热分层（M3）是一个很聪明的设计，但有一些边界情况没处理好：</p>
+<p><strong>做对了的</strong>：</p>
+<ul><li>2 小时 idle 阈值合理——大多数用户不会放下 2 小时以上再回来</li><li>摘要格式结构化（主题/目标/事实/未解决/线索）——确保关键信息不丢</li><li>240K token 强制摘要——防止超长对话超出 LLM 上下文窗口</li></ul>
+<p><strong>还可以改进的</strong>：</p>
+<ul><li>摘要是在&quot;达到阈值&quot;时才触发，而不是&quot;预测到即将超限&quot;时提前触发</li><li>冷恢复只保留最后 8 轮，但用户的&quot;长期兴趣&quot;可能需要更细粒度的追踪（如话题标签）</li><li>Dreaming 引擎（M3）本质上是另一个摘要系统——它和会话摘要是什么关系？目前是独立运作的，没有互相引用</li></ul>
+<div class="exercise" data-kind="perspective">
+<div class="exercise-task judgment-task">
+<p>设计一个改进方案：让冷热分层的摘要和 Dreaming 引擎的记忆更新联动。比如——Dreaming 发现用户最近关心&quot;Python 异步编程&quot;，这个信息如何影响该用户的会话摘要？</p>
+</div>
+<textarea class="judgment-reasoning" placeholder="写下你的判断和顾虑…"></textarea>
+<div class="judgment-reveal" hidden>
+<section class="judgment-section perspective" hidden><h4>作者视角</h4>
+<p>依据：当前两个系统独立运作。会话摘要关注&quot;这次对话讲了什么&quot;，Dreaming 关注&quot;用户长期是什么样的人&quot;。跨会话的行为模式（如反复问某类问题）目前没有进入会话摘要。</p>
+<p>联动思路：Dreaming 生成 MEMORY.md 时，可以同时生成一个 <code>user_topics.json</code>（话题标签 + 置信度）。冷恢复时，摘要 prompt 可以附带这些话题标签作为&quot;你可能关心&quot;的提示。这不是技术难题，是设计决定。</p>
+</section>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-compare" type="button">对比作者视角</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+<section><h2 data-section-id="m8-prompt" data-section-title="Prompt Engineering 的分层哲学">Prompt Engineering 的分层哲学 <button class="ask-btn" data-ask-section="m8-prompt" data-ask-title="Prompt Engineering 的分层哲学">提问</button></h2>
+<p>深小理的系统提示词不是一个大长文——它是分层组合的：</p>
+<pre><code class="language-">SOUL.md (我是谁)
+  + SUAT.md (我在哪)
+  + MEMORY.md (我经历过什么)
+  + interaction_policy.md (我怎么跟人说话)
+  + tool_guidelines.md (我怎么用工具)
+  + skills manifest (我有哪些技能)
+  + session summary (这次对话讲什么)
+  + user memory (用户是谁)</code></pre>
+<p>每层有独立的维护者和变更频率：</p>
+<table><thead><tr><th>层</th><th>谁维护</th><th>变更频率</th></tr></thead><tbody><tr><td>SOUL.md</td><td>设计者</td><td>几乎不变</td></tr><tr><td>SUAT.md</td><td>校园信息维护者</td><td>招生季/新数据时更新</td></tr><tr><td>MEMORY.md</td><td>Dreaming 引擎 (自动)</td><td>每次 dreaming 后</td></tr><tr><td>interaction_policy / tool_guidelines</td><td>开发者</td><td>工具变更时</td></tr><tr><td>skills manifest</td><td>SkillRegistry (自动扫描)</td><td>添加/删除 skill 时</td></tr><tr><td>session summary</td><td>Agent (自动生成)</td><td>每次触发摘要时</td></tr><tr><td>user memory</td><td>Agent (用户确认后)</td><td>偶尔</td></tr></tbody></table>
+<p>这个分层的好处：<strong>每一层可以独立演化，不需要一次改一大段 prompt。</strong> 坏处：<strong>层与层之间可能冲突</strong>（比如 MEMORY.md 说&quot;我是热情的&quot;，但 interaction_policy 说&quot;回答要简洁&quot;——Agent 需要自己判断什么时候热情什么时候简洁）。</p></section>
+<section><h2 data-section-id="m8-final" data-section-title="最后的反思：你学到了什么">最后的反思：你学到了什么 <button class="ask-btn" data-ask-section="m8-final" data-ask-title="最后的反思：你学到了什么">提问</button></h2>
+<p>课程到这里就结束了。但这个项目能教的东西远不止这些——因为深小理有一个独特的特征：<strong>它是用 AI 辅助构建的。</strong></p>
+<p>这意味着什么？</p>
+<ol><li><strong>代码质量不来自写代码的人有多聪明，来自架构决策</strong>——AI 可以写大量代码，但不会替你决定&quot;冷热分层的阈值应该是 2 小时还是 4 小时&quot;。</li></ol>
+<ol><li><strong>系统提示词是新的&quot;源代码&quot;</strong>——prompt 文件（SOUL.md / interaction_policy.md 等）和行为逻辑一样重要。改了 prompt 就是改了产品行为。</li></ol>
+<ol><li><strong>好的架构让 AI 更好用</strong>——清晰的模块边界（model_clients.py 统一入口、MemorySystem 单一 I/O 抽象、纯函数 reducer）让 AI 在改代码时不容易出错。</li></ol>
+<ol><li><strong>安全不能靠 AI 自觉</strong>——路径防护、privacy guard、rate limit 这些要在代码层卡死，不能指望 prompt 里的&quot;你要注意安全&quot;。</li></ol>
+<p>---</p>
+<p>最后，留给你几道题。没有标准答案：</p>
+<ol><li>如果重来一次，深小理会用 LangGraph 的哪个版本？当前用的是手动 StateGraph，新版 LangGraph 有 <code>create_react_agent</code> 一行搞定——你会换吗？换了之后怎么保留 privacy 中断的自定义逻辑？</li></ol>
+<ol><li>数据库的 <code>conversations</code> 表存 JSONB 格式的 messages——如果消息量增长到每条 session 上万条，要不要拆成 message 表（一条 message 一行）？</li></ol>
+<ol><li>Dreaming 引擎是一个 offline 过程——如果把它变成 online（实时观察 → 实时更新），会增加什么风险？</li></ol>
+<ol><li>看了 8 个模块之后，你觉得深小理最值得借鉴的一个设计决策是什么？为什么？</li></ol></section>
+  <footer class="next-prev"><a href="m7.html">上一节</a><a href="m9.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/perspective/runtime.js"></script>
+</body>
+</html>

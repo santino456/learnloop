@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>为什么需要 LifeSciBench | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m1</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="lifescibench" data-module-id="m1">
+  <header class="lesson-header">
+    <p class="eyebrow">LifeSciBench 解读</p>
+    <h1>为什么需要 LifeSciBench</h1>
+    <p class="lede">从现有基准的局限出发，理解 LifeSciBench 要解决的核心问题：评估 AI 在真实生命科学研究任务中的可靠性。</p>
+  </header>
+  <section><h2 data-section-id="m1-confusion" data-section-title="一个反直觉的问题">一个反直觉的问题 <button class="ask-btn" data-ask-section="m1-confusion" data-ask-title="一个反直觉的问题">提问</button></h2>
+<p>我们已经看到 GPT、Gemini、Grok 等大模型能回答很多生物学问题，写出像样的实验方案，甚至解读论文图表。但一个关键问题却很少被直接回答：</p>
+<div class="callout"><strong>这些模型在真实生命科学研究任务中，到底有多可靠？</strong></div>
+<p>很多现有基准测的是知识问答、多选题或标准化考试。模型在这些任务上得分很高，但真实科研不是考试：它要求你处理原始数据、设计引物、判断实验是否可行、把临床前结果映射到人体研究——而这些任务往往没有唯一标准答案。</p>
+<p>这就是 LifeSciBench 要解决的起点：现有基准和真实科研需求之间存在鸿沟。</p>
+<div class="callout">来源：LifeSciBench preprint（OpenAI）Introduction 与 Section 3 Related Work。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>LifeSciBench 主要针对现有基准的哪类不足？</p>
+<p>A. 模型在知识问答上得分不够高 B. 真实科研任务往往没有唯一标准答案，需要处理原始数据与操作约束 C. 生命科学研究者不会使用大模型 D. 现有基准的题量太少</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。现有基准（如多项选择题、标准化考试）测的是知识回忆；LifeSciBench 关注的是真实科研任务，这些任务通常需要 artifact 解读、多步推理和可操作的输出。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m1-goal" data-section-title="LifeSciBench 的目标">LifeSciBench 的目标 <button class="ask-btn" data-ask-section="m1-goal" data-ask-title="LifeSciBench 的目标">提问</button></h2>
+<p>LifeSciBench 的核心目标是：<strong>用真实、自包含的生命科学研究任务，测量模型是否能在专家认可的 rubric 下给出科学 grounded、操作上有用的回答。</strong></p>
+<p>它不是要取代人类专家，而是要建立一个更接近真实科研的评估坐标系。具体包括：</p>
+<ul><li><strong>真实任务</strong>：题目来自七大科研 workflow（如证据处理、分析、设计优化、科学推理、验证与运营、转化、科学传播）。</li><li><strong>专家编写</strong>：每道题由具有博士或产业经验的生命科学家编写。</li><li><strong>Rubric 评分</strong>：每道题配详细评分表，共 19,020 条评分细则。</li><li><strong>Artifact 支持</strong>：部分任务附带原始数据、序列、图片、表格等文件。</li></ul>
+<div class="callout">来源：LifeSciBench preprint Abstract 与 Section 4 Dataset Creation。</div>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>LifeSciBench 的三个关键特征是什么？</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>真实科研任务、专家编写与审查、Rubric 评分与 artifact 支持。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+<section><h2 data-section-id="m1-what" data-section-title="它测什么，不测什么">它测什么，不测什么 <button class="ask-btn" data-ask-section="m1-what" data-ask-title="它测什么，不测什么">提问</button></h2>
+<p><strong>测的是：</strong></p>
+<ul><li>模型能否在单轮设置下理解任务背景。</li><li>模型能否基于 rubric 给出的科学标准组织答案。</li><li>模型在部分需要 artifact 的任务上能否正确使用附带文件。</li></ul>
+<p><strong>不直接测的是：</strong></p>
+<ul><li>多轮对话中的澄清与迭代能力。</li><li>真实实验室环境中的长期研究影响。</li><li>跨学科协作、经费限制、数据生成等外部约束。</li></ul>
+<div class="callout">来源：LifeSciBench preprint Section 7 Limitations。</div></section>
+<section><h2 data-section-id="m1-summary" data-section-title="模块小结">模块小结 <button class="ask-btn" data-ask-section="m1-summary" data-ask-title="模块小结">提问</button></h2>
+<ul><li>现有基准偏重知识问答，与真实科研任务存在鸿沟。</li><li>LifeSciBench 用 750 道专家编写的真实任务，配合 rubric 和 artifact，评估模型的科研可靠性。</li><li>它的结果是能力指标，不是对真实研究影响的直接估计。</li></ul>
+<div class="checkpoint" data-has-answer="true">
+<div class="checkpoint-task">
+<p>以下哪项最符合 LifeSciBench 的定位？</p>
+<p>A. 一个让模型参加生命科学期末考试的数据集 B. 一个测量模型在真实科研任务中表现的专家级基准 C. 一个用于训练生命科学大模型的预训练语料 D. 一个评估实验室机器人执行能力的平台</p>
+</div>
+<div class="checkpoint-answer" hidden>
+<p>B。LifeSciBench 是评估基准，关注真实科研任务和专家级 rubric，而非考试、训练语料或机器人执行。</p>
+</div>
+<div class="checkpoint-controls">
+  <button class="checkpoint-toggle" type="button" aria-expanded="false">显示提示</button>
+</div>
+</div></section>
+  <footer class="next-prev"><span></span><a href="m2.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

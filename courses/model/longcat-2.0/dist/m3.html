@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>N-gram Embedding 与参数效率 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m3</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="longcat-2.0" data-module-id="m3">
+  <header class="lesson-header">
+    <p class="eyebrow">LongCat-2.0 技术解读</p>
+    <h1>N-gram Embedding 与参数效率</h1>
+    <p class="lede">为什么在 MoE 之外再增加 135B N-gram 参数，以及它带来的取舍。</p>
+  </header>
+  <section><h2 data-section-id="m3-motivation" data-section-title="为什么还需要 N-gram Embedding">为什么还需要 N-gram Embedding <button class="ask-btn" data-ask-section="m3-motivation" data-ask-title="为什么还需要 N-gram Embedding">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>MoE 的稀疏度已经很高</h4><p class="concept-why">当稀疏度达到一定程度后，继续加专家收益递减。</p><div class="concept-body"><p>LongCat-2.0 继承自 <a href="https://www.longcatai.org/models/flash-lite" target="_blank" rel="noopener noreferrer">LongCat-Flash-Lite</a> 的 N-gram Embedding，其目标是在与 MoE 正交的稀疏维度上扩展参数，从而提高参数利用效率。报告中给出的判断是：</p>
+<ul><li>在不考虑 N-gram Embedding 的情况下，模型稀疏度已经约 <strong>97%</strong>。</li><li>继续用同等规模（135B）的标准专家扩展，收益很小。</li><li>但把同等参数放到 N-gram Embedding 上，收益远超标准专家。</li></ul>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>N-gram Embedding 的实现</h4><p class="concept-why">了解 n-gram size 与参数规模的具体配置。</p><div class="concept-body"><p>为匹配 LongCat-2.0 的超大模型规模，N-gram Embedding 的配置如下：</p>
+<ul><li><strong>n-gram size = 5</strong></li><li><strong>135B 参数</strong></li><li>通过 n-gram token 组合把 embedding 空间扩大约 <strong>100 倍</strong></li><li>捕获更丰富的局部上下文，强化 token 级表示</li></ul>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>两条扩展原则</h4><p class="concept-why">任何额外参数都需要控制比例，否则边际收益会下降。</p><div class="concept-body"><p>报告提出了两条约束原则：</p>
+<ol><li><strong>MoE 稀疏度已过甜点</strong>：继续堆专家收益低，因此把参数投到 N-gram Embedding 更划算。</li><li><strong>N-gram Embedding 比例必须控制在最优区间</strong>：当 N-gram 参数超过总参数 50% 时，相对加专家的优势会减弱。LongCat-2.0 将其严格控制在 <strong>10% 以内</strong>。</li></ol>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section>
+<section class="ll-compare"><span class="learning-block-label">对比</span><table><thead><tr><th>维度</th><th>继续扩展标准 MoE 专家</th><th>增加 N-gram Embedding</th></tr></thead><tbody><tr><th>稀疏维度</th><td>与现有专家共享同一稀疏空间</td><td>在正交的 n-gram 维度上扩展</td></tr><tr><th>边际收益</th><td>稀疏度 97% 后收益很小</td><td>同等 135B 参数收益更高</td></tr><tr><th>推理影响</th><td>增加大 batch 解码的 I/O</td><td>把参数从 expert 移出，降低大 batch I/O</td></tr><tr><th>比例上限</th><td>无硬性上限</td><td>建议控制在总参数 10% 以内</td></tr></tbody></table></section></section>
+<section><h2 data-section-id="m3-exercise" data-section-title="练习：判断扩展策略">练习：判断扩展策略 <button class="ask-btn" data-ask-section="m3-exercise" data-ask-title="练习：判断扩展策略">提问</button></h2>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>假设你要为一个已有 96% 稀疏度的 MoE 模型增加 100B 参数，你会优先加专家还是加 N-gram Embedding？给出理由。</p>
+</div>
+<div class="exercise-answer" hidden>
+<p>优先加 N-gram Embedding，因为 MoE 稀疏度已经很高，继续加专家的边际收益低；而 N-gram Embedding 在正交稀疏维度上扩展，能在控制比例的前提下获得更高收益，并减少推理时 expert I/O。</p>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+  <footer class="next-prev"><a href="m2.html">上一节</a><a href="m4.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

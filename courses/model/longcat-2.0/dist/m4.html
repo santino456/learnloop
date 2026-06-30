@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>训练与推理基础设施 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m4</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="longcat-2.0" data-module-id="m4">
+  <header class="lesson-header">
+    <p class="eyebrow">LongCat-2.0 技术解读</p>
+    <h1>训练与推理基础设施</h1>
+    <p class="lede">AI ASIC 超节点、6D 并行、长上下文训练与推理部署优化。</p>
+  </header>
+  <section><h2 data-section-id="m4-asic" data-section-title="为什么用 AI ASIC 超节点">为什么用 AI ASIC 超节点 <button class="ask-btn" data-ask-section="m4-asic" data-ask-title="为什么用 AI ASIC 超节点">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>全栈基于自研 AI ASIC</h4><p class="concept-why">基础设施选择会影响并行策略、内存优化和故障恢复设计。</p><div class="concept-body"><p>LongCat-2.0 的完整训练与大规模部署完全基于 <strong>AI ASIC 超节点</strong>。与成熟的 Nvidia GPU 生态相比，AI ASIC 的软件社区仍在发展中，因此团队投入大量精力构建稳定、安全、可扩展的基础设施。</p>
+<p>同类实践：Google TPU Pod、AWS Trainium 集群、华为昇腾集群也走自研加速器路线，核心差异在于软件栈成熟度。</p>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>相比朴素实现，LongCat-2.0 在 AI ASIC 上实现了超过 35% 的训练吞吐提升，同时提升了可靠性。</strong></p><p class="evidence-basis">技术报告训练章节给出了这一吞吐提升数字。</p><footer><span>verified</span><span><a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></span></footer></aside></section>
+<section><h2 data-section-id="m4-training" data-section-title="训练优化">训练优化 <button class="ask-btn" data-ask-section="m4-training" data-ask-title="训练优化">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>确定性与可靠性</h4><p class="concept-why">数万卡规模训练必须可复现、可自动恢复。</p><div class="concept-body"><p>为保障生产环境的可复现性，团队在通信和计算路径上都强制确定性：</p>
+<ul><li>自研确定性算子和模块覆盖 Embedding、Flash Attention、LSA、MoE 层。</li><li>所有 reduction 类算子采用二叉树分段累加，减少浮点误差累积。</li><li>在真实 LLM 负载下对加速器计算精度进行严格高精度基线验证。</li><li>在部分计算密集型算子中引入 bit-flip 检测，及时捕获硬件位翻转异常。</li><li>端到端监控驱动故障识别、流量切换与自动恢复；隔离故障链路对训练无感知影响，修复后需通过压力测试才重新加入。</li></ul>
+<p>参考：大规模训练可靠性可参考 <a href="https://arxiv.org/html/2303.08774" target="_blank" rel="noopener noreferrer">GPT-4 训练稳定性经验</a> 与 DeepSeek-V3 训练报告。</p>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>6D 并行与内存优化</h4><p class="concept-why">AI ASIC 单卡显存显著小于 H800，内存是主要瓶颈。</p><div class="concept-body"><p>扩展策略：</p>
+<ul><li><strong>6D 并行</strong>：在标准 TP/CP/EP/DP/PP 基础上，增加 <strong>EMBP</strong> 来并行和加速 N-gram Embedding。</li><li><strong>Superpod</strong>：每个物理 Superpod 最多 48 台机器，内部全互联高带宽，之间通过 RoCE 互联；相比同规模 GPU 环境带来约 <strong>30% 预训练吞吐提升</strong>。</li><li><strong>内存优化</strong>：ZeRO-1、选择性重计算、OOM-aware offloading、将 padding token 路由到 zero-expert。</li><li><strong>Muon 优化器</strong>：在大规模 AI ASIC 上部署，并针对 TP 并行、DP 状态冗余去除和对称矩阵乘核做了优化。</li></ul>
+<p>延伸阅读：</p>
+<ul><li><a href="https://arxiv.org/html/1910.02054" target="_blank" rel="noopener noreferrer">ZeRO: Memory Optimizations Toward Training Trillion Parameter Models</a></li><li><a href="https://arxiv.org/html/2502.16982" target="_blank" rel="noopener noreferrer">Muon is Scalable for LLM Training</a> / <a href="https://github.com/KellerJordan/Muon" target="_blank" rel="noopener noreferrer">GitHub</a></li></ul>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>长上下文训练</h4><p class="concept-why">1M token 训练需要专门的并行与通信设计。</p><div class="concept-body"><ul><li><strong>LSA 算子与前向优化</strong>：实现自研确定性注意力算子，覆盖稠密 warmup 与稀疏阶段；采用前向-only 稠密 warmup 策略，一次前向同时计算 KL loss 和梯度。</li><li><strong>1M context scaling</strong>：基于 all-gather 的 CP 并行可扩展到 <strong>512+</strong>，支持原生 1M 长度训练；在 get-batch 阶段重排数据，并用 balanced CP 策略保持负载均衡。</li><li><strong>计算-通信重叠</strong>：shortcut-layer 架构让 MoE 通信与并行分支计算重叠，LSA top-k 索引计算与 KV all-gather 重叠。</li></ul>
+<p>参考：CP（Context Parallelism）在长上下文训练中的经典实现可参见 <a href="https://arxiv.org/html/2310.01889" target="_blank" rel="noopener noreferrer">Ring Attention</a>。</p>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section></section>
+<section><h2 data-section-id="m4-inference" data-section-title="推理优化">推理优化 <button class="ask-btn" data-ask-section="m4-inference" data-ask-title="推理优化">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>服务 1.6T/1M 模型的挑战</h4><p class="concept-why">解码阶段受 HBM 容量、HBM I/O 和节点间互联带宽三重约束。</p><div class="concept-body"><p>LongCat-2.0 从模型、设备和部署三个层面优化推理：</p>
+<ul><li><strong>注意力</strong>：prefill 与 decode 阶段都采用 absorb 计算模式；将 indexer 与 MLA prolog 在并发流上流水线化；用 KV-cache Parallelism（KVP）分片 KV-cache。</li><li><strong>ScMoE</strong>：在 LongCat-Flash 计算-通信重叠基础上，通过加速器显式 per-core 控制实现 dense 与 MoE 分支完全并行。</li><li><strong>Super Kernel</strong>：用超核减少图模式下的 intra-kernel 启动开销。</li><li><strong>Weight Prefetch</strong>：利用较大 L2 缓存预取权重，隐藏前一算子的 I/O 延迟。</li><li><strong>Scale Up/Out</strong>：P 节点与 D 节点间 KV-cache 传输使用加速器内置 200 Gbps 网卡；KV-cache store 用 host RDMA 网卡构建；TP/SP/KVP 在 scale-up 域内完成。</li></ul>
+<p>参考：PD 分离与 KV-cache 分片策略可参见 <a href="https://arxiv.org/html/2401.09670" target="_blank" rel="noopener noreferrer">DistServe</a> 与 vLLM 的 PagedAttention。</p>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>PD 分离与并行策略</h4><p class="concept-why">预填充和解码的瓶颈不同，需要分别优化。</p><div class="concept-body"><ul><li><strong>Prefill 节点</strong>：长序列受节点间通信带宽约束，MoE dispatch/combine 占主导；使用多节点 chunked pipeline parallelism（CPP）缩小 EP 域，内部用 Attention Sequence Parallelism（SP）缓解长序列计算压力。</li><li><strong>Decode 节点</strong>：瓶颈是显存与 KV-cache I/O；使用 KVP 分片 KV-cache，并采用大 EP 度（EP128）降低单卡权重与 expert I/O。</li><li><strong>EPLB</strong>：Decode 端大 EP 度容易负载不均，通过 Expert-Parallel Load Balancing 解决；统计与放置计算异步进行，不阻塞前向。</li></ul>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section></section>
+<section><h2 data-section-id="m4-exercise" data-section-title="练习：匹配优化与瓶颈">练习：匹配优化与瓶颈 <button class="ask-btn" data-ask-section="m4-exercise" data-ask-title="练习：匹配优化与瓶颈">提问</button></h2>
+<div class="exercise" data-kind="open" data-has-answer="true">
+<div class="exercise-task">
+<p>把下列优化与对应的主要瓶颈连线。</p>
+<ul><li>KVP</li><li>EP128</li><li>CPP</li><li>Weight Prefetch</li><li>EMBP</li></ul>
+<p>瓶颈：</p>
+<ol><li>单卡 KV-cache 容量不足</li><li>解码阶段单卡权重/专家 I/O 过大</li><li>预填充阶段长序列通信带宽不足</li><li>加速器 HBM 带宽有限但 L2 大</li><li>N-gram Embedding 需要额外并行维度</li></ol>
+</div>
+<div class="exercise-answer" hidden>
+<ul><li>KVP → 1</li><li>EP128 → 2</li><li>CPP → 3</li><li>Weight Prefetch → 4</li><li>EMBP → 5</li></ul>
+</div>
+<div class="exercise-controls">
+  <button class="exercise-toggle" type="button" aria-expanded="false">显示答案</button>
+  <label class="exercise-done">
+    <input type="checkbox"> 已完成
+  </label>
+</div>
+</div></section>
+  <footer class="next-prev"><a href="m3.html">上一节</a><a href="m5.html">下一节</a></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

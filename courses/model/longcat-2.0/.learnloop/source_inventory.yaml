@@ -1,0 +1,71 @@
+sources:
+  - id: longcat-2.0-blog
+    type: official
+    title: "Introducing LongCat-2.0"
+    url: "https://longcat.chat/blog/longcat-2.0/"
+    status: read
+    notes: "Primary source. Main claims: 1.6T/48B MoE, 1M context, AI ASIC training, LSA, N-gram Embedding, MOPD, benchmarks."
+
+  - id: deepseek-v3-2
+    type: paper
+    title: "DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models"
+    url: "https://arxiv.org/abs/2512.02556"
+    status: read
+    notes: "Source for DeepSeek Sparse Attention (DSA) and Lightning Indexer baseline."
+
+  - id: moe-paper
+    type: paper
+    title: "Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer"
+    url: "https://arxiv.org/abs/1701.06538"
+    status: read
+    notes: "Classic MoE reference used to explain total vs activated parameters."
+
+  - id: muon-paper
+    type: paper
+    title: "Muon is Scalable for LLM Training"
+    url: "https://arxiv.org/abs/2502.16982"
+    status: read
+    notes: "Reference for the Muon optimizer used in LongCat-2.0 training."
+
+  - id: swebench
+    type: official
+    title: "SWE-bench"
+    url: "https://www.swebench.com/"
+    status: read
+    notes: "Code/agent benchmark used in LongCat-2.0 evaluation."
+
+  - id: terminal-bench
+    type: paper
+    title: "Terminal-Bench: Benchmarking Agents on Hard, Realistic Tasks in Command Line Interfaces"
+    url: "https://arxiv.org/abs/2601.11868"
+    status: read
+    notes: "Terminal agent benchmark."
+
+  - id: browsecomp
+    type: paper
+    title: "BrowseComp: Measuring and Improving LLM Web Research Skills"
+    url: "https://arxiv.org/abs/2504.12516"
+    status: read
+    notes: "OpenAI benchmark for web research / browsing agents."
+
+  - id: gpqa
+    type: paper
+    title: "GPQA: A Graduate-Level Google-Proof Q&A Benchmark"
+    url: "https://arxiv.org/abs/2311.12022"
+    status: read
+    notes: "Graduate-level reasoning benchmark."
+
+  - id: ifeval
+    type: paper
+    title: "Instruction Following Evaluation for Large Language Models"
+    url: "https://arxiv.org/abs/2311.07911"
+    status: read
+    notes: "Instruction following benchmark."
+  - id: longcat-2-0
+    type: local-material
+    title: "longcat-2.0.txt"
+    path: "raw/longcat-2.0.txt"
+    status: ingested
+    material: ".learnloop/materials/longcat-2-0/material.json"
+    chunks: 55
+    figures: 0

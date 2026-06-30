@@ -1,0 +1,28 @@
+id: longcat-2.0
+title: "LongCat-2.0 技术解读"
+subtitle: "基于官方技术报告的系统化课程：架构、基础设施、后训练与评测。"
+audience: "AI 工程师与研究人员"
+default_port: 8787
+template: tutorial
+lang: zh
+modules:
+  - id: m1
+    title: "LongCat-2.0 概览"
+    file: "modules/01.md"
+    summary: "核心指标、学习目标与课程地图。"
+  - id: m2
+    title: "LongCat 稀疏注意力"
+    file: "modules/02.md"
+    summary: "LSA 如何让 1M token 长上下文变得可负担。"
+  - id: m3
+    title: "N-gram Embedding 与参数效率"
+    file: "modules/03.md"
+    summary: "为什么在 MoE 之外再增加 135B N-gram 参数。"
+  - id: m4
+    title: "训练与推理基础设施"
+    file: "modules/04.md"
+    summary: "ASIC 超节点、6D 并行、推理部署优化。"
+  - id: m5
+    title: "后训练、能力与评测"
+    file: "modules/05.md"
+    summary: "三类专家组、MOPD、演示与 benchmark 结果。"

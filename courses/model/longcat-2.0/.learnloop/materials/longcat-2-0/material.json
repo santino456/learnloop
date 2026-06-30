@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "/Users/hqyone/Documents/learn-with-ai/courses/model/longcat-2.0/raw/longcat-2.0.txt",
+    "filename": "longcat-2.0.txt",
+    "type": "txt"
+  },
+  "backend": "plain-text",
+  "generated_at": "2026-06-30T05:46:47.894116+00:00",
+  "outputs": {
+    "chunks_jsonl": "chunks.jsonl",
+    "figures_json": null,
+    "figures_md": null
+  },
+  "stats": {
+    "chunks": 55,
+    "figures": 0
+  },
+  "metadata": {
+    "backend": "plain-text"
+  }
+}

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>后训练、能力与评测 | LearnLoop</title>
+  <link rel="stylesheet" href="assets/base.css">
+  <link rel="stylesheet" href="assets/tutorial/style.css">
+</head>
+<body>
+  <div class="file-warning" id="file-warning">需要通过本地 LearnLoop 服务器打开此页面才能使用提问功能。</div>
+  <main class="page">
+    <nav class="top-nav"><a href="index.html">学习路径</a><span>m5</span><span class="top-nav-template">tutorial</span></nav>
+<article class="lesson" data-course-id="longcat-2.0" data-module-id="m5">
+  <header class="lesson-header">
+    <p class="eyebrow">LongCat-2.0 技术解读</p>
+    <h1>后训练、能力与评测</h1>
+    <p class="lede">三类专家组、MOPD、演示与 benchmark 结果解读。</p>
+  </header>
+  <section><h2 data-section-id="m5-post-training" data-section-title="后训练设计">后训练设计 <button class="ask-btn" data-ask-section="m5-post-training" data-ask-title="后训练设计">提问</button></h2>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>三类专家</h4><p class="concept-why">单一模型难以同时精通代码执行、深度推理和人机交互。</p><div class="concept-body"><p>LongCat-2.0 在后训练阶段引入了三类专门化专家组：</p>
+<ul><li><strong>Agent Experts</strong>：提升复杂真实场景中的自主任务执行能力，聚焦代码、工作流、搜索等垂直领域，优化端到端任务成功率，同时强化工具调用、参数解析、自我修正等原子能力。</li><li><strong>Reasoning Experts</strong>：增强逻辑推理深度，支持基于问题难度的自适应计算，覆盖数学、STEM、多跳推理等任务。</li><li><strong>Interaction Experts</strong>：优化人机对齐与用户体验，提升细粒度指令遵循，抑制事实幻觉，并建立安全边界而不损害有用性。</li></ul>
+<p>这种&quot;分而治之&quot;的专家设计与 Mistral 的 Granite、DeepSeek 的 reasoning 路线有相似之处，但 LongCat 明确把能力分成 Agent / Reasoning / Interaction 三类，并用 MOPD 做最终融合。</p>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section>
+<section class="ll-concept"><span class="learning-block-label">概念</span><h4>MOPD：多专家融合架构</h4><p class="concept-why">需要把三类专家的能力合并到一个可部署的模型中。</p><div class="concept-body"><p>团队采用 <strong>MOPD</strong> 架构融合三类专家组，使最终模型同时具备：</p>
+<ul><li>强大的智能体执行能力</li><li>深度推理能力</li><li>高质量交互能力</li></ul>
+<p>从而能够准确理解复杂用户需求并可靠完成现实世界任务。</p>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section></section>
+<section><h2 data-section-id="m5-benchmarks" data-section-title="评测结果与解读">评测结果与解读 <button class="ask-btn" data-ask-section="m5-benchmarks" data-ask-title="评测结果与解读">提问</button></h2>
+<aside class="ll-evidence"><span class="learning-block-label">证据</span><p><strong>在统一自测 harness 下，LongCat-2.0 在 Terminal-Bench 2.1、SWE-bench Pro、SWE-bench Multilingual、FORTE、BrowseComp、RWSearch 等任务上达到了与 Gemini 3.1 Pro、GPT-5.5、Claude Opus 4.x 系列竞争的代码与智能体能力。</strong></p><p class="evidence-basis">博客 Evaluations 章节给出了完整对比表格，并注明带 * 为外部公开值、其余为自测。</p><footer><span>verified</span><span><a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></span></footer></aside>
+<p>主要 benchmark 分数如下（带 * 为外部公开值，其余为自测；满分 100）：</p>
+<table><thead><tr><th>任务</th><th>LongCat-2.0</th><th>Gemini 3.1 Pro</th><th>GPT-5.5</th><th>Opus 4.6</th><th>Opus 4.7</th><th>Opus 4.8</th><th>相关链接</th></tr></thead><tbody><tr><td>Terminal-Bench 2.1</td><td>70.8</td><td>70.7*</td><td>73.8*</td><td>-</td><td>71.7*</td><td>78.9*</td><td><a href="https://arxiv.org/html/2601.11868" target="_blank" rel="noopener noreferrer">论文</a> / <a href="https://www.tbench.ai/" target="_blank" rel="noopener noreferrer">官网</a></td></tr><tr><td>SWE-bench Pro</td><td>59.5</td><td>54.2*</td><td>58.6*</td><td>57.3*</td><td>64.3*</td><td>69.2*</td><td><a href="https://www.swebench.com/" target="_blank" rel="noopener noreferrer">SWE-bench</a></td></tr><tr><td>SWE-bench Multilingual</td><td>77.3</td><td>76.9*</td><td>-</td><td>77.8*</td><td>80.5*</td><td>84.8*</td><td><a href="https://www.swebench.com/" target="_blank" rel="noopener noreferrer">SWE-bench</a></td></tr><tr><td>FORTE</td><td>73.2</td><td>70.3</td><td>77.8</td><td>73.2</td><td>77.6</td><td>77.2</td><td>美团自测</td></tr><tr><td>BrowseComp</td><td>79.9</td><td>85.9*</td><td>84.4*</td><td>84.0*</td><td>79.3*</td><td>84.3*</td><td><a href="https://openai.com/index/browsecomp/" target="_blank" rel="noopener noreferrer">OpenAI</a> / <a href="https://arxiv.org/html/2504.12516" target="_blank" rel="noopener noreferrer">论文</a></td></tr><tr><td>RWSearch</td><td>78.8</td><td>76.3</td><td>85.3</td><td>81.3</td><td>79.3</td><td>77.3</td><td>美团自测</td></tr><tr><td>IFEval</td><td>90.0</td><td>96.1</td><td>95.0</td><td>92.2</td><td>88.7</td><td>86.0</td><td><a href="https://arxiv.org/html/2311.07911" target="_blank" rel="noopener noreferrer">Google IFEval</a></td></tr><tr><td>Writing Bench</td><td>83.8</td><td>83.7</td><td>84.7</td><td>-</td><td>85.3</td><td>85.2</td><td>-</td></tr><tr><td>IMO-AnswerBench</td><td>81.8</td><td>90.0</td><td>79.5</td><td>75.3*</td><td>81.8</td><td>75.3</td><td>-</td></tr><tr><td>GPQA-diamond</td><td>88.9</td><td>94.3*</td><td>93.6*</td><td>91.3*</td><td>94.2*</td><td>92.4*</td><td><a href="https://arxiv.org/html/2311.12022" target="_blank" rel="noopener noreferrer">GPQA</a></td></tr></tbody></table>
+<p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p>
+<h3>关键解读</h3>
+<ul><li><strong>代码 / 智能体任务</strong>：LongCat-2.0 在 Terminal-Bench 2.1 和 SWE-bench Pro 上接近或超过 Gemini 3.1 Pro / GPT-5.5，说明其 Agent Experts 和代码后训练有效。但距离 Opus 4.8 仍有差距，特别是在 SWE-bench Pro（59.5 vs 69.2）。</li><li><strong>通用智能体</strong>：FORTE 和 RWSearch 表现均衡，但 RWSearch 落后于 GPT-5.5（78.8 vs 85.3），说明复杂搜索场景仍有提升空间。</li><li><strong>基础能力</strong>：IFEval、GPQA-diamond、IMO-AnswerBench 上落后于 Gemini 3.1 Pro / GPT-5.5，反映 LongCat-2.0 的定位更偏向代码与智能体，而非通用推理。</li></ul></section>
+<section><h2 data-section-id="m5-decision" data-section-title="练习：为场景选模型">练习：为场景选模型 <button class="ask-btn" data-ask-section="m5-decision" data-ask-title="练习：为场景选模型">提问</button></h2>
+<section class="ll-decision"><div class="decision-prompt"><p>你正在为一个项目选择模型，需求如下：</p>
+<ul><li>主要任务：仓库级代码迁移与插件重写。</li><li>上下文：完整代码库 + 迁移文档，可能达到 500K tokens。</li><li>预算：可接受专用推理集群，但希望单卡显存压力可控。</li></ul>
+<p>LongCat-2.0 是否是合适选择？</p></div><div class="decision-reveal" hidden><section class="decision-perspective"><h4>视角</h4><p>依据：LongCat-2.0 在 Terminal-Bench 2.1 和 SWE-bench 系列上表现较强，支持 1M 上下文，且通过 KVP/EP128 缓解了单卡显存压力。但 GPQA-diamond、IMO-AnswerBench 等推理 benchmark 上落后于 Gemini 3.1 Pro / GPT-5.5，若项目高度依赖纯数学/科学推理，需额外评估。</p></section></div><button class="decision-toggle" type="button" aria-expanded="false">显示判断视角</button></section></section>
+<section><h2 data-section-id="m5-summary" data-section-title="课程总结">课程总结 <button class="ask-btn" data-ask-section="m5-summary" data-ask-title="课程总结">提问</button></h2>
+<p>LongCat-2.0 的核心设计可概括为：</p>
+<ol><li><strong>1.6T/48B MoE + 1M 上下文</strong>，定位代码与智能体任务。</li><li><strong>LSA</strong> 通过 SI/CLI/HI 降低长上下文索引成本。</li><li><strong>N-gram Embedding</strong> 在 MoE 正交维度上以 135B 参数提升表示能力。</li><li><strong>AI ASIC 超节点 + 6D 并行</strong> 支撑了稳定的大规模训练与高效推理。</li><li><strong>Agent / Reasoning / Interaction 三组专家 + MOPD</strong> 实现能力融合。</li></ol>
+<p>这些设计共同支撑了 LongCat-2.0 在代码与智能体 benchmark 上的竞争力，但通用推理仍是其相对短板。</p></section>
+  <footer class="next-prev"><a href="m4.html">上一节</a><span></span></footer>
+</article>
+<template id="ask-template">
+  <form class="ask-form">
+    <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
+    <div class="ask-actions">
+      <button type="button" data-cancel>取消</button>
+      <button type="submit">保存问题</button>
+    </div>
+    <p class="ask-status" role="status"></p>
+  </form>
+</template>
+<button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
+<aside class="question-drawer" id="question-drawer" aria-hidden="true">
+  <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="question-list" class="question-list"></div>
+  <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
+</aside>
+  </main>
+  <script src="config.js"></script>
+  <script src="assets/runtime-base.js"></script>
+  <script src="assets/tutorial/runtime.js"></script>
+</body>
+</html>

@@ -20,7 +20,7 @@
   <section><h2 data-section-id="m2-motivation" data-section-title="为什么智能体需要稀疏注意力">为什么智能体需要稀疏注意力 <button class="ask-btn" data-ask-section="m2-motivation" data-ask-title="为什么智能体需要稀疏注意力">提问</button></h2>
 <section class="ll-concept"><span class="learning-block-label">概念</span><h4>长输入瓶颈</h4><p class="concept-why">智能体工作流会把代码库、多轮对话历史、工具返回结果等长文本塞进上下文。</p><div class="concept-body"><p>智能体应用正在把 LLM 推向高效长输入处理。稠密全注意力的计算量随序列长度平方增长，100 万 token 的推理成本极高。稀疏注意力通过只选择部分 token 参与注意力，来降低这一成本。</p>
 <p>延伸阅读：</p>
-<ul><li><a href="https://arxiv.org/html/2002.04745" target="_blank" rel="noopener noreferrer">The Transformer Family</a>（注意力机制综述，适合理解稀疏注意力的动机）</li><li><a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a>（本章 LSA 部分的主要来源）</li></ul></div></section></section>
+<ul><li><a href="https://arxiv.org/html/2009.06732" target="_blank" rel="noopener noreferrer">Efficient Transformers: A Survey</a>（Transformer 与高效注意力机制综述，适合理解稀疏注意力的动机）</li><li><a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a>（本章 LSA 部分的主要来源）</li></ul></div></section></section>
 <section><h2 data-section-id="m2-dsa" data-section-title="起点：DeepSeek Sparse Attention">起点：DeepSeek Sparse Attention <button class="ask-btn" data-ask-section="m2-dsa" data-ask-title="起点：DeepSeek Sparse Attention">提问</button></h2>
 <section class="ll-concept"><span class="learning-block-label">概念</span><h4>DSA 的设计与瓶颈</h4><p class="concept-why">LSA 是 DSA 的演进，先理解基线再理解改进。</p><div class="concept-body"><p>DeepSeek Sparse Attention（DSA）是 DeepSeek-V3.2 提出的细粒度稀疏注意力机制，核心组件包括：</p>
 <ul><li><strong>Fine-grained sparse attention</strong>：以 token 级或块级稀疏模式替代全量 attention。</li><li><strong>Lightning Indexer</strong>：动态决定每个 query 应该 attend 哪些 key/value，是 DSA 的关键路径。</li></ul>
@@ -40,7 +40,7 @@
 <section><h2 data-section-id="m2-mtp" data-section-title="把 LSA 扩展到投机解码">把 LSA 扩展到投机解码 <button class="ask-btn" data-ask-section="m2-mtp" data-ask-title="把 LSA 扩展到投机解码">提问</button></h2>
 <section class="ll-concept"><span class="learning-block-label">概念</span><h4>LSA + 3 步 Multi-Token Prediction</h4><p class="concept-why">投机解码需要便宜的 draft token，但不能增加显存压力。</p><div class="concept-body"><p>LSA 的三项策略被扩展到一个 3 步 MTP 模块：</p>
 <ul><li>在 <strong>target 模型</strong> 中，每两个连续层共享一次索引。</li><li>在 <strong>draft 模型</strong> 中，三个 MTP draft 步共享一次索引，第 2、3 步复用第 1 步生成的索引集合。</li></ul>
-<p>延伸阅读：<a href="https://arxiv.org/html/2401.15077" target="_blank" rel="noopener noreferrer">MTP / Medusa / EAGLE 投机解码家族</a>（了解 draft model 如何加速 LLM 解码）</p>
+<p>延伸阅读：<a href="https://arxiv.org/html/2401.07851" target="_blank" rel="noopener noreferrer">A Comprehensive Survey of Speculative Decoding</a>（投机解码综述，了解 draft model 如何加速 LLM 解码）</p>
 <p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section>
 <section class="ll-compare"><span class="learning-block-label">对比</span><table><thead><tr><th>维度</th><th>稠密注意力</th><th>LongCat 稀疏注意力</th></tr></thead><tbody><tr><th>成本增长</th><td>随序列长度平方增长</td><td>通过 token 选择实现次平方增长</td></tr><tr><th>内存访问</th><td>量大但规则</td><td>基线稀疏方案碎片化；SI 后合并访问</td></tr><tr><th>层间索引</th><td>每层重新计算</td><td>通过 CLI 跨层共享</td></tr><tr><th>候选打分</th><td>全量细粒度扫描</td><td>HI 粗到细筛选</td></tr></tbody></table></section></section>
 <section><h2 data-section-id="m2-exercise" data-section-title="练习：把瓶颈对应到解法">练习：把瓶颈对应到解法 <button class="ask-btn" data-ask-section="m2-exercise" data-ask-title="练习：把瓶颈对应到解法">提问</button></h2>

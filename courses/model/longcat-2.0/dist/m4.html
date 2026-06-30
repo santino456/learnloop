@@ -25,7 +25,7 @@
 <section><h2 data-section-id="m4-training" data-section-title="训练优化">训练优化 <button class="ask-btn" data-ask-section="m4-training" data-ask-title="训练优化">提问</button></h2>
 <section class="ll-concept"><span class="learning-block-label">概念</span><h4>确定性与可靠性</h4><p class="concept-why">数万卡规模训练必须可复现、可自动恢复。</p><div class="concept-body"><p>为保障生产环境的可复现性，团队在通信和计算路径上都强制确定性：</p>
 <ul><li>自研确定性算子和模块覆盖 Embedding、Flash Attention、LSA、MoE 层。</li><li>所有 reduction 类算子采用二叉树分段累加，减少浮点误差累积。</li><li>在真实 LLM 负载下对加速器计算精度进行严格高精度基线验证。</li><li>在部分计算密集型算子中引入 bit-flip 检测，及时捕获硬件位翻转异常。</li><li>端到端监控驱动故障识别、流量切换与自动恢复；隔离故障链路对训练无感知影响，修复后需通过压力测试才重新加入。</li></ul>
-<p>参考：大规模训练可靠性可参考 <a href="https://arxiv.org/html/2303.08774" target="_blank" rel="noopener noreferrer">GPT-4 训练稳定性经验</a> 与 DeepSeek-V3 训练报告。</p>
+<p>参考：大规模训练稳定性方法可参见 <a href="https://arxiv.org/html/2410.16682" target="_blank" rel="noopener noreferrer">Methods of improving LLM training stability</a> 与 DeepSeek-V3 训练报告。</p>
 <p>Source: <a href="https://longcat.chat/blog/longcat-2.0/" target="_blank" rel="noopener noreferrer">LongCat-2.0 官方博客</a></p></div></section>
 <section class="ll-concept"><span class="learning-block-label">概念</span><h4>6D 并行与内存优化</h4><p class="concept-why">AI ASIC 单卡显存显著小于 H800，内存是主要瓶颈。</p><div class="concept-body"><p>扩展策略：</p>
 <ul><li><strong>6D 并行</strong>：在标准 TP/CP/EP/DP/PP 基础上，增加 <strong>EMBP</strong> 来并行和加速 N-gram Embedding。</li><li><strong>Superpod</strong>：每个物理 Superpod 最多 48 台机器，内部全互联高带宽，之间通过 RoCE 互联；相比同规模 GPU 环境带来约 <strong>30% 预训练吞吐提升</strong>。</li><li><strong>内存优化</strong>：ZeRO-1、选择性重计算、OOM-aware offloading、将 padding token 路由到 zero-expert。</li><li><strong>Muon 优化器</strong>：在大规模 AI ASIC 上部署，并针对 TP 并行、DP 状态冗余去除和对称矩阵乘核做了优化。</li></ul>

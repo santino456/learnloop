@@ -1,111 +1,168 @@
 ---
 name: learnloop
-description: Work with LearnLoop local-first adaptive learning courses. Use when creating or updating LearnLoop course source, generating trustworthy AI-assisted tutorials, choosing Tutorial/Reference/Practice/Perspective content forms, answering saved learner questions from questions.jsonl, or improving modules based on learner confusion.
+description: Work with LearnLoop local-first adaptive learning courses. Use when creating or updating LearnLoop course source, answering saved learner questions, or improving modules based on learner confusion.
 ---
 
 # LearnLoop
 
-LearnLoop is a local-first AI course compiler and learning package format. It
-turns raw material into a local, verifiable learning loop:
+LearnLoop is a local-first AI course compiler and adaptive learning package format. Its purpose is not to produce a perfect course in one shot, but to run a **learning loop**:
 
 ```text
-sources + learner goal -> Markdown/YAML course -> local HTML -> questions -> agent context -> improved source
+sources + learner goal -> Markdown/YAML course -> local HTML
+                          ^                                      |
+                          |                                      v
+                    improved source <- agent context <- learner questions
 ```
 
-Your first job is **learning design and epistemic control**, not fast drafting.
-A fluent lesson is not good enough unless the learner goal, section-level
-learning actions, sources, evidence, content forms, and validation state are clear.
+A course is a living artifact. The first build is the starting point; the real measure of quality is whether the loop converges. Learners read, get stuck, ask questions, and the course improves at exactly the places where they get stuck.
 
-Think like an experienced teacher preparing a lesson: research first, check the facts, decide what form the material should take, then write. Do not jump straight to a long module draft.
+Your job is **learning design and epistemic control**. Do not optimize for fluent prose. Optimize for a learner who can actually understand, verify, practice, and judge the material after reading it.
 
-## Task Router
+## First Principles
 
-- **Answer learner question**: read `references/answering-loop.md`, run `learnloop context`, write an answer artifact, and update course source only if the answer should be reused.
-- **Small course edit**: inspect the target module, preserve section ids, make the narrow edit, then run `learnloop validate` and `learnloop build`.
-- **Course structure or template change**: read `references/course-format.md` before editing `course.yaml`, module frontmatter, containers, templates, or section ids.
-- **New or substantial course generation**: start with `learnloop scaffold-course <slug> --target courses` unless the course already exists. Then follow the Expert Teacher Workflow below and read `references/orchestration.md` first.
-- **Course from PDF/DOCX/PPTX/Markdown/text material**: put the original file in `raw/`, run `learnloop ingest <file> --course <course-dir>`, then use `.learnloop/materials/<source>/` as the reading substrate. Do not draft directly from memory or cite `raw/*.pdf` as an image.
-- **Named entities, technical claims, commands, APIs, protocol fields, or version-sensitive facts**: verify them against a reliable source before adding them.
-- **Publication or reusable course**: also read `references/content-verification.md`; optionally add a `.learnloop/` workspace to track sources and claims.
-- **Language and audience**: generate course content and UI labels in the user's interaction language. Chinese interaction → default to Chinese content (`lang: zh` or keep `lang: auto` when the text is clearly Chinese); English interaction → default to English (`lang: en`). When language is mixed or unclear, ask: "你希望课程用中文、英文，还是中英双语呈现？" Record the final choice in `course.yaml` under `lang`.
+1. **The course serves the learner, not the author.** Every paragraph, component, and exercise should be justifiable by a learner action: understand, compare, verify, practice, or judge. If it does not help the learner do one of those things, remove it.
+2. **Confusion is signal.** Learner questions in `questions.jsonl` are the most valuable data. They reveal where the course's mental model diverges from the learner's mental model.
+3. **Keep the main line short.** The primary narrative should be tight. Deep explanations, proofs, examples, and tangents belong in collapsible or attached components near the relevant point, not inlined into the main text.
+4. **Earn trust, don't claim it.** Every explanation should be traceable: show the calculation, give a concrete example, cite the paper section, or provide a runnable check. Avoid hand-waving.
+5. **Iterate locally, verify externally.** Use `validate`, `build`, `audit`, and tests as gates, but remember they only catch syntax and structure errors. The real test is a human reading the rendered page.
+
+## The Shape of Good Explanation
+
+A good explanation usually answers several of these questions, weighted by the learner's background and the module's learning job:
+
+- **What** is it? (definition, boundary, name)
+- **How** does it work? (mechanism, step-by-step process)
+- **Why** is it true? (proof, derivation, causal story)
+- **When** does it apply? (scope, assumptions, edge cases)
+- **What if** it were different? (counterfactual, common mistake, failure mode)
+
+Do not force every concept through all five layers. A high-level overview may need only *what* and *when*; a proof-heavy topic may need *why* above all. Let the learner's likely confusion decide the depth.
+
+A practical heuristic: after drafting a section, ask *"If a learner got stuck here, what would they ask?"* Then add the answer as a `qa` or `concept` block near that point.
+
+## Content Forms
+
+Choose Tutorial, Reference, Practice, or Perspective because the learner needs that form, not because a sample course used it. A module can use only the forms it needs.
+
+| Form | Learner need | Do | Don't |
+|---|---|---|---|
+| **Tutorial** | Build a mental model from confusion to clarity | Start from likely confusion; explain real mechanism; use examples and analogies that map exactly; link to Reference for details | Dump every fact, lookup table, or dense formula here |
+| **Reference** | Look up specific facts repeatedly | Ground in sources; use tables, boundary conditions, edge cases, failure modes; cite every external claim | Write from memory; include narrative or judgment |
+| **Practice** | Train a checkable skill | Give real problems with feedback; tie to module objective; train debugging, design, or retrieval | Use trivia unless recall itself is the goal |
+| **Perspective** | Develop judgment | Name tradeoffs, quality signals, bad smells; state the basis of each judgment | Present agent opinion as standard answer |
+
+Record form decisions in `.learnloop/course_blueprint.md` for non-trivial courses.
 
 ## Expert Teacher Workflow
 
-Before drafting a new or substantial course, work through these steps in your reasoning. You do not need to write long planning documents unless the user asks for them or the course will be published.
+Before drafting, reason through:
 
-1. **Understand the learner and language**: Who are they? What do they already know? What specific confusion or goal brings them here? Confirm the content language from the user's interaction and set `lang` in `course.yaml` (zh, en, or auto).
-2. **Define the learning job**: What should the learner be able to understand or do after this module? One module, one job.
-3. **Research and fact-check**: Identify the sources (official docs, source code, runnable output, papers, user context). For high-stakes claims, verify exact names, versions, commands, and protocol fields. Mark uncertainty instead of guessing.
-4. **Ingest local materials**: For PDFs, Word documents, slide decks, Markdown, or text files, run `learnloop ingest` and inspect `material.json`, `chunks.jsonl`, and any `figures.md` before drafting. Treat extracted figures as candidates that still need visual checking.
-5. **Ask content-derived questions**: After you understand the material, identify 2–4 choices that actually change the course shape. The questions must come from the content, not a fixed questionnaire. If the user does not respond, fall back to a high-quality default that keeps the course complete but marks optional advanced sections.
-6. **Write the Course Blueprint**: Decide the learner job, module jobs, section-level learning actions, evidence needs, and components before editing modules. Use `.learnloop/course_blueprint.md` when present.
-7. **Design the module plan**: Decide which modules are Tutorial, Reference, Practice, or Perspective, and why.
-8. **Draft**: Write only content supported by the design and evidence. Convert suitable material into semantic learning components instead of piling up paragraphs. Do not stop to perfect container syntax while drafting.
-9. **Auto-fix and format**: Run `learnloop fix <course-dir>` to repair common syntax issues (missing concept titles, evidence status/source, unclosed containers), then `learnloop fmt <course-dir>` to normalize indentation and component layout.
-10. **Self-review**: Check for unsupported claims, fake Reference, weak Practice, empty Perspective, private examples, and section id stability.
-11. **Build**: run `validate`, `build`, and optionally `audit`.
+1. **Learner**: Who are they? What do they already know? What specific confusion or goal brings them here? Confirm language and set `lang` in `course.yaml`.
+2. **Learning job**: What should the learner be able to understand or do after this module? One module, one job.
+3. **Sources**: Which papers, docs, code, runnable output, or user context support the content?
+4. **High-stakes claims**: Exact names, commands, APIs, protocol fields, versions, institutions. Verify these before writing.
+5. **Design**: Module boundaries, content forms, section-level learning actions, evidence needs, and components.
+6. **Draft**: Write only content supported by the design and evidence. Use semantic components instead of paragraphs when they expose structure.
+7. **Fix and format**: Run `learnloop fix` and `learnloop fmt`.
+8. **Build and inspect**: Run `validate`, `build`, `audit`. Then spot-check `dist/` for broken links, broken formulas, missing images, unsupported blocks rendered as "None", and other tool-induced bugs.
+9. **Prepare for the question loop**: Identify likely confusion points and add `qa` or `concept` blocks there. Do not wait for questions.
 
-### Content-first checklist
-
-Use this order when deciding what to change:
-
-1. Does the section make a clear learning action (understand, compare, verify, practice, judge)?
-2. Is the evidence reliable and sourced?
-3. Does the chosen component reduce cognitive load or expose structure?
-4. Is the syntax valid after `learnloop fix`?
-
-Do not let container rules slow down the first draft.
-Every section should ask the learner to do one thing: understand, compare,
-verify, practice, or judge. If a section only asks the learner to read, redesign it.
-
-## Content Form Decision
-
-Choose Tutorial, Reference, Practice, and Perspective because the learner needs
-that form, not because a sample course used it. If the choice is unclear, read
-`references/orchestration.md` and write down the learning job before drafting. Omit a
-form when it has no real job.
+For small personal courses, planning notes can stay in the conversation. For technical, reusable, or multi-module courses, persist them under `.learnloop/`.
 
 ## Semantic Components
 
-Use components only when they reduce confusion, expose evidence, train a move,
-or make a judgment visible. Do not add components as decoration. Local images
-belong in `assets/`; remote images stay as links and are not downloaded. For
-exact syntax, read `references/course-format.md`.
+Use components when they make the learning object clearer than another paragraph. Local images belong in `assets/`; remote images stay as links and are not downloaded.
 
-## Source And Claim Rules
+| Component | Use for | Avoid |
+|---|---|---|
+| `concept` | A self-contained idea the learner must hold in memory | Nesting one inside another (unsupported) |
+| `evidence` | A quantitative or factual claim that needs a source | Subjective opinions or unsourced claims |
+| `qa` | A learner question and its detailed answer, attached to the relevant section | A dump of all questions at the end of a module |
+| `example` | A concrete, worked instance of an abstraction | Examples that do not map to the concept |
+| `compare` | Side-by-side comparison of two ideas | More than two sides or decorative tables |
+| `exercise` | Active practice with feedback | Passive reading disguised as a question |
 
-Truth beats fluency. Verify exact names, version-sensitive facts, commands,
-protocol fields, timelines, performance numbers, and project maturity before
-writing them. If the source does not prove a claim, mark it unverified or omit
-it. Read `references/content-verification.md` for the verification standard and
-when preparing a reusable course.
+Containers cannot be nested inside other containers. If you need a note inside a `concept`, close the `concept` first and place the note as a sibling block. For exact syntax, read `references/course-format.md`.
+
+## Sources, Claims, and Verification
+
+Truth beats fluency. Verify exact names, version-sensitive facts, commands, protocol fields, timelines, performance numbers, and project maturity before writing them. If the source does not prove a claim, mark it `unverified`, `needs-human-review`, or `agent-inference`. Never present `agent-inference` as settled fact.
+
+The following claims should use an `::: evidence` component:
+
+- Paper authors, institutions, and submission dates
+- Performance numbers (speedup, accuracy, throughput, accepted length)
+- Model parameters, training configs, and hardware requirements
+- Commands, APIs, protocol fields, and version-sensitive facts
+
+For important facts in reusable courses, also record them in `.learnloop/claims.jsonl`.
+
+Read `references/content-verification.md` for the full verification standard.
+
+## The Question Loop
+
+Learner questions are the steering signal of the course. Treat them as seriously as the original sources.
+
+### Receiving a question
+
+1. Run `learnloop context <course-dir> --question-id <id>` to get the question, selected text, selected context, and section context.
+2. Classify the question:
+   - **Factual**: missing definition, number, or reference. Add the fact to the main text or an evidence block.
+   - **Conceptual**: the learner lacks the mental model. Add a `qa` block with a concrete example, analogy, or derivation.
+   - **Proof/derivation**: the learner wants to see why. Add a `qa` block with step-by-step math and a paper reference.
+   - **Tool/UI**: the question is about the platform. Fix the LearnLoop code or instructions.
+3. Write an answer artifact at `answers/<question-id>.md` with the restated question, detailed answer, references, and a note on where it belongs.
+
+### Integrating the answer
+
+1. Locate the relevant section using `section_id` from the question or selected context.
+2. Add a `qa` block near the relevant paragraph:
+   ```markdown
+   ::: qa
+   question: <exact learner question>
+   section_id: <the-section-id>
+   answer: |
+     <detailed answer>
+   :::
+   ```
+3. If the main text is misleading, fix the main text. Otherwise keep it tight and put the deeper explanation in the `qa` block.
+4. If the same question appears repeatedly, promote the `qa` content into a `concept` block or inline it into the main narrative.
+
+### Quality bar for answers
+
+A good answer should contain at least one of the following:
+
+- A concrete numerical example worked step by step
+- A derivation or proof with each step justified
+- A runnable command, code snippet, or configuration
+- A precise citation (paper section, page, theorem, or official doc)
+- An analogy that maps exactly to the technical mechanism
+
+Do not settle for a one-sentence conceptual pointer.
+
+Read `references/answering-loop.md` for the answer artifact template and detailed workflow.
 
 ## Optional `.learnloop/` Workspace
 
-A `.learnloop/` workspace is **optional**. Use it only when:
+A `.learnloop/` workspace is optional. Use it when the course is shared, reusable, high-risk, or maintained by multiple people. It may contain:
 
-- The course will be shared or published.
-- Multiple agents or people will edit it.
-- The topic has conflicting sources that need tracking.
+- `course_blueprint.md` - learner goal, module plan, section actions, evidence, components.
+- `source_inventory.yaml` - sources consulted.
+- `claims.jsonl` - important claims with verification status.
+- `conflicts.jsonl` - unresolved disagreements between sources.
 
-When used, it may contain:
-
-- `source_inventory.yaml` — sources consulted.
-- `claims.jsonl` — important claims with verification status.
-- `conflicts.jsonl` — unresolved disagreements between sources.
-
-For personal or quick courses, skip the workspace and rely on agent-driven fact checking.
+For personal or quick courses, skip the workspace.
 
 ## Subagents
 
 Subagents are optional speedups, not the method itself. Use them only for bounded work:
 
-- Researcher: return sources, evidence, uncertainties, citations. Do not draft.
-- Architect: propose module boundaries and content-form decisions. Do not write modules.
-- Reviewer: find unsupported claims, fake Reference, weak Practice, empty Perspective, duplication, and private examples.
-- Verifier: check whether sources actually support claims; downgrade unsupported claims.
+- **Researcher**: return sources, evidence, uncertainties, citations. Do not draft.
+- **Architect**: propose module boundaries and content-form decisions. Do not write modules.
+- **Reviewer**: find unsupported claims, fake Reference, weak Practice, empty Perspective, duplication.
+- **Verifier**: check whether cited sources support the claims; downgrade unsupported claims.
 
-Subagents do not edit `modules/*.md`, `course.yaml`, or `dist/`. The main agent owns final merges and truth status.
+The main agent owns final merges and truth status.
 
 ## Commands
 
@@ -121,14 +178,14 @@ learnloop ingest <course-dir>/raw/<source-file> --course <course-dir>
 learnloop start courses --port 8787
 ```
 
-Use `python3 -m learnloop ...` only when the package is not installed.
+Use `python3 -m learnloop ...` only when the package is not installed. If you modify code under `learnloop/`, run `python3 -m unittest discover -s tests -v`.
 
 ## References
 
-- Read `references/course-format.md` before creating or restructuring course files.
-- Read `references/orchestration.md` before generating or substantially rewriting course content.
-- Read `references/answering-loop.md` before answering learner questions.
-- Read `references/content-verification.md` before adding technical claims, commands, APIs, or protocol fields.
+- `references/course-format.md` - file structure, YAML, Markdown section syntax, container syntax.
+- `references/orchestration.md` - quick reference for content-form rubric and subagent prompts.
+- `references/answering-loop.md` - answer artifact template and detailed question workflow.
+- `references/content-verification.md` - verification standard for technical claims and entity facts.
 
 ## Guardrails
 
@@ -136,5 +193,7 @@ Use `python3 -m learnloop ...` only when the package is not installed.
 - Preserve stable section ids; learner questions depend on them.
 - Do not treat fluent generated text as verified knowledge.
 - Prefer small course updates over broad rewrites.
-- Mark unverifiable technical details instead of presenting them as confirmed.
 - Do not require a `.learnloop/` workspace for every course.
+- Do not nest containers inside other containers.
+- Always build and spot-check the rendered HTML after structural changes.
+- If a block type is not listed in the template manifest, it will render incorrectly. Check the manifest before using a new block type.

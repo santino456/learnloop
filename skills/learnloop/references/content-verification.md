@@ -11,9 +11,7 @@ Use this reference before adding named entities, technical claims, commands, API
 
 ## Entity Facts
 
-Verify exact names before writing them. This includes institutions, companies,
-projects, repositories, people, models, protocols, frameworks, products, and
-organizations.
+Verify exact names before writing them. This includes institutions, companies, projects, repositories, people, models, protocols, frameworks, products, and organizations.
 
 Use the strongest available source:
 
@@ -22,17 +20,11 @@ Use the strongest available source:
 - source code or package metadata;
 - explicit user confirmation.
 
-Do not translate, rename, abbreviate, or "correct" an entity from memory. If a
-course uses a nickname, introduce it only after the verified full name.
+Do not translate, rename, abbreviate, or "correct" an entity from memory. If a course uses a nickname, introduce it only after the verified full name.
 
-For institutions and organizations, copy the exact name from the strongest
-source you have and keep a source note nearby. If two names look similar, do
-not guess which one is correct; mark the claim `needs-human-review` until the
-user or an official source resolves it.
+For institutions and organizations, copy the exact name from the strongest source and keep a source note nearby. If two names look similar, mark the claim `needs-human-review` until resolved.
 
 ## Claim Status
-
-For important facts introduced during course generation, mark the status in the prose or, for reusable courses, in `.learnloop/claims.jsonl`:
 
 - `verified`: supported by official docs, source code, runnable output, or user confirmation.
 - `unverified`: not supported yet.
@@ -40,7 +32,7 @@ For important facts introduced during course generation, mark the status in the 
 - `needs-human-review`: depends on human taste, private context, or author judgment.
 - `agent-inference`: generated inference only.
 
-Never mark an `agent-inference` as `verified` without a real source. A `verified` claim must include `source_id` or `source`.
+Never mark `agent-inference` as `verified` without a real source. A `verified` claim should include `source_id` or `source`.
 
 ## Marking Unverified Details
 
@@ -58,6 +50,4 @@ For Perspective content, write the basis directly:
 
 ## Public Examples
 
-Use fictitious project names and safe paths for publishable courses. Do not
-include personal usernames, private repository names, local home paths, or
-private organization details in public sample content.
+Use fictitious project names and safe paths for publishable courses. Do not include personal usernames, private repository names, local home paths, or private organization details in public sample content.

@@ -833,7 +833,15 @@ def inline(text: str) -> str:
 
     def math_repl(match: re.Match[str], kind: str) -> str:
         wrapper = "div" if kind == "block" else "span"
-        maths.append(f'<{wrapper} class="math {kind}">{match.group(0)}</{wrapper}>')
+        raw = match.group(0)
+        # Escape < and > for MathJax so they are not interpreted as HTML tags.
+        # When followed by a letter, add a separating space so MathJax sees the
+        # command boundary (e.g. "\lt t" instead of "\ltt").
+        raw = re.sub(r"<(?=[a-zA-Z])", r"\\lt ", raw)
+        raw = raw.replace("<", r"\\lt")
+        raw = re.sub(r">(?=[a-zA-Z])", r"\\gt ", raw)
+        raw = raw.replace(">", r"\\gt")
+        maths.append(f'<{wrapper} class="math {kind}">{raw}</{wrapper}>')
         return f"\x00MATH{len(maths) - 1}\x00"
 
     def link_repl(match: re.Match[str]) -> str:

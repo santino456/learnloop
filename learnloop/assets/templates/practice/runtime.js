@@ -123,21 +123,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Open exercises: reveal answer
-  document.querySelectorAll(".exercise[data-kind='open']").forEach((exercise) => {
-    const toggle = exercise.querySelector(".exercise-toggle");
-    const answer = exercise.querySelector(".exercise-answer");
-    if (!toggle || !answer) return;
-    toggle.textContent = "显示答案";
-    toggle.addEventListener("click", () => {
-      const hidden = answer.hasAttribute("hidden");
-      if (hidden) {
-        answer.removeAttribute("hidden");
-        toggle.textContent = "隐藏答案";
-      } else {
-        answer.setAttribute("hidden", "");
-        toggle.textContent = "显示答案";
-      }
-    });
-  });
+  // Open exercises are handled by shared runtime-base.js initExerciseToggles().
 });

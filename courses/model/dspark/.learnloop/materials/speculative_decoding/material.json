@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "E:\\learnloop\\courses\\model\\dspark\\raw\\speculative_decoding.pdf",
+    "filename": "speculative_decoding.pdf",
+    "type": "pdf"
+  },
+  "backend": "pymupdf",
+  "generated_at": "2026-07-02T04:45:48.892487+00:00",
+  "outputs": {
+    "chunks_jsonl": "chunks.jsonl",
+    "figures_json": "figures.json",
+    "figures_md": "figures.md"
+  },
+  "stats": {
+    "chunks": 13,
+    "figures": 9
+  },
+  "metadata": {
+    "backend": "pymupdf",
+    "pages": 13,
+    "title": "",
+    "author": "Yaniv Leviathan, Matan Kalman, Yossi Matias",
+    "figure_extraction": "caption-nearby-crop"
+  }
+}

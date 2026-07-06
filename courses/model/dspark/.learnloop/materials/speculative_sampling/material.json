@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "source": {
+    "path": "E:\\learnloop\\courses\\model\\dspark\\raw\\speculative_sampling.pdf",
+    "filename": "speculative_sampling.pdf",
+    "type": "pdf"
+  },
+  "backend": "pymupdf",
+  "generated_at": "2026-07-02T04:45:42.669337+00:00",
+  "outputs": {
+    "chunks_jsonl": "chunks.jsonl",
+    "figures_json": null,
+    "figures_md": null
+  },
+  "stats": {
+    "chunks": 11,
+    "figures": 0
+  },
+  "metadata": {
+    "backend": "pymupdf",
+    "pages": 11,
+    "title": "",
+    "author": "",
+    "figure_extraction": "caption-nearby-crop"
+  }
+}

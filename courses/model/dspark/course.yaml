@@ -1,11 +1,21 @@
 id: dspark
 title: "DeepSeek DSpark：半自回归投机解码推理加速"
 subtitle: "从动机、架构、置信度调度到生产部署的系统化课程。"
-audience: "AI 工程师与研究人员"
+audience: "已经理解 Transformer 推理基础、想要深入 LLM 推理加速的 AI 工程师与研究人员。"
 default_port: 8787
 template: tutorial
 lang: zh
+prerequisites:
+  - 理解 Transformer 的自回归解码过程，熟悉 token、logits、softmax、KV cache 等基本概念。
+  - 知道 LLM 推理分为 prefill 与 decode 两个阶段，并了解 decode 阶段为什么容易成为延迟瓶颈。
+  - 能够阅读简单的概率公式与伪代码，不畏惧对数、乘积、条件概率等基础符号。
+  - 有使用 Python 和常见深度学习框架（PyTorch / HuggingFace）的经验，便于理解训练与部署章节。
+  - 了解或愿意边查边学 vLLM / SGLang 等开源推理引擎的基本 serve 命令。
 modules:
+  - id: m0
+    title: "投机解码简史：从拒绝采样到 draft 模型"
+    file: "modules/00.md"
+    summary: "理解投机解码的历史位置、核心算法，以及它为什么能无损加速 LLM 推理。"
   - id: m1
     title: "投机解码的动机"
     file: "modules/01.md"

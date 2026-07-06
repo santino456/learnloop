@@ -55,6 +55,34 @@ sources:
     status: read
     notes: "Foundational reference for Multi-Token Prediction (MTP), the production baseline DSpark improves upon."
 
+  - id: vllm-dspark-support
+    type: issue
+    title: "vLLM Issue #46910: Support DSpark for DeepSeek V4"
+    url: "https://github.com/vllm-project/vllm/issues/46910"
+    status: read
+    notes: "Tracks vLLM integration status for DSpark; commands and parameters may change as integration matures."
+
+  - id: vllm-dspark-performance
+    type: issue
+    title: "vLLM Issue #46931: DSpark performance"
+    url: "https://github.com/vllm-project/vllm/issues/46931"
+    status: read
+    notes: "Performance discussion for DSpark in vLLM; deployment details should be verified against current version."
+
+  - id: speculative-sampling
+    type: paper
+    title: "Accelerating Large Language Model Decoding with Speculative Sampling"
+    url: "https://arxiv.org/abs/2302.01318"
+    status: read
+    notes: "DeepMind paper. Introduces modified rejection sampling theorem (Theorem 1), Chinchilla 70B draft model (4B wide-shallow), reports 2-2.5x speedup on XSum and HumanEval."
+
+  - id: speculative-decoding
+    type: paper
+    title: "Fast Inference from Transformers via Speculative Decoding"
+    url: "https://arxiv.org/abs/2211.17192"
+    status: read
+    notes: "Google Research paper. Coins 'speculative decoding', proposes Algorithm 1 with bonus token, analyzes α/β/DLK divergence, reports 2-3x speedup on T5-XXL and LaMDA."
+
   - id: dspark_paper
     type: local-material
     title: "DSpark_paper.pdf"
@@ -63,3 +91,19 @@ sources:
     material: ".learnloop/materials/dspark_paper/material.json"
     chunks: 33
     figures: 0
+  - id: speculative_sampling
+    type: local-material
+    title: "speculative_sampling.pdf"
+    path: "raw/speculative_sampling.pdf"
+    status: ingested
+    material: ".learnloop/materials/speculative_sampling/material.json"
+    chunks: 11
+    figures: 0
+  - id: speculative_decoding
+    type: local-material
+    title: "speculative_decoding.pdf"
+    path: "raw/speculative_decoding.pdf"
+    status: ingested
+    material: ".learnloop/materials/speculative_decoding/material.json"
+    chunks: 13
+    figures: 9

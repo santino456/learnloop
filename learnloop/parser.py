@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import re
+import textwrap
 from pathlib import Path
 from typing import Any
 import yaml
@@ -56,9 +57,9 @@ def _rewrite_arxiv_sources(text: str) -> tuple[str, list[str]]:
         if appendix:
             suffix += f", Appendix {appendix}"
             anchor = _arxiv_appendix_anchor(appendix)
-        url = f"https://arxiv.org/html/{arxiv_id}"
+        url = match.group(2)
         if anchor:
-            url += f"#{anchor}"
+            url = f"https://arxiv.org/html/{arxiv_id}#{anchor}"
         snippet = (
             f'<a href="{url}" target="_blank" rel="noopener noreferrer">'
             f"{link_text}{suffix}</a>"
@@ -346,6 +347,13 @@ def _parse_flow_items(lines: list[str]) -> list[str]:
     return [part.strip() for part in text.split("->") if part.strip()]
 
 
+def _dedent(lines: list[str]) -> list[str]:
+    if not lines:
+        return lines
+    text = "\n".join(lines)
+    return textwrap.dedent(text).splitlines()
+
+
 def _split_leading_attrs(lines: list[str]) -> tuple[dict[str, str], list[str]]:
     attrs: dict[str, str] = {}
     body_start = 0
@@ -519,6 +527,25 @@ def _parse_blocks(
                             line_offset=inner_line_offset + len(inner) - len(body_lines),
                         )
                         if body_lines
+                        else None,
+                    )
+                )
+            elif marker == "qa":
+                attrs, body_lines = _split_leading_attrs(inner)
+                attrs.pop("answer", None)
+                body_lines = _dedent(body_lines)
+                answer_text = "\n".join(body_lines).strip()
+                blocks.append(
+                    Block(
+                        type="qa",
+                        source=_source(source, line_offset + container_start + 1),
+                        attrs=attrs,
+                        blocks=parse_markdown(
+                            answer_text,
+                            source=source,
+                            line_offset=inner_line_offset + len(inner) - len(body_lines),
+                        )
+                        if answer_text
                         else None,
                     )
                 )

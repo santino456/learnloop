@@ -282,7 +282,7 @@ Body.
             errors = validate_course(created)
             self.assertRegex(
                 "\n".join(errors),
-                r"modules/01\.md:\d+: unclosed ::: decision block",
+                r"(?:modules/01\.md|.*[\\/]modules[\\/]01\.md):\d+: unclosed ::: decision block",
             )
 
     def test_context_returns_question_section(self) -> None:
@@ -302,6 +302,25 @@ Body.
             context = json.loads(make_context(created, "q1"))
             self.assertEqual(context["question"]["id"], "q1")
             self.assertIn("Why this course exists", context["section_context"])
+
+    def test_context_includes_selected_text(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            created = init_course(Path(tmp), "context-selected-course")
+            question = {
+                "id": "q1",
+                "timestamp": "2026-06-22T12:00:00",
+                "course_id": "context-selected-course",
+                "module_id": "m1",
+                "section_id": "m1-purpose",
+                "section_title": "Why this course exists",
+                "selected_text": "goal",
+                "question": "What does this mean?",
+                "status": "open",
+            }
+            (created / "questions.jsonl").write_text(json.dumps(question) + "\n", encoding="utf-8")
+            context = json.loads(make_context(created, "q1"))
+            self.assertEqual(context["question"]["selected_text"], "goal")
+            self.assertIn("selected_text", context["answer_instructions"])
 
     def test_context_skips_invalid_question_log_lines(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

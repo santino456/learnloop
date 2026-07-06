@@ -59,7 +59,7 @@ def make_context(course_dir: Path, question_id: str) -> str:
         },
         "question": question,
         "section_context": section_text,
-        "answer_instructions": "Answer the learner's question, then suggest whether the course source should be updated.",
+        "answer_instructions": "Answer the learner's question. If question.selected_text is present, address the selected text explicitly. Then suggest whether the course source should be updated.",
     }
     return json.dumps(payload, ensure_ascii=False, indent=2)
 

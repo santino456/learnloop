@@ -9,11 +9,106 @@ window.LearnLoopRuntime = (() => {
     }
     initCopyButtons();
     initAskButtons();
+    initTextSelectionAsk();
     initDrawer();
     initDecisionBlocks();
     initLibraryShell();
     initMath();
     loadQuestions();
+  }
+
+  function initTextSelectionAsk() {
+    const lesson = document.querySelector(".lesson");
+    if (!lesson) return;
+
+    let toolbar = null;
+    let lastRange = null;
+
+    document.addEventListener("selectionchange", () => {
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) {
+        toolbar?.remove();
+        toolbar = null;
+        lastRange = null;
+        return;
+      }
+      const range = selection.getRangeAt(0);
+      if (!lesson.contains(range.commonAncestorContainer)) {
+        toolbar?.remove();
+        toolbar = null;
+        lastRange = null;
+        return;
+      }
+      const selectedText = collectRangeText(range).trim();
+      if (selectedText.length < 3) {
+        toolbar?.remove();
+        toolbar = null;
+        lastRange = null;
+        return;
+      }
+      lastRange = range.cloneRange();
+      showSelectionToolbar(range, selectedText);
+    });
+
+    document.addEventListener("mousedown", (event) => {
+      if (toolbar && !toolbar.contains(event.target)) {
+        toolbar.remove();
+        toolbar = null;
+      }
+    });
+
+    function collectRangeText(range) {
+      const fragment = range.cloneContents();
+      const div = document.createElement("div");
+      div.appendChild(fragment);
+      return div.textContent || "";
+    }
+
+    function showSelectionToolbar(range, selectedText) {
+      toolbar?.remove();
+      toolbar = document.createElement("div");
+      toolbar.className = "ll-selection-toolbar";
+      toolbar.innerHTML = `\u003cbutton type="button" data-ask-selection\u003e提问\u003c/button\u003e`;
+      const rect = range.getBoundingClientRect();
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      toolbar.style.left = `${rect.left + rect.width / 2}px`;
+      toolbar.style.top = `${rect.top + scrollTop - 44}px`;
+      toolbar.style.transform = "translateX(-50%)";
+      document.body.appendChild(toolbar);
+
+      toolbar.querySelector("[data-ask-selection]").addEventListener("click", () => {
+        const sectionNode = findSectionNode(range.commonAncestorContainer);
+        const sectionId = sectionNode?.dataset.sectionId || "";
+        const sectionTitle = sectionNode?.querySelector("h2")?.textContent?.trim() || "";
+        const blockText = getBlockText(range.commonAncestorContainer, lesson);
+        openAskForSelection(selectedText, blockText, sectionId, sectionTitle);
+        toolbar?.remove();
+        toolbar = null;
+        window.getSelection()?.removeAllRanges();
+      });
+    }
+
+    function getBlockText(node, container) {
+      let el = node instanceof Element ? node : node?.parentElement;
+      while (el && el !== container) {
+        if (["P", "LI", "TD", "TH", "DIV", "SECTION", "BLOCKQUOTE"].includes(el.tagName)) {
+          return el.textContent || "";
+        }
+        el = el.parentElement;
+      }
+      return container?.textContent || "";
+    }
+
+    function findSectionNode(node) {
+      let el = node instanceof Element ? node : node?.parentElement;
+      while (el && !el.classList?.contains("lesson")) {
+        if (el.tagName === "SECTION" && el.hasAttribute("data-section-id")) {
+          return el;
+        }
+        el = el.parentElement;
+      }
+      return null;
+    }
   }
 
   function initCopyButtons() {
@@ -51,6 +146,8 @@ window.LearnLoopRuntime = (() => {
   function initDrawer() {
     const drawer = document.getElementById("question-drawer");
     document.querySelector("[data-open-drawer]")?.addEventListener("click", () => {
+      const host = document.getElementById("drawer-form-host");
+      if (host) host.innerHTML = "";
       drawer?.classList.add("open");
       loadQuestions();
     });
@@ -60,22 +157,28 @@ window.LearnLoopRuntime = (() => {
   }
 
   function openAsk(button) {
-    document.querySelectorAll(".ask-form").forEach((node) => node.remove());
+    const host = document.getElementById("drawer-form-host");
+    if (!host) return;
+    host.innerHTML = "";
+    const drawer = document.getElementById("question-drawer");
+    if (!drawer) return;
+
     const template = document.getElementById("ask-template");
     if (!template) return;
     const form = template.content.firstElementChild.cloneNode(true);
-    const lesson = document.querySelector(".lesson");
-    const anchor = button.closest("[data-section-id]") || lesson || document.querySelector(".page");
-    anchor.insertAdjacentElement("afterend", form);
+    const contextLine = form.querySelector("[data-selected-context]");
+    if (contextLine) contextLine.remove();
     const textarea = form.querySelector("textarea");
     const status = form.querySelector(".ask-status");
     const submit = form.querySelector("[type='submit']");
     textarea.placeholder = "你对这一节有什么疑问？";
     textarea.focus();
-    form.scrollIntoView({ block: "center", behavior: "smooth" });
     form.querySelector("[data-cancel]").textContent = "取消";
     submit.textContent = "保存问题";
-    form.querySelector("[data-cancel]").addEventListener("click", () => form.remove());
+    form.querySelector("[data-cancel]").addEventListener("click", () => {
+      host.innerHTML = "";
+      drawer.classList.remove("open");
+    });
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const question = textarea.value.trim();
@@ -83,6 +186,7 @@ window.LearnLoopRuntime = (() => {
         status.textContent = "请先写一个问题。";
         return;
       }
+      const lesson = document.querySelector(".lesson");
       const moduleId = lesson?.dataset.moduleId || "";
       const payload = {
         module_id: moduleId,
@@ -102,13 +206,105 @@ window.LearnLoopRuntime = (() => {
         status.textContent = "已保存到 questions.jsonl";
         textarea.value = "";
         await loadQuestions();
-        setTimeout(() => form.remove(), 900);
+        setTimeout(() => {
+          host.innerHTML = "";
+          drawer.classList.remove("open");
+        }, 900);
       } catch (error) {
         status.textContent = "保存失败。请确认本地 LearnLoop 服务器仍在运行。";
       } finally {
         submit.disabled = false;
       }
     });
+    host.appendChild(form);
+    drawer.classList.add("open");
+  }
+
+  function openAskForSelection(selectedText, blockText, sectionId, sectionTitle) {
+    const host = document.getElementById("drawer-form-host");
+    if (!host) return;
+    host.innerHTML = "";
+    const drawer = document.getElementById("question-drawer");
+    if (!drawer) return;
+
+    const template = document.getElementById("ask-template");
+    if (!template) return;
+    const form = template.content.firstElementChild.cloneNode(true);
+    const contextLine = form.querySelector("[data-selected-context]");
+    if (contextLine) {
+      contextLine.textContent = `引文：${blockText.slice(0, 140)}${blockText.length > 140 ? "..." : ""}`;
+    }
+    const textarea = form.querySelector("textarea");
+    const status = form.querySelector(".ask-status");
+    const submit = form.querySelector("[type='submit']");
+    textarea.placeholder = `关于“${selectedText.slice(0, 40)}${selectedText.length > 40 ? "..." : ""}”你有什么疑问？`;
+    textarea.focus();
+    form.querySelector("[data-cancel]").textContent = "取消";
+    submit.textContent = "保存问题";
+    form.querySelector("[data-cancel]").addEventListener("click", () => {
+      host.innerHTML = "";
+      drawer.classList.remove("open");
+    });
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const question = textarea.value.trim();
+      if (!question) {
+        status.textContent = "请先写一个问题。";
+        return;
+      }
+      const lesson = document.querySelector(".lesson");
+      const moduleId = lesson?.dataset.moduleId || "";
+      const payload = {
+        module_id: moduleId,
+        section_id: sectionId,
+        section_title: sectionTitle,
+        selected_text: selectedText,
+        selected_context: blockText,
+        question,
+      };
+      try {
+        status.textContent = "保存中…";
+        submit.disabled = true;
+        const response = await fetchWithTimeout(`${apiBase}/ask`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }, 8000);
+        if (!response.ok) throw new Error(await response.text());
+        status.textContent = "已保存到 questions.jsonl";
+        textarea.value = "";
+        await loadQuestions();
+        setTimeout(() => {
+          host.innerHTML = "";
+          drawer.classList.remove("open");
+        }, 900);
+      } catch (error) {
+        status.textContent = "保存失败。请确认本地 LearnLoop 服务器仍在运行。";
+      } finally {
+        submit.disabled = false;
+      }
+    });
+    host.appendChild(form);
+    drawer.classList.add("open");
+  }
+
+  function highlightSelectionTemporarily() {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    const mark = document.createElement("mark");
+    mark.className = "ll-selection-highlight";
+    try {
+      range.surroundContents(mark);
+      setTimeout(() => {
+        const parent = mark.parentNode;
+        if (!parent) return;
+        while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+        parent.removeChild(mark);
+      }, 3000);
+    } catch (_e) {
+      // Cross-element selections cannot be surrounded; ignore.
+    }
   }
 
   async function loadQuestions() {

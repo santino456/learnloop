@@ -272,6 +272,12 @@ def make_handler(library: CourseLibrary, port: int) -> type[BaseHTTPRequestHandl
 
             target = safe_join(dist, rel_path)
             if target is None or not target.exists() or target.is_dir():
+                # Serve original source artifacts from the course raw/ directory.
+                if rel_path.startswith("raw/"):
+                    raw_target = safe_join(entry.root, rel_path)
+                    if raw_target and raw_target.exists() and not raw_target.is_dir():
+                        self.send_file(raw_target)
+                        return
                 self.send_error(404)
                 return
             self.send_file(target)
@@ -345,6 +351,8 @@ def make_handler(library: CourseLibrary, port: int) -> type[BaseHTTPRequestHandl
                 "module_id": module_id,
                 "section_id": section_id,
                 "section_title": clean_short_text(str(data.get("section_title", ""))),
+                "selected_text": clean_question_text(str(data.get("selected_text", ""))),
+                "selected_context": clean_question_text(str(data.get("selected_context", ""))),
                 "question": question,
                 "status": "open",
             }

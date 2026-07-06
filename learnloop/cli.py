@@ -197,7 +197,9 @@ def main(argv: list[str] | None = None) -> int:
             if args.check and changed:
                 return 1
         elif args.command == "context":
-            print(make_context(Path(args.course_dir), args.question_id))
+            context_json = make_context(Path(args.course_dir), args.question_id)
+            sys.stdout.buffer.write(context_json.encode("utf-8"))
+            sys.stdout.buffer.write(b"\n")
         elif args.command == "ingest":
             result = ingest_material(
                 Path(args.source_file),

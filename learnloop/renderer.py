@@ -48,6 +48,8 @@ def render_blocks(blocks: list[Block], template: Any | None = None) -> str:
             out.append(render_evidence(block, template))
         elif block.type == "decision":
             out.append(render_decision(block, template))
+        elif block.type == "qa":
+            out.append(render_qa(block, template))
         elif block.type == "table":
             headers = "".join(f"<th>{inline(cell)}</th>" for cell in (block.headers or []))
             rows = ""
@@ -69,6 +71,18 @@ def render_blocks(blocks: list[Block], template: Any | None = None) -> str:
             inner = render_blocks(block.blocks or [], template)
             out.append(f'<div class="block-{html.escape(block.type)}">{inner}</div>')
     return "\n".join(out)
+
+
+def render_qa(block: Block, template: Any | None = None) -> str:
+    attrs = block.attrs or {}
+    question = inline(attrs.get("question", t("label.question")))
+    answer = render_blocks(block.blocks or [], template)
+    return (
+        '<details class="ll-qa">'
+        f'<summary><span class="ll-qa-q">{question}</span></summary>'
+        f'<div class="ll-qa-a">{answer}</div>'
+        '</details>'
+    )
 
 
 def render_figure(block: Block) -> str:
@@ -271,7 +285,7 @@ def render_section(block: Block, template: Any | None = None) -> str:
         f'<h{level} data-section-id="{section_id}" data-section-title="{title}">'
         f'{title} {ask_button}</h{level}>'
     )
-    return f"<section>{heading}\n{inner}</section>"
+    return f'<section data-section-id="{section_id}" data-section-title="{title}">{heading}\n{inner}</section>'
 
 
 def _first_text_summary(blocks: list[Block]) -> str:
@@ -936,7 +950,8 @@ def _walk_blocks(blocks: list[Block]) -> list[Block]:
 
 
 QUESTION_UI = """<template id="ask-template">
-  <form class="ask-form">
+  <form class="ask-form ask-form--drawer">
+    <p class="ask-context" data-selected-context></p>
     <textarea name="question" placeholder="你对这一节有什么疑问？"></textarea>
     <div class="ask-actions">
       <button type="button" data-cancel>取消</button>
@@ -948,6 +963,7 @@ QUESTION_UI = """<template id="ask-template">
 <button class="question-fab" data-open-drawer>问题 <span id="question-count">0</span></button>
 <aside class="question-drawer" id="question-drawer" aria-hidden="true">
   <header><h2>本模块问题</h2><button data-close-drawer>关闭</button></header>
+  <div id="drawer-form-host"></div>
   <div id="question-list" class="question-list"></div>
   <footer>让 Agent 读取 <code>questions.jsonl</code>，或运行 <code>learnloop context</code>。</footer>
 </aside>"""

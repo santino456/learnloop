@@ -18,6 +18,8 @@ label:
   pitfalls: "常见误区"
   compare_with_author: "对比作者视角"
   key_concept: "核心概念"
+  question: "问题"
+  example: "示例"
   option_a: "选项 A"
   option_b: "选项 B"
   course_title_prefix: "LearnLoop 课程"

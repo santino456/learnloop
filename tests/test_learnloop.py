@@ -946,6 +946,15 @@ Body.
             "--- perspective\n"
             "依据：基于本章部署复杂度。\n"
             "---\n"
+            ":::\n\n"
+            "::: qa\n"
+            "question: Why reuse KV?\n\n"
+            "Because it avoids recomputing attention for prior tokens.\n"
+            ":::\n\n"
+            "::: example\n"
+            "title: Concrete KV reuse\n"
+            "why: Shows the memory trade-off in numbers.\n\n"
+            "With 1,024 tokens, storing keys and values costs ~4 MB; recomputing them costs ~2 ms per token.\n"
             ":::\n"
         )
         with use_language("zh"):
@@ -966,6 +975,11 @@ Body.
         self.assertIn("Local notes", html)
         self.assertIn('class="ll-decision"', html)
         self.assertIn("显示判断视角", html)
+        self.assertIn('class="ll-qa"', html)
+        self.assertIn("Why reuse KV?", html)
+        self.assertIn('class="ll-example"', html)
+        self.assertIn("Concrete KV reuse", html)
+        self.assertIn("memory trade-off", html)
 
     def test_learning_blocks_validate_required_fields(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

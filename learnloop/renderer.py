@@ -48,6 +48,8 @@ def render_blocks(blocks: list[Block], template: Any | None = None) -> str:
             out.append(render_evidence(block, template))
         elif block.type == "decision":
             out.append(render_decision(block, template))
+        elif block.type == "example":
+            out.append(render_example(block, template))
         elif block.type == "qa":
             out.append(render_qa(block, template))
         elif block.type == "table":
@@ -82,6 +84,21 @@ def render_qa(block: Block, template: Any | None = None) -> str:
         f'<summary><span class="ll-qa-q">{question}</span></summary>'
         f'<div class="ll-qa-a">{answer}</div>'
         '</details>'
+    )
+
+
+def render_example(block: Block, template: Any | None = None) -> str:
+    attrs = block.attrs or {}
+    title = inline(attrs.get("title", t("label.example")))
+    why = inline(attrs.get("why", ""))
+    inner = render_blocks(block.blocks or [], template)
+    header = f'<h4 class="example-title">{title}</h4>' if title else ""
+    reason = f'<p class="example-why">{why}</p>' if why else ""
+    return (
+        f'<div class="ll-example">'
+        f'{header}{reason}'
+        f'<div class="example-body">{inner}</div>'
+        f'</div>'
     )
 
 

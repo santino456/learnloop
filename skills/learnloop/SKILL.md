@@ -44,6 +44,8 @@ A practical heuristic: after drafting a section, ask *"If a learner got stuck he
 
 Choose Tutorial, Reference, Practice, or Perspective because the learner needs that form, not because a sample course used it. A module can use only the forms it needs.
 
+**Block support is unified across forms.** All standard blocks (paragraph, list, code, concept, compare, evidence, example, qa, exercise, checkpoint, etc.) are available in every template. Do not switch a module's template just to use a particular block. Instead, choose blocks based on the learning scene.
+
 | Form | Learner need | Do | Don't |
 |---|---|---|---|
 | **Tutorial** | Build a mental model from confusion to clarity | Start from likely confusion; explain real mechanism; use examples and analogies that map exactly; link to Reference for details | Dump every fact, lookup table, or dense formula here |
@@ -71,14 +73,14 @@ For small personal courses, planning notes can stay in the conversation. For tec
 
 ## Semantic Components
 
-Use components when they make the learning object clearer than another paragraph. Local images belong in `assets/`; remote images stay as links and are not downloaded.
+Use components when they make the learning object clearer than another paragraph. All components work in every template; match the component to the learning scene, not the template name. Local images belong in `assets/`; remote images stay as links and are not downloaded.
 
-| Component | Use for | Avoid |
+| Component | Best scene | Avoid |
 |---|---|---|
 | `concept` | A self-contained idea the learner must hold in memory | Nesting one inside another (unsupported) |
 | `evidence` | A quantitative or factual claim that needs a source | Subjective opinions or unsourced claims |
-| `qa` | A learner question and its detailed answer, attached to the relevant section | A dump of all questions at the end of a module |
-| `example` | A concrete, worked instance of an abstraction | Examples that do not map to the concept |
+| `qa` | A likely learner question attached to the relevant section; works in Tutorial, Reference, Practice, or Perspective | A dump of all questions at the end of a module |
+| `example` | A concrete, worked instance of an abstraction; especially useful in Reference and Perspective | Examples that do not map to the concept |
 | `compare` | Side-by-side comparison of two ideas | More than two sides or decorative tables |
 | `exercise` | Active practice with feedback | Passive reading disguised as a question |
 
@@ -196,4 +198,4 @@ Use `python3 -m learnloop ...` only when the package is not installed. If you mo
 - Do not require a `.learnloop/` workspace for every course.
 - Do not nest containers inside other containers.
 - Always build and spot-check the rendered HTML after structural changes.
-- If a block type is not listed in the template manifest, it will render incorrectly. Check the manifest before using a new block type.
+- Choose blocks by the learning scene, not by template restrictions: all standard blocks are supported in every template.
